@@ -18,14 +18,14 @@
   /* Accent Colors - Purposeful & Vibrant */
   --rosie-orange: #FF9500;
   --rosie-orange-light: #FFF5E6;
-  --rosie-purple: #AF52DE;
+  --rosie-purple: #B57BEC;
   --rosie-purple-light: #F5EAFA;
-  --rosie-green: #34C759;
-  --rosie-green-light: #E8F9ED;
+  --rosie-green: #6DD86D;
+  --rosie-green-light: #EEFBEE;
   --rosie-blue: #007AFF;
   --rosie-blue-light: #E5F2FF;
-  --rosie-red: #FF3B30;
-  --rosie-red-light: #FFEBE9;
+  --rosie-red: #FF6B6B;
+  --rosie-red-light: #FFEDED;
   --rosie-teal: #5AC8FA;
   --rosie-pink: #FF2D55;
 
@@ -38,10 +38,10 @@
   /* Semantic Colors */
   --rosie-feed: #FF9500;
   --rosie-feed-bg: #FFF8F0;
-  --rosie-sleep: #AF52DE;
+  --rosie-sleep: #B57BEC;
   --rosie-sleep-bg: #FAF5FF;
-  --rosie-diaper: #34C759;
-  --rosie-diaper-bg: #F0FDF4;
+  --rosie-diaper: #6DD86D;
+  --rosie-diaper-bg: #EEFBEE;
 
   /* Shadows - Layered depth */
   --rosie-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -248,7 +248,7 @@
 }
 
 .rosie-header.night .rosie-header-welcome::before {
-  background: linear-gradient(90deg, #C77DFF 0%, #AF52DE 100%);
+  background: linear-gradient(90deg, #D4A5F7 0%, #B57BEC 100%);
 }
 
 .rosie-greeting {
@@ -322,7 +322,7 @@
 }
 
 .rosie-timer-banner.sleep {
-  background: linear-gradient(135deg, var(--rosie-purple) 0%, #9B30FF 100%);
+  background: linear-gradient(135deg, var(--rosie-purple) 0%, #A050E8 100%);
   box-shadow: var(--rosie-shadow), 0 4px 16px rgba(175, 82, 222, 0.3);
 }
 
@@ -662,11 +662,11 @@
 }
 
 .rosie-summary-card.sleep::before {
-  background: linear-gradient(90deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(90deg, #D4A5F7 0%, var(--rosie-purple) 100%);
 }
 
 .rosie-summary-card.diaper::before {
-  background: linear-gradient(90deg, #6BCB77 0%, var(--rosie-green) 100%);
+  background: linear-gradient(90deg, #8DE58D 0%, var(--rosie-green) 100%);
 }
 
 .rosie-summary-icon {
@@ -734,143 +734,177 @@
   margin-top: 0;
 }
 
-/* Event Card - Apple Podcasts episode card style */
+/* Event Card - Apple Podcasts episode card style with refined depth */
 .rosie-event {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 16px;
-  background: var(--rosie-bg-card);
-  border-radius: var(--rosie-radius);
-  margin-bottom: 10px;
-  border: 1px solid var(--rosie-border);
-  transition: all var(--rosie-transition);
+  gap: 16px;
+  padding: 18px 18px 18px 20px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
+  border-radius: var(--rosie-radius-lg);
+  margin-bottom: 12px;
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.02),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
   position: relative;
   overflow: hidden;
 }
 
-/* Subtle color accent on left edge - like Podcasts episode indicator */
+/* Refined left accent - slightly wider with rounded ends feel */
 .rosie-event::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
   background: var(--rosie-fill);
-  transition: all var(--rosie-transition);
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .rosie-event.feed::before {
-  background: var(--rosie-feed);
+  background: linear-gradient(180deg, #FFB347 0%, var(--rosie-feed) 100%);
 }
 
 .rosie-event.sleep::before {
-  background: var(--rosie-sleep);
+  background: linear-gradient(180deg, #D4A5F7 0%, var(--rosie-purple) 100%);
 }
 
 .rosie-event.diaper::before {
-  background: var(--rosie-diaper);
+  background: linear-gradient(180deg, #8DE58D 0%, var(--rosie-green) 100%);
 }
 
 .rosie-event.note::before {
-  background: var(--rosie-blue);
+  background: linear-gradient(180deg, #5AC8FA 0%, var(--rosie-blue) 100%);
 }
 
 .rosie-event:hover {
   border-color: transparent;
-  box-shadow: var(--rosie-shadow);
-  transform: translateY(-1px);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.02),
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 100%);
+}
+
+.rosie-event:hover::before {
+  top: 4px;
+  bottom: 4px;
+  width: 5px;
 }
 
 .rosie-event:active {
-  transform: scale(0.99);
+  transform: scale(0.99) translateY(0);
+  transition-duration: 0.1s;
 }
 
-/* Event Icon - Larger, more prominent like Podcasts artwork */
+/* Event Icon - Polished with embossed quality like Podcasts artwork */
 .rosie-event-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--rosie-radius-sm);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--rosie-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 24px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+/* Subtle shine overlay on icons */
+.rosie-event-icon::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%);
+  border-radius: var(--rosie-radius) var(--rosie-radius) 0 0;
+  pointer-events: none;
 }
 
 .rosie-event-icon.feed {
-  background: linear-gradient(135deg, var(--rosie-orange-light) 0%, var(--rosie-feed-bg) 100%);
+  background: linear-gradient(180deg, #FFF5E6 0%, var(--rosie-feed-bg) 100%);
 }
 
 .rosie-event-icon.sleep {
-  background: linear-gradient(135deg, var(--rosie-purple-light) 0%, var(--rosie-sleep-bg) 100%);
+  background: linear-gradient(180deg, #F8F0FF 0%, var(--rosie-sleep-bg) 100%);
 }
 
 .rosie-event-icon.diaper {
-  background: linear-gradient(135deg, var(--rosie-green-light) 0%, var(--rosie-diaper-bg) 100%);
+  background: linear-gradient(180deg, #F0FFF0 0%, var(--rosie-diaper-bg) 100%);
 }
 
 .rosie-event-icon.note {
-  background: linear-gradient(135deg, var(--rosie-blue-light) 0%, #E5F2FF 100%);
+  background: linear-gradient(180deg, #EBF5FF 0%, var(--rosie-blue-light) 100%);
 }
 
 .rosie-event-content {
   flex: 1;
   min-width: 0;
+  padding-top: 2px;
 }
 
 .rosie-event-header {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
 .rosie-event-time {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--rosie-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .rosie-event-type {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--rosie-text-secondary);
   font-weight: 500;
 }
 
 .rosie-event-details {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--rosie-text-secondary);
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .rosie-event-note {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--rosie-text-tertiary);
-  margin-top: 6px;
+  margin-top: 8px;
   font-style: italic;
-  line-height: 1.4;
-  padding-left: 10px;
+  line-height: 1.5;
+  padding-left: 12px;
   border-left: 2px solid var(--rosie-fill);
 }
 
-/* Chevron indicator for clickable events */
+/* Chevron indicator - more subtle, Apple-style */
 .rosie-event-chevron {
   color: var(--rosie-text-tertiary);
-  font-size: 18px;
+  font-size: 16px;
   margin-left: auto;
   padding-left: 8px;
-  opacity: 0.5;
-  transition: all var(--rosie-transition);
+  opacity: 0.35;
+  transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+  align-self: center;
 }
 
 .rosie-event:hover .rosie-event-chevron {
-  opacity: 1;
-  transform: translateX(2px);
+  opacity: 0.7;
+  transform: translateX(3px);
 }
 
 .rosie-timeline-empty {
@@ -898,17 +932,18 @@
 }
 
 /* ===== Quick Log Bar ===== */
+/* Apple Fitness+ inspired: Floating glass bar with bold, confident buttons */
 .rosie-quicklog {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--rosie-bg-elevated);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 12px 16px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--rosie-border);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  padding: 16px 20px;
+  padding-bottom: max(16px, calc(env(safe-area-inset-bottom) + 4px));
+  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
   z-index: 100;
 }
 
@@ -917,93 +952,101 @@
   margin: 0 auto;
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .rosie-quicklog-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 28px;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 32px;
   background: var(--rosie-bg-card);
   border: none;
-  border-radius: var(--rosie-radius-lg);
-  box-shadow: var(--rosie-shadow);
+  border-radius: var(--rosie-radius-xl);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  transition: all var(--rosie-transition);
-  min-width: 95px;
+  transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+  min-width: 100px;
   position: relative;
-  overflow: hidden;
 }
 
-/* Gradient accent bar at bottom */
+/* Remove bottom accent bars - cleaner Apple aesthetic */
 .rosie-quicklog-btn::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  transition: height 0.2s ease;
+  display: none;
 }
 
 .rosie-quicklog-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--rosie-shadow-lg);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .rosie-quicklog-btn:active {
-  transform: translateY(-1px);
-  box-shadow: var(--rosie-shadow);
+  transform: translateY(-1px) scale(0.98);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition-duration: 0.1s;
 }
 
-.rosie-quicklog-btn.feed::after {
-  background: linear-gradient(90deg, #FFB347 0%, var(--rosie-orange) 100%);
+/* Feed button - warm orange glow */
+.rosie-quicklog-btn.feed {
+  background: linear-gradient(180deg, #FFFAF5 0%, var(--rosie-bg-card) 100%);
 }
 
 .rosie-quicklog-btn.feed:hover {
-  background: var(--rosie-feed-bg);
-  box-shadow: var(--rosie-shadow), 0 4px 12px rgba(255, 149, 0, 0.2);
+  background: linear-gradient(180deg, var(--rosie-feed-bg) 0%, #FFF5E6 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(255, 149, 0, 0.2),
+    0 0 0 1px rgba(255, 149, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.rosie-quicklog-btn.feed:hover::after {
-  height: 6px;
-}
-
-.rosie-quicklog-btn.sleep::after {
-  background: linear-gradient(90deg, #C77DFF 0%, var(--rosie-purple) 100%);
+/* Sleep button - calming purple glow */
+.rosie-quicklog-btn.sleep {
+  background: linear-gradient(180deg, #FBF8FF 0%, var(--rosie-bg-card) 100%);
 }
 
 .rosie-quicklog-btn.sleep:hover {
-  background: var(--rosie-sleep-bg);
-  box-shadow: var(--rosie-shadow), 0 4px 12px rgba(175, 82, 222, 0.2);
+  background: linear-gradient(180deg, var(--rosie-sleep-bg) 0%, #F5EAFA 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(181, 123, 236, 0.2),
+    0 0 0 1px rgba(181, 123, 236, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.rosie-quicklog-btn.sleep:hover::after {
-  height: 6px;
-}
-
-.rosie-quicklog-btn.diaper::after {
-  background: linear-gradient(90deg, #6BCB77 0%, var(--rosie-green) 100%);
+/* Diaper button - fresh green glow */
+.rosie-quicklog-btn.diaper {
+  background: linear-gradient(180deg, #F8FFF8 0%, var(--rosie-bg-card) 100%);
 }
 
 .rosie-quicklog-btn.diaper:hover {
-  background: var(--rosie-diaper-bg);
-  box-shadow: var(--rosie-shadow), 0 4px 12px rgba(52, 199, 89, 0.2);
-}
-
-.rosie-quicklog-btn.diaper:hover::after {
-  height: 6px;
+  background: linear-gradient(180deg, var(--rosie-diaper-bg) 0%, #EEFBEE 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(109, 216, 109, 0.2),
+    0 0 0 1px rgba(109, 216, 109, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .rosie-quicklog-icon {
-  font-size: 24px;
+  font-size: 28px;
+  line-height: 1;
 }
 
 .rosie-quicklog-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--rosie-text-primary);
 }
 
@@ -1145,6 +1188,7 @@
   padding: 24px 0;
 }
 
+/* Timer Ring - Apple Fitness+ inspired with luminous glow */
 .rosie-timer-ring {
   position: relative;
   width: 220px;
@@ -1152,46 +1196,83 @@
   margin-bottom: 20px;
 }
 
+/* Ambient glow behind the ring - creates depth */
+.rosie-timer-ring::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 149, 0, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.rosie-timer-ring.active::before {
+  opacity: 1;
+  animation: rosie-ambient-glow 3s ease-in-out infinite;
+}
+
+.rosie-timer-ring.sleep::before {
+  background: radial-gradient(circle, rgba(181, 123, 236, 0.1) 0%, transparent 70%);
+}
+
 .rosie-timer-ring svg {
   transform: rotate(-90deg);
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 4px 12px rgba(255, 149, 0, 0.25));
+  filter: drop-shadow(0 4px 16px rgba(255, 149, 0, 0.3));
+  transition: filter 0.4s ease;
+}
+
+.rosie-timer-ring.active svg {
+  filter: drop-shadow(0 6px 24px rgba(255, 149, 0, 0.4));
 }
 
 .rosie-timer-ring svg.sleep {
-  filter: drop-shadow(0 4px 12px rgba(175, 82, 222, 0.25));
+  filter: drop-shadow(0 4px 16px rgba(181, 123, 236, 0.3));
 }
 
+.rosie-timer-ring.active svg.sleep {
+  filter: drop-shadow(0 6px 24px rgba(181, 123, 236, 0.45));
+}
+
+/* Ring track - more dimensional with subtle gradient */
 .rosie-timer-ring-bg {
   fill: none;
   stroke: var(--rosie-fill);
   stroke-width: 16;
+  opacity: 0.6;
 }
 
+/* Progress ring with enhanced glow */
 .rosie-timer-ring-progress {
   fill: none;
   stroke: url(#feedGradient);
   stroke-width: 16;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.3s ease-out;
+  filter: drop-shadow(0 0 6px rgba(255, 149, 0, 0.5));
 }
 
 .rosie-timer-ring-progress.sleep {
   stroke: url(#sleepGradient);
+  filter: drop-shadow(0 0 6px rgba(181, 123, 236, 0.5));
 }
 
-/* End cap shadow effect - Apple Fitness style */
+/* End cap shadow effect - enhanced Apple Fitness style */
 .rosie-timer-ring-cap {
   fill: var(--rosie-orange);
-  filter: drop-shadow(-3px 0 4px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(-3px 0 6px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 8px rgba(255, 149, 0, 0.6));
   transition: all 0.3s ease-out;
 }
 
 .rosie-timer-ring-cap.sleep {
   fill: var(--rosie-purple);
+  filter: drop-shadow(-3px 0 6px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 8px rgba(181, 123, 236, 0.6));
 }
 
+/* Inner circle with refined depth */
 .rosie-timer-ring-inner {
   position: absolute;
   inset: 28px;
@@ -1199,11 +1280,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--rosie-bg-card);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
   border-radius: 50%;
   box-shadow:
-    inset 0 2px 8px rgba(0, 0, 0, 0.04),
-    0 0 0 1px var(--rosie-border);
+    inset 0 2px 8px rgba(0, 0, 0, 0.03),
+    inset 0 -1px 4px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .rosie-timer-time-large {
@@ -1221,7 +1304,7 @@
   color: var(--rosie-text-secondary);
   margin-top: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
 .rosie-timer-label.active {
@@ -1236,22 +1319,55 @@
   color: var(--rosie-purple);
 }
 
-/* Pulsing animation for active timer */
+/* Ambient glow animation - organic breathing effect */
+@keyframes rosie-ambient-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* Ring pulse animation - more organic, Apple-style */
 @keyframes rosie-ring-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(255, 149, 0, 0.5));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 10px rgba(255, 149, 0, 0.7));
+  }
+}
+
+@keyframes rosie-ring-pulse-purple {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(181, 123, 236, 0.5));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 10px rgba(181, 123, 236, 0.7));
+  }
 }
 
 .rosie-timer-ring.active .rosie-timer-ring-progress {
-  animation: rosie-ring-pulse 2s ease-in-out infinite;
+  animation: rosie-ring-pulse 2.5s ease-in-out infinite;
 }
 
-/* ===== Dual Timer Rings (L/R Breastfeeding) ===== */
+.rosie-timer-ring.active .rosie-timer-ring-progress.sleep {
+  animation: rosie-ring-pulse-purple 2.5s ease-in-out infinite;
+}
+
+/* ===== Dual Timer Rings (L/R Breastfeeding) - Apple Fitness+ inspired ===== */
 .rosie-dual-timer-rings {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .rosie-timer-ring-small {
@@ -1260,32 +1376,86 @@
   height: 140px;
 }
 
+/* Ambient glow for small rings */
+.rosie-timer-ring-small::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 45, 85, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.rosie-timer-ring-small:last-child::before {
+  background: radial-gradient(circle, rgba(0, 122, 255, 0.08) 0%, transparent 70%);
+}
+
+.rosie-timer-ring-small.active::before {
+  opacity: 1;
+  animation: rosie-ambient-glow 3s ease-in-out infinite;
+}
+
 .rosie-timer-ring-small svg {
   transform: rotate(-90deg);
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
-  transition: filter 0.3s ease;
+  filter: drop-shadow(0 4px 12px rgba(255, 45, 85, 0.2));
+  transition: filter 0.4s ease;
+}
+
+.rosie-timer-ring-small:last-child svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 122, 255, 0.2));
 }
 
 .rosie-timer-ring-small.active svg {
-  filter: drop-shadow(0 4px 16px rgba(255, 45, 85, 0.3));
+  filter: drop-shadow(0 6px 20px rgba(255, 45, 85, 0.4));
 }
 
 .rosie-timer-ring-small:last-child.active svg {
-  filter: drop-shadow(0 4px 16px rgba(0, 122, 255, 0.3));
+  filter: drop-shadow(0 6px 20px rgba(0, 122, 255, 0.4));
 }
 
 .rosie-timer-ring-progress.left {
   stroke: url(#leftGradient);
+  filter: drop-shadow(0 0 5px rgba(255, 45, 85, 0.5));
 }
 
 .rosie-timer-ring-progress.right {
   stroke: url(#rightGradient);
+  filter: drop-shadow(0 0 5px rgba(0, 122, 255, 0.5));
 }
 
-.rosie-timer-ring-small.active .rosie-timer-ring-progress {
-  animation: rosie-ring-pulse 2s ease-in-out infinite;
+/* Pulse animations for L/R rings */
+@keyframes rosie-ring-pulse-pink {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(255, 45, 85, 0.5));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 10px rgba(255, 45, 85, 0.7));
+  }
+}
+
+@keyframes rosie-ring-pulse-blue {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(0, 122, 255, 0.5));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 10px rgba(0, 122, 255, 0.7));
+  }
+}
+
+.rosie-timer-ring-small.active .rosie-timer-ring-progress.left {
+  animation: rosie-ring-pulse-pink 2.5s ease-in-out infinite;
+}
+
+.rosie-timer-ring-small.active .rosie-timer-ring-progress.right {
+  animation: rosie-ring-pulse-blue 2.5s ease-in-out infinite;
 }
 
 .rosie-timer-ring-inner-small {
@@ -1295,11 +1465,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--rosie-bg-card);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
   border-radius: 50%;
   box-shadow:
-    inset 0 2px 8px rgba(0, 0, 0, 0.04),
-    0 0 0 1px var(--rosie-border);
+    inset 0 2px 6px rgba(0, 0, 0, 0.03),
+    inset 0 -1px 3px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
 .rosie-timer-time-medium {
@@ -1316,7 +1488,7 @@
   font-weight: 700;
   margin-top: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .rosie-timer-label-small.left {
@@ -1348,7 +1520,7 @@
 }
 
 .rosie-ring-control-btn.start {
-  background: linear-gradient(180deg, #3DD46D 0%, var(--rosie-green) 100%);
+  background: linear-gradient(180deg, #8DE58D 0%, var(--rosie-green) 100%);
   color: white;
 }
 
@@ -1617,7 +1789,7 @@
 }
 
 .rosie-side-timer-btn.start {
-  background: linear-gradient(180deg, #3DD46D 0%, var(--rosie-green) 100%);
+  background: linear-gradient(180deg, #8DE58D 0%, var(--rosie-green) 100%);
   color: white;
   box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
 }
@@ -1668,7 +1840,7 @@
 }
 
 .rosie-timer-action-btn.start {
-  background: linear-gradient(180deg, #3DD46D 0%, var(--rosie-green) 100%);
+  background: linear-gradient(180deg, #8DE58D 0%, var(--rosie-green) 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(52, 199, 89, 0.35);
 }
@@ -1683,7 +1855,7 @@
 }
 
 .rosie-timer-action-btn.stop {
-  background: linear-gradient(180deg, #FF5C4D 0%, var(--rosie-red) 100%);
+  background: linear-gradient(180deg, #FF8E8E 0%, var(--rosie-red) 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(255, 59, 48, 0.35);
 }
@@ -1848,7 +2020,7 @@
   font-family: inherit;
   color: #FFFFFF !important;
   -webkit-text-fill-color: #FFFFFF !important;
-  background: linear-gradient(180deg, #3DD46D 0%, #34C759 100%) !important;
+  background: linear-gradient(180deg, #8DE58D 0%, #6DD86D 100%) !important;
   border: none;
   border-radius: var(--rosie-radius-full);
   cursor: pointer;
@@ -1928,7 +2100,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(90deg, #D4A5F7 0%, var(--rosie-purple) 100%);
 }
 
 .rosie-dev-week {
@@ -2017,7 +2189,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6BCB77 0%, var(--rosie-green) 100%);
+  background: linear-gradient(135deg, #8DE58D 0%, var(--rosie-green) 100%);
   box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
 }
 
@@ -2045,7 +2217,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--rosie-purple) 0%, #C77DFF 100%);
+  background: linear-gradient(90deg, var(--rosie-purple) 0%, #D4A5F7 100%);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -2106,7 +2278,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(90deg, #D4A5F7 0%, var(--rosie-purple) 100%);
 }
 
 /* Upcoming section title - reusing section title styles */
@@ -2120,7 +2292,7 @@
 
 /* Upcoming list items - purple bullet points */
 .rosie-dev-upcoming-list li::before {
-  background: linear-gradient(135deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(135deg, #D4A5F7 0%, var(--rosie-purple) 100%);
   box-shadow: 0 2px 6px rgba(175, 82, 222, 0.3);
 }
 
@@ -2769,11 +2941,11 @@
 }
 
 .rosie-event-detail-icon.sleep {
-  background: linear-gradient(135deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(135deg, #D4A5F7 0%, var(--rosie-purple) 100%);
 }
 
 .rosie-event-detail-icon.diaper {
-  background: linear-gradient(135deg, #6BCB77 0%, var(--rosie-green) 100%);
+  background: linear-gradient(135deg, #8DE58D 0%, var(--rosie-green) 100%);
 }
 
 .rosie-event-detail-icon.note {
@@ -4138,7 +4310,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(90deg, #D4A5F7 0%, var(--rosie-purple) 100%);
   border-radius: 16px 16px 0 0;
 }
 
@@ -4219,7 +4391,7 @@
 
 .rosie-leap-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(90deg, #D4A5F7 0%, var(--rosie-purple) 100%);
   border-radius: var(--rosie-radius-full);
   transition: width 0.5s var(--rosie-ease);
   box-shadow: 0 2px 6px rgba(175, 82, 222, 0.3);
@@ -4240,13 +4412,13 @@
 }
 
 .rosie-leap-section .rosie-dev-list li::before {
-  background: linear-gradient(135deg, #C77DFF 0%, var(--rosie-purple) 100%);
+  background: linear-gradient(135deg, #D4A5F7 0%, var(--rosie-purple) 100%);
   box-shadow: 0 2px 6px rgba(175, 82, 222, 0.3);
 }
 
 /* New Skills After section - green accent */
 .rosie-leap-after .rosie-dev-list li::before {
-  background: linear-gradient(135deg, #6BCB77 0%, var(--rosie-green) 100%);
+  background: linear-gradient(135deg, #8DE58D 0%, var(--rosie-green) 100%);
   box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
 }
 
@@ -4295,7 +4467,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #6BCB77 0%, var(--rosie-green) 100%);
+  background: linear-gradient(90deg, #8DE58D 0%, var(--rosie-green) 100%);
   border-radius: 16px 16px 0 0;
 }
 
@@ -4319,7 +4491,7 @@
 }
 
 .rosie-card-parent .rosie-dev-list li::before {
-  background: linear-gradient(135deg, #6BCB77 0%, var(--rosie-green) 100%);
+  background: linear-gradient(135deg, #8DE58D 0%, var(--rosie-green) 100%);
   box-shadow: 0 2px 6px rgba(52, 199, 89, 0.3);
 }
 
@@ -5139,7 +5311,7 @@
 }
 
 .rosie-auth-btn-primary {
-  background: linear-gradient(135deg, #AF52DE 0%, #9B30FF 100%) !important;
+  background: linear-gradient(135deg, #B57BEC 0%, #A050E8 100%) !important;
   color: #FFFFFF !important;
   -webkit-text-fill-color: #FFFFFF !important;
   box-shadow: 0 4px 14px rgba(175, 82, 222, 0.3);

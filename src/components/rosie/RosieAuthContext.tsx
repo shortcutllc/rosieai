@@ -112,8 +112,21 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const loadUserData = async (userId: string) => {
       console.log('[RosieAuth] Loading user data for:', userId);
 
-      const userProfile = await fetchProfile(userId);
-      const userBabies = await fetchBabies(userId);
+      // Add timeout to prevent hanging if Supabase tables are unreachable
+      const timeoutPromise = new Promise<{ profile: null; babies: never[] }>((resolve) => {
+        setTimeout(() => {
+          console.warn('[RosieAuth] loadUserData timed out');
+          resolve({ profile: null, babies: [] });
+        }, 5000);
+      });
+
+      const fetchDataPromise = (async () => {
+        const userProfile = await fetchProfile(userId);
+        const userBabies = await fetchBabies(userId);
+        return { profile: userProfile, babies: userBabies };
+      })();
+
+      const { profile: userProfile, babies: userBabies } = await Promise.race([fetchDataPromise, timeoutPromise]);
 
       console.log('[RosieAuth] Fetched profile:', userProfile);
       console.log('[RosieAuth] Fetched babies:', userBabies);
@@ -130,14 +143,29 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     const initAuth = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('[RosieAuth] Initial session:', currentSession?.user?.id || 'none');
+      // Add timeout to prevent infinite loading if Supabase is unreachable
+      const timeoutPromise = new Promise<null>((resolve) => {
+        setTimeout(() => {
+          console.warn('[RosieAuth] Auth initialization timed out');
+          resolve(null);
+        }, 5000);
+      });
 
-        if (currentSession?.user && isMounted) {
-          setSession(currentSession);
-          setUser(currentSession.user);
-          await loadUserData(currentSession.user.id);
+      try {
+        const sessionPromise = supabase.auth.getSession();
+        const result = await Promise.race([sessionPromise, timeoutPromise]);
+
+        if (result && 'data' in result) {
+          const currentSession = result.data.session;
+          console.log('[RosieAuth] Initial session:', currentSession?.user?.id || 'none');
+
+          if (currentSession?.user && isMounted) {
+            setSession(currentSession);
+            setUser(currentSession.user);
+            await loadUserData(currentSession.user.id);
+          }
+        } else {
+          console.log('[RosieAuth] No session or timed out, proceeding without auth');
         }
       } catch (err) {
         console.error('Error initializing Rosie auth:', err);
@@ -156,23 +184,27 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (!isMounted) return;
 
-      if (newSession?.user) {
-        setSession(newSession);
-        setUser(newSession.user);
+      try {
+        if (newSession?.user) {
+          setSession(newSession);
+          setUser(newSession.user);
 
-        // Always fetch profile and babies on sign in events
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-          await loadUserData(newSession.user.id);
+          // Always fetch profile and babies on sign in events
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            await loadUserData(newSession.user.id);
+          }
+        } else {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setBabies([]);
+          setCurrentBabyState(null);
         }
-      } else {
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-        setBabies([]);
-        setCurrentBabyState(null);
+      } catch (err) {
+        console.error('[RosieAuth] Error in auth state change handler:', err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     });
 
     return () => {

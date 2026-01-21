@@ -256,7 +256,7 @@ export const RosieInsights: React.FC<RosieInsightsProps> = ({ baby, timeline }) 
           maxValue={scaledExpected.sleepMinutes}
           size={110}
           strokeWidth={10}
-          color="#AF52DE"
+          color="#B57BEC"
           label="Sleep"
           displayValue={formatDurationDisplay(stats.totalSleepMinutes)}
           subLabel={period !== 'today' ? `${formatDurationDisplay(stats.avgSleepPerDay)}/day` : undefined}

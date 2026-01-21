@@ -14,6 +14,19 @@ import { getStoredData, saveData, clearData } from './storage';
 import { getDevelopmentalInfo } from './developmentalData';
 import './rosie.css';
 
+// Helper to generate UUID (fallback for browsers without crypto.randomUUID)
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return generateUUID();
+  }
+  // Fallback for older browsers
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 // Helper to format seconds as mm:ss or hh:mm:ss
 const formatDuration = (seconds: number): string => {
   const hrs = Math.floor(seconds / 3600);
@@ -151,7 +164,7 @@ const RosieAIContent: React.FC = () => {
 
     const newEvent: TimelineEvent = {
       ...event,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       timestamp: new Date().toISOString(),
     };
 
@@ -181,7 +194,7 @@ const RosieAIContent: React.FC = () => {
 
     const newMessage: ChatMessage = {
       ...message,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       timestamp: new Date().toISOString(),
     };
 
@@ -224,7 +237,7 @@ const RosieAIContent: React.FC = () => {
 
     const newMeasurement: GrowthMeasurement = {
       ...measurement,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       timestamp: new Date().toISOString(),
     };
 

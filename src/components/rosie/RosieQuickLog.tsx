@@ -1246,8 +1246,8 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                       <svg viewBox="0 0 100 100" className="sleep">
                         <defs>
                           <linearGradient id="sleepGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#C77DFF" />
-                            <stop offset="100%" stopColor="#AF52DE" />
+                            <stop offset="0%" stopColor="#D4A5F7" />
+                            <stop offset="100%" stopColor="#B57BEC" />
                           </linearGradient>
                         </defs>
                         {/* Background ring */}
@@ -1398,7 +1398,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                     maxValue={sleepType === 'nap' ? 180 : 720} // 3h for nap, 12h for night
                     size={180}
                     strokeWidth={22}
-                    color="#AF52DE"
+                    color="#B57BEC"
                     label={sleepType === 'nap' ? 'Nap' : 'Night Sleep'}
                     showHours={true}
                   />

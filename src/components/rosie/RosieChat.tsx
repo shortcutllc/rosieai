@@ -2,6 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo } from './types';
 import { formatTime } from './developmentalData';
 
+// Helper to generate UUID (fallback for browsers without crypto.randomUUID)
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return generateUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 interface RosieChatProps {
   baby: BabyProfile;
   messages: ChatMessage[];
@@ -192,7 +204,7 @@ I'm here to help!`;
 
     // Add user message
     const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       timestamp: new Date().toISOString(),
       role: 'user',
       content: userMessage,
@@ -207,7 +219,7 @@ I'm here to help!`;
       const response = await generateResponse(userMessage);
 
       const assistantMsg: ChatMessage = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         timestamp: new Date().toISOString(),
         role: 'assistant',
         content: response,
