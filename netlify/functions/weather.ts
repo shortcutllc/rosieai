@@ -11,24 +11,51 @@ interface WeatherResponse {
   location: string;
 }
 
-// Map OpenWeatherMap condition codes to simple icons
-const getWeatherIcon = (iconCode: string, condition: string): string => {
-  // OpenWeatherMap icon codes: https://openweathermap.org/weather-conditions
-  const code = iconCode.substring(0, 2);
-  const isDay = iconCode.endsWith('d');
-
-  switch (code) {
-    case '01': return isDay ? '☀️' : '🌙'; // clear
-    case '02': return isDay ? '⛅' : '☁️'; // few clouds
-    case '03': return '☁️'; // scattered clouds
-    case '04': return '☁️'; // broken clouds
-    case '09': return '🌧️'; // shower rain
-    case '10': return isDay ? '🌦️' : '🌧️'; // rain
-    case '11': return '⛈️'; // thunderstorm
-    case '13': return '❄️'; // snow
-    case '50': return '🌫️'; // mist/fog
-    default: return '🌡️';
+// Map WMO weather codes to conditions and icons
+// https://open-meteo.com/en/docs#weathervariables
+const getWeatherInfo = (weatherCode: number, isDay: boolean): { condition: string; icon: string } => {
+  // Clear
+  if (weatherCode === 0) {
+    return { condition: 'Clear', icon: isDay ? '☀️' : '🌙' };
   }
+  // Mainly clear, partly cloudy
+  if (weatherCode === 1 || weatherCode === 2) {
+    return { condition: 'Partly Cloudy', icon: isDay ? '⛅' : '☁️' };
+  }
+  // Overcast
+  if (weatherCode === 3) {
+    return { condition: 'Cloudy', icon: '☁️' };
+  }
+  // Fog
+  if (weatherCode === 45 || weatherCode === 48) {
+    return { condition: 'Foggy', icon: '🌫️' };
+  }
+  // Drizzle
+  if (weatherCode >= 51 && weatherCode <= 57) {
+    return { condition: 'Drizzle', icon: '🌧️' };
+  }
+  // Rain
+  if (weatherCode >= 61 && weatherCode <= 67) {
+    return { condition: 'Rain', icon: '🌧️' };
+  }
+  // Snow
+  if (weatherCode >= 71 && weatherCode <= 77) {
+    return { condition: 'Snow', icon: '❄️' };
+  }
+  // Rain showers
+  if (weatherCode >= 80 && weatherCode <= 82) {
+    return { condition: 'Showers', icon: isDay ? '🌦️' : '🌧️' };
+  }
+  // Snow showers
+  if (weatherCode === 85 || weatherCode === 86) {
+    return { condition: 'Snow Showers', icon: '🌨️' };
+  }
+  // Thunderstorm
+  if (weatherCode >= 95 && weatherCode <= 99) {
+    return { condition: 'Thunderstorm', icon: '⛈️' };
+  }
+
+  return { condition: 'Unknown', icon: '🌡️' };
 };
 
 const handler: Handler = async (event) => {
@@ -53,50 +80,53 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    const apiKey = process.env.OPENWEATHER_API_KEY;
+    const location = event.queryStringParameters?.location || 'New York, NY';
 
-    if (!apiKey) {
+    // Step 1: Geocode the location using Open-Meteo's geocoding API (free, no key)
+    const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`;
+
+    const geocodeResponse = await fetch(geocodeUrl);
+    if (!geocodeResponse.ok) {
+      throw new Error('Geocoding failed');
+    }
+
+    const geocodeData = await geocodeResponse.json();
+
+    if (!geocodeData.results || geocodeData.results.length === 0) {
       return {
-        statusCode: 500,
+        statusCode: 404,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Weather API key not configured' }),
+        body: JSON.stringify({ error: 'Location not found' }),
       };
     }
 
-    const location = event.queryStringParameters?.location || 'New York, NY';
-    const units = event.queryStringParameters?.units || 'imperial'; // imperial for Fahrenheit
+    const { latitude, longitude, name, admin1, country } = geocodeData.results[0];
+    const locationName = admin1 ? `${name}, ${admin1}` : `${name}, ${country}`;
 
-    // Get current weather
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=${units}&appid=${apiKey}`;
+    // Step 2: Get weather from Open-Meteo (free, no key)
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=auto`;
 
     const weatherResponse = await fetch(weatherUrl);
-
     if (!weatherResponse.ok) {
-      const errorData = await weatherResponse.json().catch(() => ({}));
-      console.error('Weather API error:', errorData);
-
-      if (weatherResponse.status === 404) {
-        return {
-          statusCode: 404,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: 'Location not found' }),
-        };
-      }
-
-      throw new Error('Failed to fetch weather data');
+      throw new Error('Weather API failed');
     }
 
-    const data = await weatherResponse.json();
+    const weatherData = await weatherResponse.json();
+    const current = weatherData.current;
+    const daily = weatherData.daily;
+
+    const isDay = current.is_day === 1;
+    const { condition, icon } = getWeatherInfo(current.weather_code, isDay);
 
     const response: WeatherResponse = {
-      temperature: Math.round(data.main.temp),
-      condition: data.weather[0].main,
-      icon: getWeatherIcon(data.weather[0].icon, data.weather[0].main),
-      humidity: data.main.humidity,
-      feelsLike: Math.round(data.main.feels_like),
-      high: Math.round(data.main.temp_max),
-      low: Math.round(data.main.temp_min),
-      location: `${data.name}${data.sys.country ? `, ${data.sys.country}` : ''}`,
+      temperature: Math.round(current.temperature_2m),
+      condition,
+      icon,
+      humidity: current.relative_humidity_2m,
+      feelsLike: Math.round(current.apparent_temperature),
+      high: Math.round(daily.temperature_2m_max[0]),
+      low: Math.round(daily.temperature_2m_min[0]),
+      location: locationName,
     };
 
     return {
