@@ -80,10 +80,15 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    const location = event.queryStringParameters?.location || 'New York, NY';
+    let location = event.queryStringParameters?.location || 'New York, NY';
+
+    // Clean up location string - extract just the city name for better geocoding
+    // Open-Meteo geocoding works best with city names only
+    const locationParts = location.split(',').map(p => p.trim());
+    const searchCity = locationParts[0]; // Use just the city name for geocoding
 
     // Step 1: Geocode the location using Open-Meteo's geocoding API (free, no key)
-    const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`;
+    const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchCity)}&count=5&language=en&format=json`;
 
     const geocodeResponse = await fetch(geocodeUrl);
     if (!geocodeResponse.ok) {
@@ -100,7 +105,37 @@ const handler: Handler = async (event) => {
       };
     }
 
-    const { latitude, longitude, name, admin1, country } = geocodeData.results[0];
+    // US state abbreviation mapping for better matching
+    const stateAbbreviations: Record<string, string> = {
+      'al': 'alabama', 'ak': 'alaska', 'az': 'arizona', 'ar': 'arkansas', 'ca': 'california',
+      'co': 'colorado', 'ct': 'connecticut', 'de': 'delaware', 'fl': 'florida', 'ga': 'georgia',
+      'hi': 'hawaii', 'id': 'idaho', 'il': 'illinois', 'in': 'indiana', 'ia': 'iowa',
+      'ks': 'kansas', 'ky': 'kentucky', 'la': 'louisiana', 'me': 'maine', 'md': 'maryland',
+      'ma': 'massachusetts', 'mi': 'michigan', 'mn': 'minnesota', 'ms': 'mississippi', 'mo': 'missouri',
+      'mt': 'montana', 'ne': 'nebraska', 'nv': 'nevada', 'nh': 'new hampshire', 'nj': 'new jersey',
+      'nm': 'new mexico', 'ny': 'new york', 'nc': 'north carolina', 'nd': 'north dakota', 'oh': 'ohio',
+      'ok': 'oklahoma', 'or': 'oregon', 'pa': 'pennsylvania', 'ri': 'rhode island', 'sc': 'south carolina',
+      'sd': 'south dakota', 'tn': 'tennessee', 'tx': 'texas', 'ut': 'utah', 'vt': 'vermont',
+      'va': 'virginia', 'wa': 'washington', 'wv': 'west virginia', 'wi': 'wisconsin', 'wy': 'wyoming',
+      'dc': 'district of columbia'
+    };
+
+    // Try to find the best match - prefer US results if a state was provided
+    let bestMatch = geocodeData.results[0];
+    if (locationParts.length > 1) {
+      const stateHint = locationParts[1].toLowerCase().trim();
+      const stateName = stateAbbreviations[stateHint] || stateHint;
+
+      // Look for a US result matching the state
+      const usMatch = geocodeData.results.find((r: { country_code?: string; admin1?: string }) =>
+        r.country_code === 'US' && r.admin1?.toLowerCase().includes(stateName)
+      );
+      if (usMatch) {
+        bestMatch = usMatch;
+      }
+    }
+
+    const { latitude, longitude, name, admin1, country } = bestMatch;
     const locationName = admin1 ? `${name}, ${admin1}` : `${name}, ${country}`;
 
     // Step 2: Get weather from Open-Meteo (free, no key)
