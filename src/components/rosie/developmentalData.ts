@@ -521,7 +521,132 @@ const weeklyData: Record<number, WeekData> = {
       'Month 4: May start showing interest in food',
     ],
   },
-  // Continue with months 4-12...
+  13: {
+    milestones: [
+      'Head control well established',
+      'Pushes up on forearms during tummy time',
+      'May start reaching with both hands',
+      'Laughs and squeals regularly',
+      'Shows interest in toys',
+    ],
+    whatToExpect: [
+      'Post-fourth trimester adjustment',
+      'More predictable routines',
+      'Personality really shining through',
+      'More awake time and engagement',
+      'May be more easily entertained',
+    ],
+    commonConcerns: [
+      'Sleep patterns still developing',
+      'Normal to still have night feeds',
+      'Drooling increasing (not necessarily teething)',
+      'Growth continues steadily',
+    ],
+    sleepInfo: {
+      totalSleep: '14-15 hours',
+      nightSleep: '8-10 hours (with feeds)',
+      napCount: '3-4 naps',
+      wakeWindow: '1.5-2 hours',
+    },
+    feedingInfo: {
+      frequency: 'Every 3-4 hours',
+      amount: '5-7 oz per bottle feed',
+      notes: [
+        'Feeding efficiency improving',
+        'May go longer between feeds',
+        'Growth spurts still happen',
+      ],
+    },
+    upcomingChanges: [
+      'Week 14-15: More interactive play',
+      'Week 15-16: 4-month regression approaching',
+      'Month 4: Big developmental changes coming',
+    ],
+  },
+  14: {
+    milestones: [
+      'Stronger core muscles',
+      'May start mini push-ups',
+      'Brings hands to mouth deliberately',
+      'Tracks objects 180 degrees',
+      'More varied vocalizations',
+    ],
+    whatToExpect: [
+      'Growing independence',
+      'Enjoys watching surroundings',
+      'More stamina for play',
+      'Getting ready for next big leap',
+      'May show preference for certain toys',
+    ],
+    commonConcerns: [
+      'Sleep regression may be starting',
+      'More distractible during feeds',
+      'Normal developmental changes',
+      'Increased awareness affects sleep',
+    ],
+    sleepInfo: {
+      totalSleep: '14-15 hours',
+      nightSleep: '8-10 hours (with feeds)',
+      napCount: '3-4 naps',
+      wakeWindow: '1.5-2 hours',
+    },
+    feedingInfo: {
+      frequency: 'Every 3-4 hours',
+      amount: '5-7 oz per bottle feed',
+      notes: [
+        'May be distracted while feeding',
+        'Feed in calm environment if needed',
+        'Growth continues steadily',
+      ],
+    },
+    upcomingChanges: [
+      'Week 15-16: Sleep regression likely',
+      'Week 16: 4-month checkup',
+      'Week 19: Wonder Week 4 peak',
+    ],
+  },
+  15: {
+    milestones: [
+      'May start rolling tummy to back',
+      'Reaches and grasps toys',
+      'Holds head steady when upright',
+      'Social laughing with people',
+      'Recognizes familiar faces across room',
+    ],
+    whatToExpect: [
+      'Sleep regression may begin',
+      'More curious about surroundings',
+      'Increased mobility attempts',
+      'Wonder Week 4 approaching',
+      'Getting ready for bigger leaps',
+    ],
+    commonConcerns: [
+      '4-month sleep regression starting',
+      'Sleep cycles maturing (more light sleep)',
+      'Temporary increase in night wakings',
+      'This is brain development, not regression',
+    ],
+    sleepInfo: {
+      totalSleep: '14-15 hours',
+      nightSleep: 'May start regressing',
+      napCount: '3-4 naps',
+      wakeWindow: '1.5-2 hours',
+    },
+    feedingInfo: {
+      frequency: 'Every 3-4 hours',
+      amount: '5-7 oz per bottle feed',
+      notes: [
+        '4-month checkup coming up',
+        'Discuss solid readiness with doctor',
+        'Still breast milk/formula only',
+      ],
+    },
+    upcomingChanges: [
+      'Week 16: 4-month checkup',
+      'Weeks 15-20: Sleep regression period',
+      'Week 19: Wonder Week 4 peak',
+    ],
+  },
   16: {
     milestones: [
       'May start rolling back to tummy',

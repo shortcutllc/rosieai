@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { BabyProfile, DevelopmentalInfo } from './types';
 import { getLeapStatus, LeapStatus, leaps, LeapInfo } from './leapData';
 import {
   getParentWellnessForWeek,
   getQuickWinsForWeek,
   expertInsights,
+  ExpertInsight,
   QuickWin,
   ParentWellnessContent
 } from './expertInsights';
@@ -29,6 +30,62 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
   // Leap browser state
   const [showLeapBrowser, setShowLeapBrowser] = useState(false);
   const [selectedLeap, setSelectedLeap] = useState<LeapInfo | null>(null);
+
+  // Expert insights carousel state
+  const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+
+  // Get all expert insights flattened and filtered for age appropriateness
+  const allInsights: ExpertInsight[] = useMemo(() => {
+    const all: ExpertInsight[] = [];
+    // Prioritize topics based on age
+    const topicOrder = weekNumber <= 12
+      ? ['sleep', 'feeding', 'development', 'behavior']
+      : weekNumber <= 26
+        ? ['sleep', 'feeding', 'behavior', 'development']
+        : ['behavior', 'development', 'sleep', 'feeding'];
+
+    topicOrder.forEach(topic => {
+      const insights = expertInsights[topic];
+      if (insights) {
+        all.push(...insights);
+      }
+    });
+    return all;
+  }, [weekNumber]);
+
+  // Carousel navigation
+  const nextInsight = useCallback(() => {
+    setCurrentInsightIndex(prev => (prev + 1) % allInsights.length);
+  }, [allInsights.length]);
+
+  const prevInsight = useCallback(() => {
+    setCurrentInsightIndex(prev => (prev - 1 + allInsights.length) % allInsights.length);
+  }, [allInsights.length]);
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50; // minimum swipe distance
+
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        nextInsight(); // Swipe left = next
+      } else {
+        prevInsight(); // Swipe right = previous
+      }
+    }
+  };
 
   // Get leap status
   const leapStatus: LeapStatus = useMemo(() => getLeapStatus(ageInWeeks), [ageInWeeks]);
@@ -320,18 +377,61 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
         </div>
       )}
 
-      {/* What the Research Says */}
-      {weeklyInsight && (
+      {/* Expert Insights Carousel */}
+      {allInsights.length > 0 && (
         <div className="rosie-card rosie-card-research">
           <div className="rosie-dev-section">
             <h3 className="rosie-dev-section-title rosie-research-title">
-              <span>📚</span> What the Research Says
+              <span>📚</span> Expert Insights
             </h3>
-            <div className="rosie-research-content">
-              <p className="rosie-research-insight">{weeklyInsight.insight}</p>
-              <p className="rosie-research-source">
-                — {weeklyInsight.source}
-              </p>
+            <div
+              className="rosie-insights-carousel"
+              ref={carouselRef}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className="rosie-insights-carousel-inner">
+                <div className="rosie-insights-topic-badge">
+                  {allInsights[currentInsightIndex].topic}
+                </div>
+                <p className="rosie-research-insight">
+                  {allInsights[currentInsightIndex].insight}
+                </p>
+                <p className="rosie-research-source">
+                  — {allInsights[currentInsightIndex].source}
+                </p>
+              </div>
+
+              {/* Navigation */}
+              <div className="rosie-insights-nav">
+                <button
+                  className="rosie-insights-nav-btn"
+                  onClick={prevInsight}
+                  aria-label="Previous insight"
+                >
+                  ‹
+                </button>
+                <div className="rosie-insights-dots">
+                  {allInsights.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`rosie-insights-dot ${i === currentInsightIndex ? 'active' : ''}`}
+                      onClick={() => setCurrentInsightIndex(i)}
+                      aria-label={`Go to insight ${i + 1}`}
+                    />
+                  ))}
+                </div>
+                <button
+                  className="rosie-insights-nav-btn"
+                  onClick={nextInsight}
+                  aria-label="Next insight"
+                >
+                  ›
+                </button>
+              </div>
+
+              <p className="rosie-insights-hint">Swipe for more tips</p>
             </div>
           </div>
         </div>

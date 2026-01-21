@@ -4862,6 +4862,115 @@
   font-style: italic;
 }
 
+/* ===== Expert Insights Carousel ===== */
+.rosie-insights-carousel {
+  position: relative;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.rosie-insights-carousel-inner {
+  padding: 20px;
+  background: linear-gradient(135deg, var(--rosie-blue-light) 0%, rgba(0, 122, 255, 0.05) 100%);
+  border-radius: var(--rosie-radius);
+  border-left: 4px solid var(--rosie-blue);
+  min-height: 140px;
+  transition: opacity 0.2s ease;
+}
+
+.rosie-insights-topic-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--rosie-blue);
+  background: rgba(0, 122, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: var(--rosie-radius-full);
+  margin-bottom: 12px;
+}
+
+.rosie-insights-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.rosie-insights-nav-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--rosie-text-secondary);
+  background: var(--rosie-bg-card);
+  border: 1px solid var(--rosie-border);
+  border-radius: var(--rosie-radius-full);
+  cursor: pointer;
+  transition: all var(--rosie-transition);
+}
+
+.rosie-insights-nav-btn:hover {
+  color: var(--rosie-blue);
+  border-color: var(--rosie-blue);
+  background: var(--rosie-blue-light);
+}
+
+.rosie-insights-nav-btn:active {
+  transform: scale(0.95);
+}
+
+.rosie-insights-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rosie-insights-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rosie-border);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--rosie-transition);
+}
+
+.rosie-insights-dot.active {
+  background: var(--rosie-blue);
+  transform: scale(1.2);
+}
+
+.rosie-insights-dot:hover:not(.active) {
+  background: var(--rosie-text-tertiary);
+}
+
+.rosie-insights-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--rosie-text-tertiary);
+  margin: 12px 0 0;
+}
+
+/* Hide dots on larger screens when there are many */
+@media (max-width: 400px) {
+  .rosie-insights-dots {
+    max-width: 120px;
+    overflow: hidden;
+  }
+
+  .rosie-insights-dot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
 /* Self-Care Footer */
 .rosie-self-care-footer {
   padding: 20px 24px;
