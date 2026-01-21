@@ -75,14 +75,14 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .maybeSingle();
 
       if (fetchError) {
-        // Retry once after AbortError (expected in React StrictMode)
+        // Retry up to 2 times after AbortError (expected in React StrictMode)
         if (isAbortError(fetchError)) {
-          if (retryCount < 1) {
-            console.log('[RosieAuth] Profile fetch aborted, retrying...');
-            await new Promise(resolve => setTimeout(resolve, 100));
+          if (retryCount < 2) {
+            console.log('[RosieAuth] Profile fetch aborted, retrying... (attempt', retryCount + 2, ')');
+            await new Promise(resolve => setTimeout(resolve, 150));
             return fetchProfile(userId, retryCount + 1);
           }
-          console.log('[RosieAuth] Profile fetch aborted after retry, continuing...');
+          console.log('[RosieAuth] Profile fetch aborted after retries, continuing...');
           return null;
         }
         console.error('Error fetching profile:', fetchError);
@@ -92,11 +92,11 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.log('[RosieAuth] Profile query result:', data);
       return data as RosieUserProfile | null;
     } catch (err) {
-      // Retry once after AbortError
+      // Retry up to 2 times after AbortError
       if (isAbortError(err)) {
-        if (retryCount < 1) {
-          console.log('[RosieAuth] Profile fetch exception aborted, retrying...');
-          await new Promise(resolve => setTimeout(resolve, 100));
+        if (retryCount < 2) {
+          console.log('[RosieAuth] Profile fetch exception aborted, retrying... (attempt', retryCount + 2, ')');
+          await new Promise(resolve => setTimeout(resolve, 150));
           return fetchProfile(userId, retryCount + 1);
         }
         return null;
@@ -116,14 +116,14 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: true });
 
       if (fetchError) {
-        // Retry once after AbortError (expected in React StrictMode)
+        // Retry up to 2 times after AbortError (expected in React StrictMode)
         if (isAbortError(fetchError)) {
-          if (retryCount < 1) {
-            console.log('[RosieAuth] Babies fetch aborted, retrying...');
-            await new Promise(resolve => setTimeout(resolve, 100));
+          if (retryCount < 2) {
+            console.log('[RosieAuth] Babies fetch aborted, retrying... (attempt', retryCount + 2, ')');
+            await new Promise(resolve => setTimeout(resolve, 150));
             return fetchBabies(userId, retryCount + 1);
           }
-          console.log('[RosieAuth] Babies fetch aborted after retry, continuing...');
+          console.log('[RosieAuth] Babies fetch aborted after retries, continuing...');
           return [];
         }
         console.error('Error fetching babies:', fetchError);
@@ -141,11 +141,11 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         created_at: row.created_at,
       })) as RosieBabyProfile[];
     } catch (err) {
-      // Retry once after AbortError
+      // Retry up to 2 times after AbortError
       if (isAbortError(err)) {
-        if (retryCount < 1) {
-          console.log('[RosieAuth] Babies fetch exception aborted, retrying...');
-          await new Promise(resolve => setTimeout(resolve, 100));
+        if (retryCount < 2) {
+          console.log('[RosieAuth] Babies fetch exception aborted, retrying... (attempt', retryCount + 2, ')');
+          await new Promise(resolve => setTimeout(resolve, 150));
           return fetchBabies(userId, retryCount + 1);
         }
         return [];
@@ -159,8 +159,13 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     let isMounted = true;
 
-    const loadUserData = async (userId: string) => {
+    const loadUserData = async (userId: string, isSignIn = false) => {
       console.log('[RosieAuth] Loading user data for:', userId);
+
+      // Small delay after sign-in to ensure session is fully established
+      if (isSignIn) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
 
       try {
         // Fetch profile and babies in parallel for faster load times
@@ -225,7 +230,7 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
           // Always fetch profile and babies on sign in events
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-            await loadUserData(newSession.user.id);
+            await loadUserData(newSession.user.id, event === 'SIGNED_IN');
           }
         } else {
           setSession(null);
