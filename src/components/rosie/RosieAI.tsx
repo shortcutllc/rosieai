@@ -60,17 +60,21 @@ const RosieAIContent: React.FC = () => {
         const stored = getStoredData();
 
         // Set initial data immediately with local cache for fast render
+        // Preserve all locally cached data (userSettings, growthMeasurements, etc.)
         const initialData: RosieData = {
           baby: {
             name: currentBaby.name,
             birthDate: currentBaby.birthDate,
             photoUrl: currentBaby.photoUrl,
+            birthWeight: currentBaby.birthWeight,
+            weightUnit: currentBaby.weightUnit,
           },
           timeline: stored?.timeline || [],
           chatHistory: stored?.chatHistory || [],
           caregiverNotes: stored?.caregiverNotes || [],
           activeTimer: stored?.activeTimer,
-          growthMeasurements: stored?.growthMeasurements,
+          growthMeasurements: stored?.growthMeasurements || [],
+          userSettings: stored?.userSettings, // Preserve user settings from local cache
         };
         setData(initialData);
         setIsLoading(false);
@@ -79,7 +83,11 @@ const RosieAIContent: React.FC = () => {
         try {
           const events = await fetchEvents(user.id, currentBaby.id);
           if (events.length > 0 || !stored?.timeline?.length) {
-            const updatedData = { ...initialData, timeline: events };
+            // Preserve all other data when updating timeline from Supabase
+            const updatedData: RosieData = {
+              ...initialData,
+              timeline: events,
+            };
             setData(updatedData);
             saveData(updatedData); // Cache locally
           }

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BabyProfile, GrowthMeasurement, UserSettings } from './types';
 
 interface RosieProfileProps {
@@ -52,6 +52,13 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
   const [newLength, setNewLength] = useState('');
   const [newHead, setNewHead] = useState('');
   const [newMeasurementNote, setNewMeasurementNote] = useState('');
+
+  // Sync editLocation with userSettings when it changes (e.g., after data loads)
+  useEffect(() => {
+    if (userSettings?.location && !editLocation) {
+      setEditLocation(userSettings.location);
+    }
+  }, [userSettings?.location]);
 
   // Calculate age
   const getAgeDisplay = () => {
