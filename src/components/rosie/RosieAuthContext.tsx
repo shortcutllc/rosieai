@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabaseClient';
 import { BabyProfile } from './types';
@@ -44,6 +44,14 @@ interface RosieAuthContextType {
 
 const RosieAuthContext = createContext<RosieAuthContextType | undefined>(undefined);
 
+// Timeout wrapper for fetch operations
+const withTimeout = <T,>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
+  ]);
+};
+
 export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -53,20 +61,13 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to check if error is an AbortError (expected in React StrictMode)
-  const isAbortError = (error: unknown): boolean => {
-    if (error instanceof Error) {
-      return error.name === 'AbortError' || error.message.includes('AbortError');
-    }
-    if (typeof error === 'object' && error !== null) {
-      const err = error as { message?: string };
-      return err.message?.includes('AbortError') || false;
-    }
-    return false;
-  };
+  // Track if we've already loaded user data to prevent double-loading
+  const dataLoadedForUser = useRef<string | null>(null);
+  const isLoadingData = useRef(false);
 
   // Fetch user profile from rosie_profiles table
-  const fetchProfile = useCallback(async (userId: string, retryCount = 0): Promise<RosieUserProfile | null> => {
+  const fetchProfile = useCallback(async (userId: string): Promise<RosieUserProfile | null> => {
+    console.log('[RosieAuth] Fetching profile for:', userId);
     try {
       const { data, error: fetchError } = await supabase
         .from('rosie_profiles')
@@ -75,39 +76,21 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .maybeSingle();
 
       if (fetchError) {
-        // Retry up to 2 times after AbortError (expected in React StrictMode)
-        if (isAbortError(fetchError)) {
-          if (retryCount < 2) {
-            console.log('[RosieAuth] Profile fetch aborted, retrying... (attempt', retryCount + 2, ')');
-            await new Promise(resolve => setTimeout(resolve, 150));
-            return fetchProfile(userId, retryCount + 1);
-          }
-          console.log('[RosieAuth] Profile fetch aborted after retries, continuing...');
-          return null;
-        }
-        console.error('Error fetching profile:', fetchError);
+        console.error('[RosieAuth] Error fetching profile:', fetchError.message);
         return null;
       }
 
-      console.log('[RosieAuth] Profile query result:', data);
+      console.log('[RosieAuth] Profile result:', data ? 'found' : 'not found');
       return data as RosieUserProfile | null;
     } catch (err) {
-      // Retry up to 2 times after AbortError
-      if (isAbortError(err)) {
-        if (retryCount < 2) {
-          console.log('[RosieAuth] Profile fetch exception aborted, retrying... (attempt', retryCount + 2, ')');
-          await new Promise(resolve => setTimeout(resolve, 150));
-          return fetchProfile(userId, retryCount + 1);
-        }
-        return null;
-      }
-      console.error('Error in fetchProfile:', err);
+      console.error('[RosieAuth] Exception fetching profile:', err);
       return null;
     }
   }, []);
 
   // Fetch babies for user
-  const fetchBabies = useCallback(async (userId: string, retryCount = 0): Promise<RosieBabyProfile[]> => {
+  const fetchBabies = useCallback(async (userId: string): Promise<RosieBabyProfile[]> => {
+    console.log('[RosieAuth] Fetching babies for:', userId);
     try {
       const { data, error: fetchError } = await supabase
         .from('rosie_babies')
@@ -116,21 +99,11 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: true });
 
       if (fetchError) {
-        // Retry up to 2 times after AbortError (expected in React StrictMode)
-        if (isAbortError(fetchError)) {
-          if (retryCount < 2) {
-            console.log('[RosieAuth] Babies fetch aborted, retrying... (attempt', retryCount + 2, ')');
-            await new Promise(resolve => setTimeout(resolve, 150));
-            return fetchBabies(userId, retryCount + 1);
-          }
-          console.log('[RosieAuth] Babies fetch aborted after retries, continuing...');
-          return [];
-        }
-        console.error('Error fetching babies:', fetchError);
+        console.error('[RosieAuth] Error fetching babies:', fetchError.message);
         return [];
       }
 
-      console.log('[RosieAuth] Babies query result:', data?.length || 0, 'babies');
+      console.log('[RosieAuth] Babies result:', data?.length || 0, 'found');
       // Map snake_case database columns to camelCase interface
       return (data || []).map(row => ({
         id: row.id,
@@ -141,73 +114,75 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         created_at: row.created_at,
       })) as RosieBabyProfile[];
     } catch (err) {
-      // Retry up to 2 times after AbortError
-      if (isAbortError(err)) {
-        if (retryCount < 2) {
-          console.log('[RosieAuth] Babies fetch exception aborted, retrying... (attempt', retryCount + 2, ')');
-          await new Promise(resolve => setTimeout(resolve, 150));
-          return fetchBabies(userId, retryCount + 1);
-        }
-        return [];
-      }
-      console.error('Error in fetchBabies:', err);
+      console.error('[RosieAuth] Exception fetching babies:', err);
       return [];
     }
   }, []);
+
+  // Load user data (profile + babies) with deduplication
+  const loadUserData = useCallback(async (userId: string): Promise<void> => {
+    // Skip if already loaded for this user or currently loading
+    if (dataLoadedForUser.current === userId) {
+      console.log('[RosieAuth] Data already loaded for user, skipping');
+      return;
+    }
+    if (isLoadingData.current) {
+      console.log('[RosieAuth] Already loading data, skipping');
+      return;
+    }
+
+    isLoadingData.current = true;
+    console.log('[RosieAuth] Loading user data for:', userId);
+
+    try {
+      // Fetch with 5 second timeout - if it takes longer, continue with null/empty
+      const [userProfile, userBabies] = await Promise.all([
+        withTimeout(fetchProfile(userId), 5000, null),
+        withTimeout(fetchBabies(userId), 5000, [])
+      ]);
+
+      console.log('[RosieAuth] Data loaded - profile:', !!userProfile, 'babies:', userBabies.length);
+
+      setProfile(userProfile);
+      setBabies(userBabies);
+
+      // Set current baby from localStorage or first baby
+      const savedBabyId = localStorage.getItem('rosie_current_baby_id');
+      const savedBaby = userBabies.find(b => b.id === savedBabyId);
+      setCurrentBabyState(savedBaby || userBabies[0] || null);
+
+      // Mark as loaded for this user
+      dataLoadedForUser.current = userId;
+    } catch (err) {
+      console.error('[RosieAuth] Error loading user data:', err);
+    } finally {
+      isLoadingData.current = false;
+    }
+  }, [fetchProfile, fetchBabies]);
 
   // Initialize auth state
   useEffect(() => {
     let isMounted = true;
 
-    const loadUserData = async (userId: string, isSignIn = false) => {
-      console.log('[RosieAuth] Loading user data for:', userId);
-
-      // Small delay after sign-in to ensure session is fully established
-      if (isSignIn) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-
-      try {
-        // Fetch profile and babies in parallel for faster load times
-        const [userProfile, userBabies] = await Promise.all([
-          fetchProfile(userId),
-          fetchBabies(userId)
-        ]);
-
-        console.log('[RosieAuth] Fetched profile:', userProfile);
-        console.log('[RosieAuth] Fetched babies:', userBabies);
-
-        if (isMounted) {
-          setProfile(userProfile);
-          setBabies(userBabies);
-
-          // Set current baby from localStorage or first baby
-          const savedBabyId = localStorage.getItem('rosie_current_baby_id');
-          const savedBaby = userBabies.find(b => b.id === savedBabyId);
-          setCurrentBabyState(savedBaby || userBabies[0] || null);
-        }
-      } catch (err) {
-        if (!isAbortError(err)) {
-          console.error('[RosieAuth] Error loading user data:', err);
-        }
-        // Continue without profile/babies data - user can still use the app
-      }
-    };
-
     const initAuth = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('[RosieAuth] Initial session:', currentSession?.user?.id || 'none');
+      console.log('[RosieAuth] Initializing auth...');
 
-        if (currentSession?.user && isMounted) {
+      try {
+        // Get current session
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+        if (!isMounted) return;
+
+        if (currentSession?.user) {
+          console.log('[RosieAuth] Found existing session for:', currentSession.user.id);
           setSession(currentSession);
           setUser(currentSession.user);
           await loadUserData(currentSession.user.id);
+        } else {
+          console.log('[RosieAuth] No existing session');
         }
       } catch (err) {
-        if (!isAbortError(err)) {
-          console.error('Error initializing Rosie auth:', err);
-        }
+        console.error('[RosieAuth] Error in initAuth:', err);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -219,46 +194,47 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('[RosieAuth] Auth state changed:', event, newSession?.user?.id || 'none');
-
       if (!isMounted) return;
 
-      try {
-        if (newSession?.user) {
-          setSession(newSession);
-          setUser(newSession.user);
+      console.log('[RosieAuth] Auth state changed:', event);
 
-          // Always fetch profile and babies on sign in events
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-            await loadUserData(newSession.user.id, event === 'SIGNED_IN');
-          }
-        } else {
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          setBabies([]);
-          setCurrentBabyState(null);
-        }
-      } catch (err) {
-        if (!isAbortError(err)) {
-          console.error('[RosieAuth] Error in auth state change handler:', err);
-        }
-      } finally {
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setBabies([]);
+        setCurrentBabyState(null);
+        dataLoadedForUser.current = null;
         setLoading(false);
+        return;
       }
+
+      if (newSession?.user) {
+        setSession(newSession);
+        setUser(newSession.user);
+
+        // Only load data if it's a new sign in or we haven't loaded for this user yet
+        if (event === 'SIGNED_IN' && dataLoadedForUser.current !== newSession.user.id) {
+          await loadUserData(newSession.user.id);
+        }
+      }
+
+      setLoading(false);
     });
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchProfile, fetchBabies]);
+  }, [loadUserData]);
 
-  // Sign in with email and password (same as proposals)
+  // Sign in with email and password
   const signInWithPassword = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setError(null);
       setLoading(true);
+      // Reset data loaded flag so we fetch fresh data
+      dataLoadedForUser.current = null;
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -276,10 +252,10 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
       setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
       setLoading(false);
+      return { success: false, error: errorMessage };
     }
+    // Note: loading is set to false by onAuthStateChange handler
   };
 
   // Sign out
@@ -287,17 +263,13 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       setLoading(true);
       localStorage.removeItem('rosie_current_baby_id');
+      dataLoadedForUser.current = null;
       await supabase.auth.signOut();
-      setUser(null);
-      setSession(null);
-      setProfile(null);
-      setBabies([]);
-      setCurrentBabyState(null);
     } catch (err) {
       console.error('Error signing out:', err);
-    } finally {
       setLoading(false);
     }
+    // Note: state is cleared by onAuthStateChange handler
   };
 
   // Create user profile (called after first sign in)
