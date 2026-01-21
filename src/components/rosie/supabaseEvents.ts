@@ -1,6 +1,18 @@
 import { supabase } from '../../lib/supabaseClient';
 import { TimelineEvent } from './types';
 
+// Helper to check if error is an AbortError (expected in React StrictMode)
+const isAbortError = (error: unknown): boolean => {
+  if (error instanceof Error) {
+    return error.name === 'AbortError' || error.message.includes('AbortError');
+  }
+  if (typeof error === 'object' && error !== null) {
+    const err = error as { message?: string };
+    return err.message?.includes('AbortError') || false;
+  }
+  return false;
+};
+
 // Database row type
 interface EventRow {
   id: string;
@@ -46,13 +58,17 @@ export const fetchEvents = async (userId: string, babyId: string): Promise<Timel
       .order('timestamp', { ascending: false });
 
     if (error) {
-      console.error('Error fetching events:', error);
+      if (!isAbortError(error)) {
+        console.error('Error fetching events:', error);
+      }
       return [];
     }
 
     return (data || []).map(fromEventRow);
   } catch (err) {
-    console.error('Error in fetchEvents:', err);
+    if (!isAbortError(err)) {
+      console.error('Error in fetchEvents:', err);
+    }
     return [];
   }
 };

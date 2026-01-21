@@ -8,6 +8,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: window.localStorage
+    storage: window.localStorage,
+    flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'rosie-ai'
+    }
+  },
+  db: {
+    schema: 'public'
   }
 });

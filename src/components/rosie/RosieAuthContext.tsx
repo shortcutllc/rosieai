@@ -53,17 +53,38 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper to check if error is an AbortError (expected in React StrictMode)
+  const isAbortError = (error: unknown): boolean => {
+    if (error instanceof Error) {
+      return error.name === 'AbortError' || error.message.includes('AbortError');
+    }
+    if (typeof error === 'object' && error !== null) {
+      const err = error as { message?: string };
+      return err.message?.includes('AbortError') || false;
+    }
+    return false;
+  };
+
   // Fetch user profile from rosie_profiles table
-  const fetchProfile = useCallback(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string, retryCount = 0): Promise<RosieUserProfile | null> => {
     try {
       const { data, error: fetchError } = await supabase
         .from('rosie_profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle() instead of single() to avoid 406 when no rows
+        .maybeSingle();
 
       if (fetchError) {
-        // Log error but don't fail - profile might not exist yet for new users
+        // Retry once after AbortError (expected in React StrictMode)
+        if (isAbortError(fetchError)) {
+          if (retryCount < 1) {
+            console.log('[RosieAuth] Profile fetch aborted, retrying...');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            return fetchProfile(userId, retryCount + 1);
+          }
+          console.log('[RosieAuth] Profile fetch aborted after retry, continuing...');
+          return null;
+        }
         console.error('Error fetching profile:', fetchError);
         return null;
       }
@@ -71,13 +92,22 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.log('[RosieAuth] Profile query result:', data);
       return data as RosieUserProfile | null;
     } catch (err) {
+      // Retry once after AbortError
+      if (isAbortError(err)) {
+        if (retryCount < 1) {
+          console.log('[RosieAuth] Profile fetch exception aborted, retrying...');
+          await new Promise(resolve => setTimeout(resolve, 100));
+          return fetchProfile(userId, retryCount + 1);
+        }
+        return null;
+      }
       console.error('Error in fetchProfile:', err);
       return null;
     }
   }, []);
 
   // Fetch babies for user
-  const fetchBabies = useCallback(async (userId: string) => {
+  const fetchBabies = useCallback(async (userId: string, retryCount = 0): Promise<RosieBabyProfile[]> => {
     try {
       const { data, error: fetchError } = await supabase
         .from('rosie_babies')
@@ -86,10 +116,21 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: true });
 
       if (fetchError) {
+        // Retry once after AbortError (expected in React StrictMode)
+        if (isAbortError(fetchError)) {
+          if (retryCount < 1) {
+            console.log('[RosieAuth] Babies fetch aborted, retrying...');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            return fetchBabies(userId, retryCount + 1);
+          }
+          console.log('[RosieAuth] Babies fetch aborted after retry, continuing...');
+          return [];
+        }
         console.error('Error fetching babies:', fetchError);
         return [];
       }
 
+      console.log('[RosieAuth] Babies query result:', data?.length || 0, 'babies');
       // Map snake_case database columns to camelCase interface
       return (data || []).map(row => ({
         id: row.id,
@@ -100,6 +141,15 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         created_at: row.created_at,
       })) as RosieBabyProfile[];
     } catch (err) {
+      // Retry once after AbortError
+      if (isAbortError(err)) {
+        if (retryCount < 1) {
+          console.log('[RosieAuth] Babies fetch exception aborted, retrying...');
+          await new Promise(resolve => setTimeout(resolve, 100));
+          return fetchBabies(userId, retryCount + 1);
+        }
+        return [];
+      }
       console.error('Error in fetchBabies:', err);
       return [];
     }
@@ -132,7 +182,9 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setCurrentBabyState(savedBaby || userBabies[0] || null);
         }
       } catch (err) {
-        console.error('[RosieAuth] Error loading user data:', err);
+        if (!isAbortError(err)) {
+          console.error('[RosieAuth] Error loading user data:', err);
+        }
         // Continue without profile/babies data - user can still use the app
       }
     };
@@ -148,7 +200,9 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           await loadUserData(currentSession.user.id);
         }
       } catch (err) {
-        console.error('Error initializing Rosie auth:', err);
+        if (!isAbortError(err)) {
+          console.error('Error initializing Rosie auth:', err);
+        }
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -181,7 +235,9 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setCurrentBabyState(null);
         }
       } catch (err) {
-        console.error('[RosieAuth] Error in auth state change handler:', err);
+        if (!isAbortError(err)) {
+          console.error('[RosieAuth] Error in auth state change handler:', err);
+        }
       } finally {
         setLoading(false);
       }
