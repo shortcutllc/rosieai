@@ -50,17 +50,47 @@ export const RosieChat: React.FC<RosieChatProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  // Generate context-aware AI response (mock for now - can be replaced with real API)
-  const generateResponse = async (userMessage: string): Promise<string> => {
-    const { ageInDays, weekNumber, ageDisplay, sleepInfo, feedingInfo, whatToExpect } = developmentalInfo;
+  // Call the Claude API via Netlify function
+  const callClaudeAPI = async (userMessage: string): Promise<string> => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          baby: {
+            name: baby.name,
+            birthDate: baby.birthDate,
+            gender: baby.gender,
+          },
+          timeline,
+          developmentalInfo,
+          chatHistory: messages.map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
 
-    // Simulate typing delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API error:', errorData);
+        throw new Error(errorData.error || 'Failed to get response');
+      }
 
+      const data = await response.json();
+      return data.message;
+    } catch (error) {
+      console.error('Error calling Claude API:', error);
+      throw error;
+    }
+  };
+
+  // Fallback mock response if API fails
+  const generateFallbackResponse = (userMessage: string): string => {
+    const { weekNumber, ageDisplay, sleepInfo, feedingInfo, whatToExpect } = developmentalInfo;
     const lowerMessage = userMessage.toLowerCase();
 
-    // Sleep-related questions
-    if (lowerMessage.includes('sleep') || lowerMessage.includes('wak') || lowerMessage.includes('nap') || lowerMessage.includes('tired')) {
+    if (lowerMessage.includes('sleep') || lowerMessage.includes('nap') || lowerMessage.includes('tired')) {
       return `At ${ageDisplay}, ${baby.name}'s sleep is still developing. Here's what's typical for week ${weekNumber}:
 
 • **Total sleep:** ${sleepInfo.totalSleep}
@@ -68,132 +98,40 @@ export const RosieChat: React.FC<RosieChatProps> = ({
 • **Wake windows:** ${sleepInfo.wakeWindow}
 • **Naps:** ${sleepInfo.napCount}
 
-${weekNumber <= 8 ? `Remember, sleep patterns at this age are still very irregular. Focus on creating a calm environment and watching for sleepy cues rather than strict schedules.` : weekNumber <= 16 ? `If sleep has suddenly gotten worse, ${baby.name} may be going through the 4-month sleep regression. This is actually a sign of brain maturation - their sleep cycles are becoming more adult-like.` : `At this age, you can start working on more consistent sleep routines if you haven't already. But every baby is different - follow ${baby.name}'s lead.`}
-
-Would you like specific tips for managing ${sleepInfo.wakeWindow} wake windows?`;
+Would you like more specific tips?`;
     }
 
-    // Feeding-related questions
-    if (lowerMessage.includes('feed') || lowerMessage.includes('eat') || lowerMessage.includes('hungry') || lowerMessage.includes('bottle') || lowerMessage.includes('breast') || lowerMessage.includes('milk')) {
+    if (lowerMessage.includes('feed') || lowerMessage.includes('eat') || lowerMessage.includes('hungry')) {
       return `Here's what's typical for feeding at ${ageDisplay}:
 
 • **Frequency:** ${feedingInfo.frequency}
 ${feedingInfo.amount ? `• **Amount:** ${feedingInfo.amount}` : ''}
 
-${feedingInfo.notes.map(note => `• ${note}`).join('\n')}
-
-${weekNumber <= 6 ? `Cluster feeding (frequent feeds, especially in the evening) is completely normal right now. It helps build your milk supply and comfort ${baby.name} during this fussy period.` : weekNumber <= 12 ? `${baby.name} is becoming more efficient at feeding. You might notice feeds getting shorter but still effective - this is normal progress!` : `Around this age, babies often become more distractible during feeds. Try feeding in a quiet, dim environment if ${baby.name} seems unfocused.`}
+${feedingInfo.notes.slice(0, 2).map(note => `• ${note}`).join('\n')}
 
 Is there something specific about feeding that's concerning you?`;
     }
 
-    // Fussy/crying questions
-    if (lowerMessage.includes('fuss') || lowerMessage.includes('cry') || lowerMessage.includes('colic') || lowerMessage.includes('upset') || lowerMessage.includes('screaming')) {
-      if (weekNumber >= 5 && weekNumber <= 8) {
-        return `At week ${weekNumber}, ${baby.name} is right in the peak fussiness period. This is one of the hardest phases, but it's temporary.
-
-**What's happening:**
-• Crying typically peaks around 6-8 weeks
-• This is sometimes called "purple crying" or colic
-• It's NOT your fault and often there's no clear cause
-
-**What might help:**
-• The 5 S's: Swaddle, Side/Stomach hold, Shush, Swing, Suck
-• White noise or gentle rhythmic sounds
-• Going outside for a change of scenery
-• Taking turns with a partner - you need breaks too
-
-**Important:** If the crying feels extreme or you're worried, it's always okay to call your pediatrician. Trust your instincts.
-
-This phase usually improves dramatically by week 10-12. You're in the thick of it, but you're doing great.`;
-      } else {
-        return `Fussiness at ${ageDisplay} can have many causes:
+    return `At ${ageDisplay} (week ${weekNumber}), here's some context about ${baby.name}:
 
 ${whatToExpect.slice(0, 3).map(item => `• ${item}`).join('\n')}
 
-**Common reasons babies get fussy:**
-• Overtired (watch those ${sleepInfo.wakeWindow} wake windows)
-• Hunger (even if they recently ate)
-• Overstimulation
-• Gas or digestive discomfort
-• Growth spurts
-• Developmental leaps
-
-**When to be concerned:**
-• Fever over 100.4°F (especially under 3 months)
-• Refusing to eat
-• Inconsolable for hours with no breaks
-• Significant change from their normal behavior
-
-Trust your instincts - you know ${baby.name} best. If something feels wrong, call your pediatrician.`;
-      }
-    }
-
-    // "Is this normal?" questions
-    if (lowerMessage.includes('normal') || lowerMessage.includes('worried') || lowerMessage.includes('concern')) {
-      return `It's so common to wonder "is this normal?" - you're not alone in this.
-
-At ${ageDisplay}, here's what's typical for ${baby.name}:
-
-${whatToExpect.map(item => `• ${item}`).join('\n')}
-
-**Generally NOT concerning:**
-• Irregular sleep patterns
-• Cluster feeding
-• Occasional fussiness or crying
-• Hiccups, sneezing, or brief pauses in breathing during sleep
-• Spitting up (if baby is gaining weight)
-
-**Worth calling your pediatrician:**
-• Fever over 100.4°F (especially under 3 months)
-• Refusing multiple feeds
-• Fewer than 6 wet diapers in 24 hours
-• Extreme lethargy or difficulty waking
-• Any concern that feels urgent to you
-
-What specific thing has you worried? I can give you more targeted information.`;
-    }
-
-    // Growth spurt questions
-    if (lowerMessage.includes('growth') || lowerMessage.includes('spurt') || lowerMessage.includes('constantly eating')) {
-      return `Growth spurts are real! They typically happen around:
-• Week 2-3
-• Week 4-6
-• Week 8-10
-• Week 12
-• Month 4
-• Month 6
-
-At ${ageDisplay}, ${weekNumber === 3 || weekNumber === 6 || weekNumber === 12 || weekNumber === 16 || weekNumber === 26 ? `${baby.name} may be going through one right now.` : `${baby.name} may have one coming up soon.`}
-
-**Signs of a growth spurt:**
-• Suddenly wanting to feed constantly
-• More fussy than usual
-• Sleep disruption
-• Waking more at night
-
-**What to do:**
-• Feed on demand - this is temporary
-• Rest when you can
-• Remember it usually lasts 2-4 days
-
-This increased demand is your baby's way of telling your body (or formula supply) to keep up. It's actually a good sign of healthy growth!`;
-    }
-
-    // Default response with context
-    return `Thanks for asking about ${baby.name}. At ${ageDisplay} (week ${weekNumber}), here's some context that might help:
-
-${whatToExpect.slice(0, 3).map(item => `• ${item}`).join('\n')}
-
-**Sleep:** ${sleepInfo.totalSleep} total, wake windows of ${sleepInfo.wakeWindow}
+**Sleep:** ${sleepInfo.totalSleep} total
 **Feeding:** ${feedingInfo.frequency}
 
-Could you tell me more about what you're experiencing? I can give more specific guidance if you share:
-• What's happening
-• When it started
-• What you've tried
+Could you tell me more about what you're experiencing?`;
+  };
 
-I'm here to help!`;
+  // Generate AI response - try Claude API first, fallback to mock
+  const generateResponse = async (userMessage: string): Promise<string> => {
+    try {
+      return await callClaudeAPI(userMessage);
+    } catch (error) {
+      console.warn('Claude API failed, using fallback response');
+      // Small delay to simulate response time
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return generateFallbackResponse(userMessage);
+    }
   };
 
   const handleSend = async () => {
