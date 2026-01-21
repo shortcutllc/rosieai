@@ -3926,7 +3926,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20px auto;
+  margin: 8px auto;
+  overflow: visible;
 }
 
 .rosie-duration-ring {
@@ -4006,12 +4007,15 @@
 .rosie-dual-duration-rings {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
   margin: 16px 0;
+  padding: 12px 4px;
+  overflow: visible;
 }
 
 .rosie-duration-ring-wrapper {
   flex: 0 0 auto;
+  overflow: visible;
 }
 
 .rosie-duration-ring-wrapper.left .rosie-duration-ring-label {
@@ -4027,6 +4031,8 @@
   display: flex;
   justify-content: center;
   margin: 8px 0 16px;
+  padding: 12px;
+  overflow: visible;
 }
 
 /* Manual Total Display */

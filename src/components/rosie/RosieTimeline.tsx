@@ -166,10 +166,23 @@ export const RosieTimeline: React.FC<RosieTimelineProps> = ({ events, baby, onDe
     }
   };
 
+  // Format time range for display (e.g., "5:30 AM → 6:15 AM")
+  const formatTimeRangeShort = (startTime?: string, endTime?: string): string => {
+    if (!startTime) return '';
+    const start = new Date(startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    if (!endTime) return start;
+    const end = new Date(endTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return `${start} → ${end}`;
+  };
+
   const getEventDetails = (event: TimelineEvent): string => {
     const details: string[] = [];
 
     if (event.type === 'feed') {
+      // Show time range first if available
+      if (event.startTime && event.endTime) {
+        details.push(formatTimeRangeShort(event.startTime, event.endTime));
+      }
       if (event.feedAmount) details.push(`${event.feedAmount}oz`);
       if (event.feedDuration) details.push(`${event.feedDuration}min`);
       if (event.feedSide && event.feedType === 'breast') {
@@ -178,6 +191,10 @@ export const RosieTimeline: React.FC<RosieTimelineProps> = ({ events, baby, onDe
     }
 
     if (event.type === 'sleep') {
+      // Show time range first if available
+      if (event.startTime && event.endTime) {
+        details.push(formatTimeRangeShort(event.startTime, event.endTime));
+      }
       if (event.sleepDuration) {
         const hours = Math.floor(event.sleepDuration / 60);
         const mins = event.sleepDuration % 60;

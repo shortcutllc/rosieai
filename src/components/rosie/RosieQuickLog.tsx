@@ -249,6 +249,78 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
     return date;
   };
 
+  // Convert Date to time input string (HH:mm format)
+  const dateToTimeString = (date: Date): string => {
+    return date.toTimeString().slice(0, 5);
+  };
+
+  // Auto-calculate end time from start time + total duration (for feeds)
+  const calculateFeedEndTime = useCallback((startTime: string, leftMins: number, rightMins: number): string => {
+    if (!startTime) return '';
+    const totalMins = leftMins + rightMins;
+    if (totalMins === 0) return '';
+    const start = parseTimeToDate(startTime);
+    const end = new Date(start.getTime() + totalMins * 60000);
+    return dateToTimeString(end);
+  }, []);
+
+  // Auto-calculate end time for sleep from start time + duration
+  const calculateSleepEndTime = useCallback((startTime: string, durationMins: number): string => {
+    if (!startTime || durationMins === 0) return '';
+    const start = parseTimeToDate(startTime);
+    const end = new Date(start.getTime() + durationMins * 60000);
+    return dateToTimeString(end);
+  }, []);
+
+  // Handle feed duration change - auto-update end time
+  const handleFeedLeftMinsChange = (value: string) => {
+    setFeedManualLeftMins(value);
+    if (feedStartTime) {
+      const leftMins = parseInt(value) || 0;
+      const rightMins = parseInt(feedManualRightMins) || 0;
+      const newEndTime = calculateFeedEndTime(feedStartTime, leftMins, rightMins);
+      if (newEndTime) setFeedEndTime(newEndTime);
+    }
+  };
+
+  const handleFeedRightMinsChange = (value: string) => {
+    setFeedManualRightMins(value);
+    if (feedStartTime) {
+      const leftMins = parseInt(feedManualLeftMins) || 0;
+      const rightMins = parseInt(value) || 0;
+      const newEndTime = calculateFeedEndTime(feedStartTime, leftMins, rightMins);
+      if (newEndTime) setFeedEndTime(newEndTime);
+    }
+  };
+
+  // Handle sleep duration change - auto-update end time
+  const handleSleepDurationChange = (value: number) => {
+    setSleepManualDuration(value);
+    if (sleepStartTime) {
+      const newEndTime = calculateSleepEndTime(sleepStartTime, value);
+      if (newEndTime) setSleepEndTime(newEndTime);
+    }
+  };
+
+  // Handle start time change - recalculate end time if duration is set
+  const handleFeedStartTimeChange = (value: string) => {
+    setFeedStartTime(value);
+    const leftMins = parseInt(feedManualLeftMins) || 0;
+    const rightMins = parseInt(feedManualRightMins) || 0;
+    if (leftMins > 0 || rightMins > 0) {
+      const newEndTime = calculateFeedEndTime(value, leftMins, rightMins);
+      if (newEndTime) setFeedEndTime(newEndTime);
+    }
+  };
+
+  const handleSleepStartTimeChange = (value: string) => {
+    setSleepStartTime(value);
+    if (sleepManualDuration > 0) {
+      const newEndTime = calculateSleepEndTime(value, sleepManualDuration);
+      if (newEndTime) setSleepEndTime(newEndTime);
+    }
+  };
+
   // ===== FEED TIMER FUNCTIONS (Independent L/R Timers) =====
 
   // Start or resume a specific side's timer
@@ -1018,7 +1090,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                           type="time"
                           className="rosie-input"
                           value={feedStartTime}
-                          onChange={e => setFeedStartTime(e.target.value)}
+                          onChange={e => handleFeedStartTimeChange(e.target.value)}
                         />
                       </div>
                       <div className="rosie-time-input-group">
@@ -1028,6 +1100,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                           className="rosie-input"
                           value={feedEndTime}
                           onChange={e => setFeedEndTime(e.target.value)}
+                          placeholder="Auto-calculated"
                         />
                       </div>
                     </div>
@@ -1037,10 +1110,10 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                       <div className="rosie-duration-ring-wrapper left">
                         <DurationRing
                           value={parseInt(feedManualLeftMins) || 0}
-                          onChange={(val) => setFeedManualLeftMins(val.toString())}
+                          onChange={(val) => handleFeedLeftMinsChange(val.toString())}
                           maxValue={30}
-                          size={140}
-                          strokeWidth={18}
+                          size={130}
+                          strokeWidth={16}
                           color="#FF2D55"
                           label="Left"
                           showHours={false}
@@ -1049,10 +1122,10 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                       <div className="rosie-duration-ring-wrapper right">
                         <DurationRing
                           value={parseInt(feedManualRightMins) || 0}
-                          onChange={(val) => setFeedManualRightMins(val.toString())}
+                          onChange={(val) => handleFeedRightMinsChange(val.toString())}
                           maxValue={30}
-                          size={140}
-                          strokeWidth={18}
+                          size={130}
+                          strokeWidth={16}
                           color="#007AFF"
                           label="Right"
                           showHours={false}
@@ -1390,11 +1463,34 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
             ) : (
               /* Manual Entry Mode with Duration Ring */
               <>
+                {/* Start time input */}
+                <div className="rosie-time-inputs">
+                  <div className="rosie-time-input-group">
+                    <label className="rosie-time-input-label">Start Time</label>
+                    <input
+                      type="time"
+                      className="rosie-input"
+                      value={sleepStartTime}
+                      onChange={e => handleSleepStartTimeChange(e.target.value)}
+                    />
+                  </div>
+                  <div className="rosie-time-input-group">
+                    <label className="rosie-time-input-label">End Time</label>
+                    <input
+                      type="time"
+                      className="rosie-input"
+                      value={sleepEndTime}
+                      onChange={e => setSleepEndTime(e.target.value)}
+                      placeholder="Auto-calculated"
+                    />
+                  </div>
+                </div>
+
                 {/* Duration Ring */}
                 <div className="rosie-single-duration-ring">
                   <DurationRing
                     value={sleepManualDuration}
-                    onChange={setSleepManualDuration}
+                    onChange={handleSleepDurationChange}
                     maxValue={sleepType === 'nap' ? 180 : 720} // 3h for nap, 12h for night
                     size={180}
                     strokeWidth={22}
@@ -1404,37 +1500,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                   />
                 </div>
 
-                {/* Optional: Exact time inputs */}
-                <div className="rosie-manual-time-toggle">
-                  <p className="rosie-manual-time-hint">Or enter exact times:</p>
-                  <div className="rosie-time-inputs compact">
-                    <div className="rosie-time-input-group">
-                      <label className="rosie-time-input-label">Start</label>
-                      <input
-                        type="time"
-                        className="rosie-input"
-                        value={sleepStartTime}
-                        onChange={e => {
-                          setSleepStartTime(e.target.value);
-                          setSleepManualDuration(0); // Clear ring when using times
-                        }}
-                      />
-                    </div>
-                    <div className="rosie-time-input-group">
-                      <label className="rosie-time-input-label">End</label>
-                      <input
-                        type="time"
-                        className="rosie-input"
-                        value={sleepEndTime}
-                        onChange={e => {
-                          setSleepEndTime(e.target.value);
-                          setSleepManualDuration(0); // Clear ring when using times
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
+                {/* Show calculated duration when both times are set */}
                 {sleepStartTime && sleepEndTime && (
                   <div className="rosie-duration-display">
                     <div className="rosie-duration-label">Duration</div>
