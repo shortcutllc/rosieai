@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement } from './types';
+import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData } from './types';
 import { formatTime } from './developmentalData';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
@@ -22,6 +22,7 @@ interface RosieChatProps {
   timeline: TimelineEvent[];
   developmentalInfo: DevelopmentalInfo;
   growthMeasurements?: GrowthMeasurement[];
+  weather?: WeatherData | null;
 }
 
 const quickQuestions = [
@@ -39,6 +40,7 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   timeline,
   developmentalInfo,
   growthMeasurements,
+  weather,
 }) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -73,6 +75,7 @@ export const RosieChat: React.FC<RosieChatProps> = ({
           developmentalInfo,
           chatHistory: messages.map(m => ({ role: m.role, content: m.content })),
           growthMeasurements,
+          weather: weather || undefined,
         }),
       });
 

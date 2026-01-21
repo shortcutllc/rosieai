@@ -9,7 +9,7 @@ import { RosieInsights } from './RosieInsights';
 import { RosieHeader, TimePeriod, getTimePeriod } from './RosieHeader';
 import { RosieQuickLog } from './RosieQuickLog';
 import { RosieProfile } from './RosieProfile';
-import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, GrowthMeasurement } from './types';
+import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, GrowthMeasurement, UserSettings } from './types';
 import { getStoredData, saveData, clearData } from './storage';
 import { getDevelopmentalInfo } from './developmentalData';
 import { fetchEvents, addEvent, deleteEvent as deleteEventFromDB } from './supabaseEvents';
@@ -51,6 +51,7 @@ const RosieAIContent: React.FC = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(() => getTimePeriod(new Date().getHours()));
   const [showAuth, setShowAuth] = useState(false);
+  const [weather, setWeather] = useState<import('./types').WeatherData | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -261,6 +262,18 @@ const RosieAIContent: React.FC = () => {
     setData(updatedData);
   };
 
+  const handleUpdateSettings = (settings: UserSettings) => {
+    if (!data) return;
+
+    const updatedData = {
+      ...data,
+      userSettings: settings,
+    };
+
+    saveData(updatedData);
+    setData(updatedData);
+  };
+
   const handleAddMeasurement = (measurement: Omit<GrowthMeasurement, 'id' | 'timestamp'>) => {
     if (!data) return;
 
@@ -340,7 +353,9 @@ const RosieAIContent: React.FC = () => {
       <RosieHeader
         baby={data.baby}
         developmentalInfo={developmentalInfo}
+        userSettings={data.userSettings}
         onTimePeriodChange={setTimePeriod}
+        onWeatherChange={setWeather}
         onProfileClick={() => setShowProfile(true)}
       />
 
@@ -434,6 +449,7 @@ const RosieAIContent: React.FC = () => {
             timeline={data.timeline}
             developmentalInfo={developmentalInfo}
             growthMeasurements={data.growthMeasurements}
+            weather={weather}
           />
         )}
       </main>
@@ -457,7 +473,9 @@ const RosieAIContent: React.FC = () => {
         <RosieProfile
           baby={data.baby}
           growthMeasurements={data.growthMeasurements || []}
+          userSettings={data.userSettings}
           onUpdateBaby={handleUpdateBaby}
+          onUpdateSettings={handleUpdateSettings}
           onAddMeasurement={handleAddMeasurement}
           onDeleteMeasurement={handleDeleteMeasurement}
           onClose={() => setShowProfile(false)}

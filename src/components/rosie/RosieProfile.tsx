@@ -1,10 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { BabyProfile, GrowthMeasurement } from './types';
+import { BabyProfile, GrowthMeasurement, UserSettings } from './types';
 
 interface RosieProfileProps {
   baby: BabyProfile;
   growthMeasurements: GrowthMeasurement[];
+  userSettings?: UserSettings;
   onUpdateBaby: (baby: BabyProfile) => void;
+  onUpdateSettings: (settings: UserSettings) => void;
   onAddMeasurement: (measurement: Omit<GrowthMeasurement, 'id' | 'timestamp'>) => void;
   onDeleteMeasurement: (id: string) => void;
   onClose: () => void;
@@ -18,7 +20,9 @@ const AVATAR_EMOJIS = ['👶', '👧', '👦', '🧒', '👼', '🍼', '🌟', '
 export const RosieProfile: React.FC<RosieProfileProps> = ({
   baby,
   growthMeasurements,
+  userSettings,
   onUpdateBaby,
+  onUpdateSettings,
   onAddMeasurement,
   onDeleteMeasurement,
   onClose,
@@ -28,6 +32,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
   const [activeSection, setActiveSection] = useState<'profile' | 'growth' | 'settings'>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [editLocation, setEditLocation] = useState(userSettings?.location || '');
   const [showAddMeasurement, setShowAddMeasurement] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -603,6 +608,42 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
           {/* Settings Section */}
           {activeSection === 'settings' && (
             <div className="rosie-profile-section">
+              {/* Location/Weather Section */}
+              <div className="rosie-settings-group">
+                <h4 className="rosie-settings-group-title">Location & Weather</h4>
+                <div className="rosie-settings-item-full">
+                  <div className="rosie-settings-item-info">
+                    <div className="rosie-settings-item-label">Your Location</div>
+                    <div className="rosie-settings-item-desc">
+                      Enter your city to see weather in the app
+                    </div>
+                  </div>
+                  <div className="rosie-settings-location-input">
+                    <input
+                      type="text"
+                      className="rosie-profile-input"
+                      value={editLocation}
+                      onChange={e => setEditLocation(e.target.value)}
+                      placeholder="City, State (e.g., Austin, TX)"
+                    />
+                    <button
+                      className="rosie-settings-btn"
+                      onClick={() => {
+                        onUpdateSettings({ ...userSettings, location: editLocation.trim() });
+                      }}
+                      disabled={!editLocation.trim()}
+                    >
+                      Save
+                    </button>
+                  </div>
+                  {userSettings?.location && (
+                    <div className="rosie-settings-location-current">
+                      Current: {userSettings.location}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Account Section */}
               {onSignOut && (
                 <div className="rosie-settings-group">

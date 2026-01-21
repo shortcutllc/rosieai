@@ -67,6 +67,17 @@ interface ChatMessage {
   content: string;
 }
 
+interface WeatherData {
+  temperature: number;
+  condition: string;
+  icon: string;
+  humidity?: number;
+  feelsLike?: number;
+  high?: number;
+  low?: number;
+  location?: string;
+}
+
 interface ChatRequest {
   message: string;
   baby: BabyProfile;
@@ -74,6 +85,7 @@ interface ChatRequest {
   developmentalInfo: DevelopmentalInfo;
   chatHistory: ChatMessage[];
   growthMeasurements?: GrowthMeasurement[];
+  weather?: WeatherData;
 }
 
 // Helper to format duration
@@ -210,8 +222,23 @@ const buildGrowthContext = (baby: BabyProfile, measurements: GrowthMeasurement[]
   return lines.length > 1 ? lines.join('\n') : '';
 };
 
+// Build weather context
+const buildWeatherContext = (weather?: WeatherData): string => {
+  if (!weather) return '';
+
+  const lines: string[] = ['## Current Weather'];
+  lines.push(`- **Location:** ${weather.location || 'Unknown'}`);
+  lines.push(`- **Temperature:** ${weather.temperature}°F (feels like ${weather.feelsLike || weather.temperature}°F)`);
+  lines.push(`- **Conditions:** ${weather.condition}`);
+  if (weather.high && weather.low) {
+    lines.push(`- **High/Low:** ${weather.high}°F / ${weather.low}°F`);
+  }
+
+  return lines.join('\n');
+};
+
 // Build the system prompt with all context
-const buildSystemPrompt = (baby: BabyProfile, developmentalInfo: DevelopmentalInfo, timeline: TimelineEvent[], growthMeasurements?: GrowthMeasurement[]): string => {
+const buildSystemPrompt = (baby: BabyProfile, developmentalInfo: DevelopmentalInfo, timeline: TimelineEvent[], growthMeasurements?: GrowthMeasurement[], weather?: WeatherData): string => {
   const { ageDisplay, weekNumber, sleepInfo, feedingInfo, whatToExpect, milestones, commonConcerns, upcomingChanges } = developmentalInfo;
 
   return `You are Rosie, a warm, knowledgeable, and supportive AI assistant for new parents. You provide evidence-based guidance on infant care, development, sleep, and feeding.
@@ -249,6 +276,8 @@ ${feedingInfo.notes.map(note => `- ${note}`).join('\n')}
 ${buildGrowthContext(baby, growthMeasurements || [])}
 
 ${buildRecentEventsContext(timeline)}
+
+${buildWeatherContext(weather)}
 
 ## Your Personality & Approach
 - Be warm, empathetic, and reassuring - new parenthood is hard
@@ -299,7 +328,7 @@ const handler: Handler = async (event) => {
       };
     }
 
-    const { message, baby, timeline, developmentalInfo, chatHistory, growthMeasurements } = JSON.parse(event.body || '{}') as ChatRequest;
+    const { message, baby, timeline, developmentalInfo, chatHistory, growthMeasurements, weather } = JSON.parse(event.body || '{}') as ChatRequest;
 
     if (!message || !baby || !developmentalInfo) {
       return {
@@ -332,7 +361,7 @@ const handler: Handler = async (event) => {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      system: buildSystemPrompt(baby, developmentalInfo, timeline, growthMeasurements),
+      system: buildSystemPrompt(baby, developmentalInfo, timeline, growthMeasurements, weather),
       messages,
     });
 

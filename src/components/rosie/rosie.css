@@ -3143,6 +3143,43 @@
   position: relative;
 }
 
+/* ===== Weather Display ===== */
+.rosie-header-weather {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--rosie-bg-card);
+  border-radius: var(--rosie-radius-full);
+  box-shadow: var(--rosie-shadow);
+  z-index: 5;
+}
+
+.rosie-weather-icon {
+  font-size: 18px;
+}
+
+.rosie-weather-temp {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rosie-text-primary);
+}
+
+.rosie-weather-condition {
+  font-size: 13px;
+  color: var(--rosie-text-secondary);
+  display: none;
+}
+
+@media (min-width: 400px) {
+  .rosie-weather-condition {
+    display: inline;
+  }
+}
+
 /* ===== Profile Modal ===== */
 .rosie-profile-modal {
   max-height: 95vh;
@@ -3779,6 +3816,34 @@
 }
 
 .rosie-settings-item-desc {
+  font-size: 13px;
+  color: var(--rosie-text-secondary);
+}
+
+/* Full-width settings item for inputs */
+.rosie-settings-item-full {
+  padding: 16px;
+  background: var(--rosie-bg-card);
+  border-radius: var(--rosie-radius);
+  margin-bottom: 8px;
+  box-shadow: var(--rosie-shadow-sm);
+}
+
+.rosie-settings-item-full .rosie-settings-item-info {
+  margin-bottom: 12px;
+}
+
+.rosie-settings-location-input {
+  display: flex;
+  gap: 12px;
+}
+
+.rosie-settings-location-input .rosie-profile-input {
+  flex: 1;
+}
+
+.rosie-settings-location-current {
+  margin-top: 8px;
   font-size: 13px;
   color: var(--rosie-text-secondary);
 }

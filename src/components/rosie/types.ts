@@ -87,6 +87,22 @@ export interface CaregiverNote {
   linkedEventId?: string;
 }
 
+export interface UserSettings {
+  location?: string; // City, State or ZIP code
+  temperatureUnit?: 'fahrenheit' | 'celsius';
+}
+
+export interface WeatherData {
+  temperature: number;
+  condition: string;
+  icon: string;
+  humidity?: number;
+  feelsLike?: number;
+  high?: number;
+  low?: number;
+  location?: string;
+}
+
 export interface RosieData {
   baby: BabyProfile;
   timeline: TimelineEvent[];
@@ -95,6 +111,7 @@ export interface RosieData {
   growthMeasurements?: GrowthMeasurement[]; // Weight/height history
   activeTimer?: ActiveTimer; // Currently running timer
   lastFeedSide?: 'left' | 'right'; // Remember which side was last for breastfeeding
+  userSettings?: UserSettings; // User preferences like location
 }
 
 export interface DevelopmentalInfo {

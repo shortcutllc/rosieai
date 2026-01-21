@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BabyProfile, DevelopmentalInfo } from './types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BabyProfile, DevelopmentalInfo, WeatherData, UserSettings } from './types';
 
 // Time period for ambient theming
 export type TimePeriod = 'morning' | 'afternoon' | 'evening' | 'night';
@@ -39,14 +39,57 @@ const getSupportiveText = (period: TimePeriod, babyName: string): string => {
 interface RosieHeaderProps {
   baby: BabyProfile;
   developmentalInfo: DevelopmentalInfo;
+  userSettings?: UserSettings;
   onTimePeriodChange?: (period: TimePeriod) => void;
+  onWeatherChange?: (weather: WeatherData | null) => void;
   onProfileClick?: () => void;
 }
 
-export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, developmentalInfo, onTimePeriodChange, onProfileClick }) => {
+export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, developmentalInfo, userSettings, onTimePeriodChange, onWeatherChange, onProfileClick }) => {
   const { ageDisplay, weekNumber, ageInDays } = developmentalInfo;
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(() => getTimePeriod(new Date().getHours()));
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState(false);
+
+  // Fetch weather data
+  const fetchWeather = useCallback(async (location: string) => {
+    if (!location) return;
+
+    setWeatherLoading(true);
+    setWeatherError(false);
+
+    try {
+      const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch weather');
+      }
+      const data = await response.json();
+      setWeather(data);
+      onWeatherChange?.(data);
+    } catch (error) {
+      console.error('Error fetching weather:', error);
+      setWeatherError(true);
+      onWeatherChange?.(null);
+    } finally {
+      setWeatherLoading(false);
+    }
+  }, [onWeatherChange]);
+
+  // Fetch weather when location changes
+  useEffect(() => {
+    if (userSettings?.location) {
+      fetchWeather(userSettings.location);
+
+      // Refresh weather every 10 minutes
+      const interval = setInterval(() => {
+        fetchWeather(userSettings.location!);
+      }, 10 * 60 * 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [userSettings?.location, fetchWeather]);
 
   // Update time every minute
   useEffect(() => {
@@ -114,6 +157,15 @@ export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, developmentalInf
               baby.avatarEmoji || '👶'
             )}
           </button>
+        )}
+
+        {/* Weather Display - Top Left */}
+        {weather && !weatherError && (
+          <div className="rosie-header-weather">
+            <span className="rosie-weather-icon">{weather.icon}</span>
+            <span className="rosie-weather-temp">{weather.temperature}°</span>
+            <span className="rosie-weather-condition">{weather.condition}</span>
+          </div>
         )}
 
         {/* Time & Date - Apple Lock Screen style */}
