@@ -113,8 +113,11 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.log('[RosieAuth] Loading user data for:', userId);
 
       try {
-        const userProfile = await fetchProfile(userId);
-        const userBabies = await fetchBabies(userId);
+        // Fetch profile and babies in parallel for faster load times
+        const [userProfile, userBabies] = await Promise.all([
+          fetchProfile(userId),
+          fetchBabies(userId)
+        ]);
 
         console.log('[RosieAuth] Fetched profile:', userProfile);
         console.log('[RosieAuth] Fetched babies:', userBabies);
