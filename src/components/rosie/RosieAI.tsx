@@ -12,6 +12,7 @@ import { RosieProfile } from './RosieProfile';
 import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, GrowthMeasurement } from './types';
 import { getStoredData, saveData, clearData } from './storage';
 import { getDevelopmentalInfo } from './developmentalData';
+import { fetchEvents, addEvent, deleteEvent as deleteEventFromDB } from './supabaseEvents';
 import './rosie.css';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
@@ -52,41 +53,52 @@ const RosieAIContent: React.FC = () => {
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
-    // If user is authenticated and has a baby, load from localStorage (for now)
-    // In the future, this will sync with Supabase
-    if (currentBaby) {
-      const stored = getStoredData();
-      // Merge currentBaby info into stored data
-      if (stored) {
-        setData({
-          ...stored,
-          baby: {
-            name: currentBaby.name,
-            birthDate: currentBaby.birthDate,
-            photoUrl: currentBaby.photoUrl,
-          }
-        });
-      } else {
-        setData({
+    const loadData = async () => {
+      // If user is authenticated and has a baby, load from Supabase
+      if (user && currentBaby) {
+        const stored = getStoredData();
+
+        // Set initial data immediately with local cache for fast render
+        const initialData: RosieData = {
           baby: {
             name: currentBaby.name,
             birthDate: currentBaby.birthDate,
             photoUrl: currentBaby.photoUrl,
           },
-          timeline: [],
-          chatHistory: [],
-          caregiverNotes: [],
-        });
+          timeline: stored?.timeline || [],
+          chatHistory: stored?.chatHistory || [],
+          caregiverNotes: stored?.caregiverNotes || [],
+          activeTimer: stored?.activeTimer,
+          growthMeasurements: stored?.growthMeasurements,
+        };
+        setData(initialData);
+        setIsLoading(false);
+
+        // Then fetch from Supabase in background and update
+        try {
+          const events = await fetchEvents(user.id, currentBaby.id);
+          if (events.length > 0 || !stored?.timeline?.length) {
+            const updatedData = { ...initialData, timeline: events };
+            setData(updatedData);
+            saveData(updatedData); // Cache locally
+          }
+        } catch (err) {
+          console.error('Error fetching events from Supabase:', err);
+          // Keep using local data on error
+        }
+      } else if (!authLoading && !user) {
+        // Not authenticated, show auth screen
+        setShowAuth(true);
+        setIsLoading(false);
+      } else if (!authLoading) {
+        // Fallback to local storage for non-authenticated usage
+        const stored = getStoredData();
+        setData(stored);
+        setIsLoading(false);
       }
-    } else if (!authLoading && !user) {
-      // Not authenticated, show auth screen
-      setShowAuth(true);
-    } else {
-      // Fallback to local storage for non-authenticated usage
-      const stored = getStoredData();
-      setData(stored);
-    }
-    setIsLoading(false);
+    };
+
+    loadData();
   }, [user, currentBaby, authLoading]);
 
   // Update banner timer display every second when timer is active
@@ -159,7 +171,7 @@ const RosieAIContent: React.FC = () => {
     setData(newData);
   };
 
-  const handleAddEvent = (event: Omit<TimelineEvent, 'id' | 'timestamp'>) => {
+  const handleAddEvent = async (event: Omit<TimelineEvent, 'id' | 'timestamp'>) => {
     if (!data) return;
 
     const newEvent: TimelineEvent = {
@@ -168,25 +180,42 @@ const RosieAIContent: React.FC = () => {
       timestamp: new Date().toISOString(),
     };
 
+    // Optimistic update - show immediately
     const updatedData = {
       ...data,
       timeline: [newEvent, ...data.timeline],
     };
-
-    saveData(updatedData);
     setData(updatedData);
+    saveData(updatedData); // Cache locally
+
+    // Save to Supabase if authenticated
+    if (user && currentBaby) {
+      const result = await addEvent(newEvent, user.id, currentBaby.id);
+      if (!result.success) {
+        console.error('Failed to save event to Supabase:', result.error);
+        // Event is still in local state/cache, will sync later
+      }
+    }
   };
 
-  const handleDeleteEvent = (eventId: string) => {
+  const handleDeleteEvent = async (eventId: string) => {
     if (!data) return;
 
+    // Optimistic update - remove immediately
     const updatedData = {
       ...data,
       timeline: data.timeline.filter(event => event.id !== eventId),
     };
-
-    saveData(updatedData);
     setData(updatedData);
+    saveData(updatedData);
+
+    // Delete from Supabase if authenticated
+    if (user) {
+      const result = await deleteEventFromDB(eventId, user.id);
+      if (!result.success) {
+        console.error('Failed to delete event from Supabase:', result.error);
+      }
+    }
   };
 
   const handleAddMessage = (message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
