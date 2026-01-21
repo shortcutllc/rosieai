@@ -111,6 +111,8 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         name: row.name,
         birthDate: row.birth_date,
         photoUrl: row.photo_url,
+        birthWeight: row.birth_weight,
+        weightUnit: row.weight_unit || 'oz',
         created_at: row.created_at,
       })) as RosieBabyProfile[];
     } catch (err) {
@@ -322,6 +324,8 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           name: baby.name,
           birth_date: baby.birthDate,
           photo_url: baby.photoUrl || null,
+          birth_weight: baby.birthWeight || null,
+          weight_unit: baby.weightUnit || 'oz',
         })
         .select()
         .single();
@@ -336,6 +340,8 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         name: data.name,
         birthDate: data.birth_date,
         photoUrl: data.photo_url,
+        birthWeight: data.birth_weight,
+        weightUnit: data.weight_unit || 'oz',
         created_at: data.created_at,
       };
 

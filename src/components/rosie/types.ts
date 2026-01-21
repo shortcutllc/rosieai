@@ -15,7 +15,8 @@ export interface BabyProfile {
 
 export interface GrowthMeasurement {
   id: string;
-  timestamp: string; // ISO date string
+  timestamp: string; // ISO date string - when record was created
+  measurementDate?: string; // ISO date string - when measurement was taken
   weight?: number; // in oz or grams based on unit
   length?: number; // in inches or cm based on unit
   headCircumference?: number; // in inches or cm

@@ -433,6 +433,7 @@ const RosieAIContent: React.FC = () => {
             onUpdateHistory={handleUpdateChatHistory}
             timeline={data.timeline}
             developmentalInfo={developmentalInfo}
+            growthMeasurements={data.growthMeasurements}
           />
         )}
       </main>

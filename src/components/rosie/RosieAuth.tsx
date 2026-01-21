@@ -27,6 +27,8 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   const [parentName, setParentName] = useState('');
   const [babyName, setBabyName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [birthWeightLbs, setBirthWeightLbs] = useState('');
+  const [birthWeightOz, setBirthWeightOz] = useState('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -84,9 +86,16 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     setLocalError(null);
     setLocalLoading(true);
 
+    // Convert lbs + oz to total oz for storage
+    const lbs = parseFloat(birthWeightLbs) || 0;
+    const oz = parseFloat(birthWeightOz) || 0;
+    const totalOz = (lbs * 16) + oz;
+
     const result = await addBaby({
       name: babyName,
       birthDate,
+      birthWeight: totalOz > 0 ? totalOz : undefined,
+      weightUnit: 'oz',
     });
 
     if (result.success) {
@@ -106,7 +115,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
       <div className="rosie-auth-container">
         <div className="rosie-auth-card">
           <div className="rosie-auth-logo">
-            <span className="rosie-auth-logo-icon">🌸</span>
+            <img src="/rosie-icon.svg" alt="Rosie" className="rosie-auth-logo-img" />
             <h1 className="rosie-auth-logo-text">Rosie</h1>
           </div>
 
@@ -294,6 +303,36 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
                 max={new Date().toISOString().split('T')[0]}
                 required
               />
+            </div>
+
+            <div className="rosie-auth-field">
+              <label className="rosie-auth-label">Birth weight (optional)</label>
+              <div className="rosie-auth-weight-inputs">
+                <div className="rosie-auth-weight-field">
+                  <input
+                    type="number"
+                    value={birthWeightLbs}
+                    onChange={(e) => setBirthWeightLbs(e.target.value)}
+                    className="rosie-auth-input rosie-auth-input-small"
+                    placeholder="0"
+                    min="0"
+                    max="20"
+                  />
+                  <span className="rosie-auth-weight-unit">lbs</span>
+                </div>
+                <div className="rosie-auth-weight-field">
+                  <input
+                    type="number"
+                    value={birthWeightOz}
+                    onChange={(e) => setBirthWeightOz(e.target.value)}
+                    className="rosie-auth-input rosie-auth-input-small"
+                    placeholder="0"
+                    min="0"
+                    max="15"
+                  />
+                  <span className="rosie-auth-weight-unit">oz</span>
+                </div>
+              </div>
             </div>
 
             <button

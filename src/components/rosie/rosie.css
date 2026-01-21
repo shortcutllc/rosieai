@@ -3618,6 +3618,30 @@
   margin-top: 16px;
 }
 
+/* Growth weight input styles */
+.rosie-growth-weight-inputs {
+  display: flex;
+  gap: 16px;
+}
+
+.rosie-growth-weight-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.rosie-profile-input-small {
+  width: 70px;
+  text-align: center;
+}
+
+.rosie-growth-weight-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rosie-text-secondary);
+}
+
 /* Growth Empty State */
 .rosie-growth-empty {
   text-align: center;
@@ -5241,6 +5265,12 @@
   font-size: 40px;
 }
 
+.rosie-auth-logo-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
 .rosie-auth-logo-text {
   font-size: 36px;
   font-weight: 700;
@@ -5435,6 +5465,30 @@
 .rosie-auth-input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.6;
   cursor: pointer;
+}
+
+/* Weight input styles */
+.rosie-auth-weight-inputs {
+  display: flex;
+  gap: 16px;
+}
+
+.rosie-auth-weight-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.rosie-auth-input-small {
+  width: 80px;
+  text-align: center;
+}
+
+.rosie-auth-weight-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rosie-text-secondary);
 }
 
 /* Ensure text inputs have dark text */

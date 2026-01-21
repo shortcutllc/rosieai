@@ -6,6 +6,18 @@ interface BabyProfile {
   name: string;
   birthDate: string;
   gender?: 'boy' | 'girl' | 'other';
+  birthWeight?: number; // in oz
+  weightUnit?: string;
+}
+
+interface GrowthMeasurement {
+  id: string;
+  timestamp: string;
+  measurementDate?: string;
+  weight?: number;
+  length?: number;
+  headCircumference?: number;
+  note?: string;
 }
 
 interface TimelineEvent {
@@ -61,6 +73,7 @@ interface ChatRequest {
   timeline: TimelineEvent[];
   developmentalInfo: DevelopmentalInfo;
   chatHistory: ChatMessage[];
+  growthMeasurements?: GrowthMeasurement[];
 }
 
 // Helper to format duration
@@ -145,8 +158,60 @@ const buildRecentEventsContext = (timeline: TimelineEvent[]): string => {
   return lines.join('\n');
 };
 
+// Helper to format weight from oz to lbs/oz display
+const formatWeight = (oz: number): string => {
+  const lbs = Math.floor(oz / 16);
+  const remainingOz = Math.round(oz % 16);
+  if (lbs === 0) return `${remainingOz} oz`;
+  if (remainingOz === 0) return `${lbs} lbs`;
+  return `${lbs} lbs ${remainingOz} oz`;
+};
+
+// Build growth context from measurements
+const buildGrowthContext = (baby: BabyProfile, measurements: GrowthMeasurement[]): string => {
+  const lines: string[] = ['## Growth Information'];
+
+  // Birth weight
+  if (baby.birthWeight) {
+    lines.push(`- **Birth weight:** ${formatWeight(baby.birthWeight)}`);
+  }
+
+  // Latest measurements
+  if (measurements && measurements.length > 0) {
+    const latest = measurements[0]; // Assuming sorted newest first
+    lines.push('');
+    lines.push('### Most Recent Measurements:');
+    const measureDate = latest.measurementDate
+      ? new Date(latest.measurementDate).toLocaleDateString()
+      : new Date(latest.timestamp).toLocaleDateString();
+    lines.push(`- **Date:** ${measureDate}`);
+    if (latest.weight) {
+      lines.push(`- **Weight:** ${formatWeight(latest.weight)}`);
+    }
+    if (latest.length) {
+      lines.push(`- **Length:** ${latest.length} inches`);
+    }
+    if (latest.headCircumference) {
+      lines.push(`- **Head circumference:** ${latest.headCircumference} inches`);
+    }
+
+    // Calculate weight gain if we have birth weight and current weight
+    if (baby.birthWeight && latest.weight) {
+      const gainOz = latest.weight - baby.birthWeight;
+      lines.push(`- **Weight gain since birth:** ${formatWeight(Math.abs(gainOz))} ${gainOz >= 0 ? 'gained' : 'lost'}`);
+    }
+
+    // Show history summary if multiple measurements
+    if (measurements.length > 1) {
+      lines.push(`- **Total measurements recorded:** ${measurements.length}`);
+    }
+  }
+
+  return lines.length > 1 ? lines.join('\n') : '';
+};
+
 // Build the system prompt with all context
-const buildSystemPrompt = (baby: BabyProfile, developmentalInfo: DevelopmentalInfo, timeline: TimelineEvent[]): string => {
+const buildSystemPrompt = (baby: BabyProfile, developmentalInfo: DevelopmentalInfo, timeline: TimelineEvent[], growthMeasurements?: GrowthMeasurement[]): string => {
   const { ageDisplay, weekNumber, sleepInfo, feedingInfo, whatToExpect, milestones, commonConcerns, upcomingChanges } = developmentalInfo;
 
   return `You are Rosie, a warm, knowledgeable, and supportive AI assistant for new parents. You provide evidence-based guidance on infant care, development, sleep, and feeding.
@@ -180,6 +245,8 @@ ${upcomingChanges.map(item => `- ${item}`).join('\n')}
 - Frequency: ${feedingInfo.frequency}
 ${feedingInfo.amount ? `- Amount: ${feedingInfo.amount}` : ''}
 ${feedingInfo.notes.map(note => `- ${note}`).join('\n')}
+
+${buildGrowthContext(baby, growthMeasurements || [])}
 
 ${buildRecentEventsContext(timeline)}
 
@@ -232,7 +299,7 @@ const handler: Handler = async (event) => {
       };
     }
 
-    const { message, baby, timeline, developmentalInfo, chatHistory } = JSON.parse(event.body || '{}') as ChatRequest;
+    const { message, baby, timeline, developmentalInfo, chatHistory, growthMeasurements } = JSON.parse(event.body || '{}') as ChatRequest;
 
     if (!message || !baby || !developmentalInfo) {
       return {
@@ -265,7 +332,7 @@ const handler: Handler = async (event) => {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      system: buildSystemPrompt(baby, developmentalInfo, timeline),
+      system: buildSystemPrompt(baby, developmentalInfo, timeline, growthMeasurements),
       messages,
     });
 

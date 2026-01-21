@@ -40,7 +40,10 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
   const [editAvatarType, setEditAvatarType] = useState<'emoji' | 'image'>(baby.avatarType || 'emoji');
 
   // New measurement form state
+  const [newMeasurementDate, setNewMeasurementDate] = useState(new Date().toISOString().split('T')[0]);
   const [newWeight, setNewWeight] = useState('');
+  const [newWeightLbs, setNewWeightLbs] = useState('');
+  const [newWeightOz, setNewWeightOz] = useState('');
   const [newLength, setNewLength] = useState('');
   const [newHead, setNewHead] = useState('');
   const [newMeasurementNote, setNewMeasurementNote] = useState('');
@@ -183,16 +186,26 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
   };
 
   const handleAddMeasurement = () => {
-    if (!newWeight && !newLength && !newHead) return;
+    // Convert lbs + oz to total oz (or use direct weight if provided)
+    const lbs = parseFloat(newWeightLbs) || 0;
+    const oz = parseFloat(newWeightOz) || 0;
+    const totalOz = (lbs * 16) + oz;
+    const weightValue = totalOz > 0 ? totalOz : (newWeight ? parseFloat(newWeight) : undefined);
+
+    if (!weightValue && !newLength && !newHead) return;
 
     onAddMeasurement({
-      weight: newWeight ? parseFloat(newWeight) : undefined,
+      weight: weightValue,
       length: newLength ? parseFloat(newLength) : undefined,
       headCircumference: newHead ? parseFloat(newHead) : undefined,
       note: newMeasurementNote.trim() || undefined,
+      measurementDate: newMeasurementDate,
     });
 
+    setNewMeasurementDate(new Date().toISOString().split('T')[0]);
     setNewWeight('');
+    setNewWeightLbs('');
+    setNewWeightOz('');
     setNewLength('');
     setNewHead('');
     setNewMeasurementNote('');
@@ -444,18 +457,46 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
               {/* Add Measurement Form */}
               {showAddMeasurement && (
                 <div className="rosie-growth-form">
-                  <div className="rosie-growth-form-row">
-                    <div className="rosie-profile-field">
-                      <label className="rosie-profile-field-label">Weight ({baby.weightUnit || 'lb'})</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        className="rosie-profile-input"
-                        value={newWeight}
-                        onChange={e => setNewWeight(e.target.value)}
-                        placeholder="0.0"
-                      />
+                  <div className="rosie-profile-field">
+                    <label className="rosie-profile-field-label">Date</label>
+                    <input
+                      type="date"
+                      className="rosie-profile-input"
+                      value={newMeasurementDate}
+                      onChange={e => setNewMeasurementDate(e.target.value)}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div className="rosie-profile-field">
+                    <label className="rosie-profile-field-label">Weight</label>
+                    <div className="rosie-growth-weight-inputs">
+                      <div className="rosie-growth-weight-field">
+                        <input
+                          type="number"
+                          className="rosie-profile-input rosie-profile-input-small"
+                          value={newWeightLbs}
+                          onChange={e => setNewWeightLbs(e.target.value)}
+                          placeholder="0"
+                          min="0"
+                          max="50"
+                        />
+                        <span className="rosie-growth-weight-unit">lbs</span>
+                      </div>
+                      <div className="rosie-growth-weight-field">
+                        <input
+                          type="number"
+                          className="rosie-profile-input rosie-profile-input-small"
+                          value={newWeightOz}
+                          onChange={e => setNewWeightOz(e.target.value)}
+                          placeholder="0"
+                          min="0"
+                          max="15"
+                        />
+                        <span className="rosie-growth-weight-unit">oz</span>
+                      </div>
                     </div>
+                  </div>
+                  <div className="rosie-growth-form-row">
                     <div className="rosie-profile-field">
                       <label className="rosie-profile-field-label">Length ({baby.lengthUnit || 'in'})</label>
                       <input
@@ -467,17 +508,17 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
                         placeholder="0.0"
                       />
                     </div>
-                  </div>
-                  <div className="rosie-profile-field">
-                    <label className="rosie-profile-field-label">Head Circumference ({baby.lengthUnit || 'in'})</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      className="rosie-profile-input"
-                      value={newHead}
-                      onChange={e => setNewHead(e.target.value)}
-                      placeholder="0.0"
-                    />
+                    <div className="rosie-profile-field">
+                      <label className="rosie-profile-field-label">Head ({baby.lengthUnit || 'in'})</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="rosie-profile-input"
+                        value={newHead}
+                        onChange={e => setNewHead(e.target.value)}
+                        placeholder="0.0"
+                      />
+                    </div>
                   </div>
                   <div className="rosie-profile-field">
                     <label className="rosie-profile-field-label">Note (optional)</label>
@@ -499,7 +540,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
                     <button
                       className="rosie-profile-save-btn"
                       onClick={handleAddMeasurement}
-                      disabled={!newWeight && !newLength && !newHead}
+                      disabled={!newWeightLbs && !newWeightOz && !newLength && !newHead}
                     >
                       Save
                     </button>
