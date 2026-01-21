@@ -112,60 +112,37 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const loadUserData = async (userId: string) => {
       console.log('[RosieAuth] Loading user data for:', userId);
 
-      // Add timeout to prevent hanging if Supabase tables are unreachable
-      const timeoutPromise = new Promise<{ profile: null; babies: never[] }>((resolve) => {
-        setTimeout(() => {
-          console.warn('[RosieAuth] loadUserData timed out');
-          resolve({ profile: null, babies: [] });
-        }, 5000);
-      });
-
-      const fetchDataPromise = (async () => {
+      try {
         const userProfile = await fetchProfile(userId);
         const userBabies = await fetchBabies(userId);
-        return { profile: userProfile, babies: userBabies };
-      })();
 
-      const { profile: userProfile, babies: userBabies } = await Promise.race([fetchDataPromise, timeoutPromise]);
+        console.log('[RosieAuth] Fetched profile:', userProfile);
+        console.log('[RosieAuth] Fetched babies:', userBabies);
 
-      console.log('[RosieAuth] Fetched profile:', userProfile);
-      console.log('[RosieAuth] Fetched babies:', userBabies);
+        if (isMounted) {
+          setProfile(userProfile);
+          setBabies(userBabies);
 
-      if (isMounted) {
-        setProfile(userProfile);
-        setBabies(userBabies);
-
-        // Set current baby from localStorage or first baby
-        const savedBabyId = localStorage.getItem('rosie_current_baby_id');
-        const savedBaby = userBabies.find(b => b.id === savedBabyId);
-        setCurrentBabyState(savedBaby || userBabies[0] || null);
+          // Set current baby from localStorage or first baby
+          const savedBabyId = localStorage.getItem('rosie_current_baby_id');
+          const savedBaby = userBabies.find(b => b.id === savedBabyId);
+          setCurrentBabyState(savedBaby || userBabies[0] || null);
+        }
+      } catch (err) {
+        console.error('[RosieAuth] Error loading user data:', err);
+        // Continue without profile/babies data - user can still use the app
       }
     };
 
     const initAuth = async () => {
-      // Add timeout to prevent infinite loading if Supabase is unreachable
-      const timeoutPromise = new Promise<null>((resolve) => {
-        setTimeout(() => {
-          console.warn('[RosieAuth] Auth initialization timed out');
-          resolve(null);
-        }, 5000);
-      });
-
       try {
-        const sessionPromise = supabase.auth.getSession();
-        const result = await Promise.race([sessionPromise, timeoutPromise]);
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log('[RosieAuth] Initial session:', currentSession?.user?.id || 'none');
 
-        if (result && 'data' in result) {
-          const currentSession = result.data.session;
-          console.log('[RosieAuth] Initial session:', currentSession?.user?.id || 'none');
-
-          if (currentSession?.user && isMounted) {
-            setSession(currentSession);
-            setUser(currentSession.user);
-            await loadUserData(currentSession.user.id);
-          }
-        } else {
-          console.log('[RosieAuth] No session or timed out, proceeding without auth');
+        if (currentSession?.user && isMounted) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await loadUserData(currentSession.user.id);
         }
       } catch (err) {
         console.error('Error initializing Rosie auth:', err);
