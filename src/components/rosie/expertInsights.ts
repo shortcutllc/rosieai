@@ -23,7 +23,7 @@ export interface QuickWin {
   ageAppropriate: [number, number]; // [minWeek, maxWeek]
 }
 
-// Expert insights organized by topic
+// Expert insights organized by topic (legacy - kept for backward compatibility)
 export const expertInsights: Record<string, ExpertInsight[]> = {
   sleep: [
     {
@@ -123,6 +123,377 @@ export const expertInsights: Record<string, ExpertInsight[]> = {
       sourceType: 'aap',
     },
   ],
+};
+
+// Age-specific expert insights
+// Organized by developmental stage with tips relevant to that age
+export interface AgeStageInsights {
+  ageRange: [number, number]; // [minWeek, maxWeek]
+  stageName: string;
+  insights: ExpertInsight[];
+}
+
+export const ageSpecificInsights: AgeStageInsights[] = [
+  // 0-3 months (weeks 1-12): Fourth trimester
+  {
+    ageRange: [1, 12],
+    stageName: '0-3 Months',
+    insights: [
+      {
+        topic: 'Newborn Sleep',
+        insight: 'Newborns don\'t have circadian rhythms yet. Day/night confusion is normal and will resolve by 6-8 weeks. You can\'t "train" a newborn.',
+        source: 'Emily Oster, Cribsheet',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Feeding',
+        insight: 'Breastfeeding has real benefits, but they\'re more modest than often claimed. Formula-fed babies turn out just fine. Fed is best.',
+        source: 'Emily Oster, Cribsheet',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Crying',
+        insight: 'Crying peaks around 6-8 weeks. It\'s not your fault. You can\'t spoil a newborn by holding them. The "fourth trimester" concept is real.',
+        source: 'Dr. Harvey Karp + Research',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'Sleep Location',
+        insight: 'Room-sharing (not bed-sharing) for the first 6-12 months is recommended by the AAP to reduce SIDS risk. A bassinet by your bed works great.',
+        source: 'AAP Safe Sleep Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Tummy Time',
+        insight: 'Tummy time is helpful but not mandatory for specific durations. Any time on the belly counts - even 1-2 minutes. Work up gradually.',
+        source: 'AAP Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Cluster Feeding',
+        insight: 'Cluster feeding (wanting to eat constantly) in the evening is normal and helps build milk supply. It\'s not a sign of low supply.',
+        source: 'La Leche League + Research',
+        sourceType: 'research',
+      },
+    ],
+  },
+  // 3-6 months (weeks 13-26): Emerging personality
+  {
+    ageRange: [13, 26],
+    stageName: '3-6 Months',
+    insights: [
+      {
+        topic: 'Sleep Training',
+        insight: 'Sleep training methods, including cry-it-out, have been studied extensively. The research shows no negative effects on child development, attachment, or behavior.',
+        source: 'Emily Oster, Cribsheet',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Sleep Regression',
+        insight: 'The 4-month "regression" is actually a progression - baby\'s sleep is maturing. It\'s hard but temporary. This is often when parents consider sleep training.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Night Weaning',
+        insight: 'Most babies can go 6+ hours without feeding by 4-6 months, but "can" doesn\'t mean "must." Night weaning is a personal choice based on your family\'s needs.',
+        source: 'Emily Oster, Cribsheet',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Rolling & Safe Sleep',
+        insight: 'Once baby can roll both ways, you don\'t need to flip them back. Time to stop swaddling and ensure a clear crib. They\'ll find their comfortable position.',
+        source: 'AAP Safe Sleep Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Introducing Solids',
+        insight: 'Starting solids between 4-6 months is fine. Signs of readiness: good head control, sitting with support, interest in food. Earlier introduction of allergens may REDUCE allergy risk.',
+        source: 'LEAP Study + AAP Guidelines',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Separation Anxiety',
+        insight: 'Early separation anxiety may appear around 6 months. This is a sign of healthy attachment, not a problem. Brief separations and predictable goodbyes help.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+    ],
+  },
+  // 6-9 months (weeks 27-39): On the move
+  {
+    ageRange: [27, 39],
+    stageName: '6-9 Months',
+    insights: [
+      {
+        topic: 'Feeding Independence',
+        insight: 'Baby-led weaning is safe when done properly. Gagging is normal and different from choking. Let baby explore textures and feed themselves when ready.',
+        source: 'AAP Guidelines + Research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Movement',
+        insight: 'Some babies crawl, some scoot, some skip straight to walking. There\'s no "right" way. Milestone ranges are wide for a reason.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Stranger Anxiety',
+        insight: 'Peak stranger anxiety often hits around 8-9 months. This is a sign of healthy cognitive development - they now understand who\'s familiar and who isn\'t.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Sleep Changes',
+        insight: 'Dropping from 3 naps to 2 usually happens around 7-9 months. Signs: fighting the third nap, bedtime getting too late, or early morning wakes.',
+        source: 'Sleep research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Baby-Proofing',
+        insight: 'Baby-proofing isn\'t about creating a padded world - it\'s about removing serious hazards so you can say "yes" more than "no." Outlets, cords, stairs are priorities.',
+        source: 'AAP Safety Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Object Permanence',
+        insight: 'Your baby now knows things exist even when hidden. That\'s why they get upset when you leave - they remember you exist! Peekaboo is actually developmental practice.',
+        source: 'Piaget + Developmental research',
+        sourceType: 'research',
+      },
+    ],
+  },
+  // 9-12 months (weeks 40-52): Almost a toddler
+  {
+    ageRange: [40, 52],
+    stageName: '9-12 Months',
+    insights: [
+      {
+        topic: 'Communication',
+        insight: 'First words often come between 10-14 months, but understanding starts much earlier. Keep narrating your day - they\'re absorbing everything.',
+        source: 'Language development research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Walking',
+        insight: 'Normal range for first steps is 9-18 months. Early walking isn\'t a sign of intelligence; late walking isn\'t a concern (usually). Let them develop at their pace.',
+        source: 'AAP Milestones',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Milk Transition',
+        insight: 'The AAP recommends whole milk starting at 12 months, not before. No need to "wean" from breast/formula if you don\'t want to - that\'s your choice.',
+        source: 'AAP Nutrition Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Picky Eating Begins',
+        insight: 'Many babies who "ate everything" become selective around 12-18 months. This is protective (avoiding potential toxins) and usually resolves with patience, not pressure.',
+        source: 'Ellyn Satter + Research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Screen Time',
+        insight: 'For babies under 18 months, the AAP recommends avoiding screens except video calls. But occasional exposure won\'t cause lasting harm - don\'t stress about imperfection.',
+        source: 'AAP Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Independence',
+        insight: 'Your baby is becoming opinionated! Wanting to do things "their way" is healthy development. Offer choices when possible: "This cup or that cup?"',
+        source: 'Dr. Becky Kennedy + Research',
+        sourceType: 'expert',
+      },
+    ],
+  },
+  // 12-18 months (weeks 53-78): Early toddlerhood
+  {
+    ageRange: [53, 78],
+    stageName: '12-18 Months',
+    insights: [
+      {
+        topic: 'Tantrums Begin',
+        insight: 'Your child isn\'t giving you a hard time - they\'re having a hard time. Tantrums are a sign their brain is developing faster than their coping skills.',
+        source: 'Dr. Becky Kennedy, Good Inside',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'Language Explosion',
+        insight: 'Receptive language (understanding) far exceeds expressive language (speaking). They understand way more than they can say. Keep talking to them!',
+        source: 'Language development research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Nap Transition',
+        insight: 'Most toddlers drop to one nap between 13-18 months. Signs: consistently fighting one nap, taking a long time to fall asleep, or the second nap pushing bedtime late.',
+        source: 'Sleep research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Boundaries',
+        insight: 'Being a "sturdy leader" means holding boundaries AND connection. You can be firm and loving at the same time. Kids need both to feel safe.',
+        source: 'Dr. Becky Kennedy, Good Inside',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'Hitting & Biting',
+        insight: 'When toddlers hit or bite, they\'re not being "bad." They\'re overwhelmed and their immature brain defaults to physical expression. Stay calm, block, name the feeling.',
+        source: 'Dr. Becky Kennedy, Good Inside',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'No! Phase',
+        insight: '"No" is developmentally appropriate - it means they\'re learning autonomy. Pick your battles. Acknowledge their "no" even when you have to proceed anyway.',
+        source: 'Janet Lansbury, No Bad Kids',
+        sourceType: 'expert',
+      },
+    ],
+  },
+  // 18-24 months (weeks 79-104): Toddler territory
+  {
+    ageRange: [79, 104],
+    stageName: '18-24 Months',
+    insights: [
+      {
+        topic: 'Power Struggles',
+        insight: 'Offer two choices instead of commands: "Do you want to put your shoes on first or your jacket?" They feel control, you get the outcome you need.',
+        source: 'Janet Lansbury, No Bad Kids',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'Emotional Regulation',
+        insight: 'You can\'t reason with a dysregulated toddler. Connect first (get down to their level, offer comfort), then redirect. Logic comes after calm.',
+        source: 'Dr. Becky Kennedy, Good Inside',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'Potty Training',
+        insight: 'Most kids aren\'t developmentally ready for potty training until 2-3 years old. Signs of readiness: staying dry longer, interest in the toilet, discomfort when wet.',
+        source: 'AAP Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Screen Time',
+        insight: 'After 18 months, limited high-quality programming (PBS Kids, Sesame Street) is okay. Watch together when possible. It\'s about quality, not perfection.',
+        source: 'AAP Guidelines',
+        sourceType: 'aap',
+      },
+      {
+        topic: 'Parallel Play',
+        insight: 'Toddlers play NEAR other kids, not WITH them yet. This "parallel play" is developmentally normal. True cooperative play develops around 3-4 years.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Big Emotions',
+        insight: 'A toddler\'s prefrontal cortex (emotional regulation center) won\'t be fully developed until their mid-20s. They literally can\'t control their emotions like adults.',
+        source: 'Neuroscience research',
+        sourceType: 'research',
+      },
+    ],
+  },
+  // 24-30 months (weeks 105-130): Two's
+  {
+    ageRange: [105, 130],
+    stageName: '24-30 Months',
+    insights: [
+      {
+        topic: 'Terrible Twos',
+        insight: 'The "terrible twos" are really the "developmentally appropriate boundary-testing twos." Their job is to push limits. Your job is to hold them with connection.',
+        source: 'Dr. Becky Kennedy, Good Inside',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'Sibling Prep',
+        insight: 'If expecting another baby, prepare but don\'t over-prepare. Two-year-olds don\'t understand time well. Keep routines stable and expect some regression.',
+        source: 'Child development research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Potty Learning',
+        insight: 'No healthy child goes to college in diapers. Pressure and punishment delay potty training. Let them lead when possible, stay neutral about accidents.',
+        source: 'AAP + Research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Imagination',
+        insight: 'Pretend play is exploding! This is crucial cognitive development. They\'re learning to think symbolically - a stick becomes a sword, a box becomes a castle.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Sharing',
+        insight: 'Forced sharing teaches nothing about generosity. Turn-taking ("When you\'re done, it\'s their turn") teaches more than demanding instant sharing.',
+        source: 'Janet Lansbury + Research',
+        sourceType: 'expert',
+      },
+      {
+        topic: 'Empathy',
+        insight: 'True empathy is emerging. They notice when others are sad. Model it: "Look, that child is crying. I wonder if they\'re hurt." Don\'t force apologies.',
+        source: 'Dr. Becky Kennedy + Research',
+        sourceType: 'expert',
+      },
+    ],
+  },
+  // 30-36 months (weeks 131-156): Almost three
+  {
+    ageRange: [131, 156],
+    stageName: '30-36 Months',
+    insights: [
+      {
+        topic: 'Preschool Readiness',
+        insight: 'Social-emotional skills matter more than academics for preschool readiness. Can they separate from you? Handle basic needs? Play near others? That\'s enough.',
+        source: 'Early childhood research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Fears',
+        insight: 'New fears (dark, monsters, loud noises) are normal at this age. Their imagination is powerful but they can\'t distinguish real from imaginary yet. Validate, don\'t dismiss.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Cooperative Play',
+        insight: 'True cooperative play is emerging. They\'re starting to play WITH other kids, not just near them. Conflicts are normal - they\'re learning social skills.',
+        source: 'Developmental research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Questions',
+        insight: '"Why?" on repeat is exhausting but important. They\'re building mental models of how the world works. It\'s okay to say "I don\'t know, let\'s find out."',
+        source: 'Child development research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'Perfectionism',
+        insight: 'Some kids this age get frustrated when they can\'t do things "right." Focus on effort, not outcome: "You worked so hard on that!" not "Good job!"',
+        source: 'Carol Dweck + Research',
+        sourceType: 'research',
+      },
+      {
+        topic: 'The Big Picture',
+        insight: 'You\'re not raising them to be a good toddler. You\'re raising them to be a good human. Struggles now are building resilience for later. You\'re doing great.',
+        source: 'Dr. Becky Kennedy, Good Inside',
+        sourceType: 'expert',
+      },
+    ],
+  },
+];
+
+// Get age-specific insights for a given week
+export const getInsightsForWeek = (weekNumber: number): ExpertInsight[] => {
+  const stage = ageSpecificInsights.find(
+    s => weekNumber >= s.ageRange[0] && weekNumber <= s.ageRange[1]
+  );
+  return stage?.insights || [];
+};
+
+// Get the stage name for a given week
+export const getStageNameForWeek = (weekNumber: number): string => {
+  const stage = ageSpecificInsights.find(
+    s => weekNumber >= s.ageRange[0] && weekNumber <= s.ageRange[1]
+  );
+  return stage?.stageName || 'First Year';
 };
 
 // Parent wellness content by week range
