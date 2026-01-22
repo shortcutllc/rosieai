@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BabyProfile, TimelineEvent } from './types';
+import { getNormalRangesForAge } from './reassuranceMessages';
 
 interface RosieInsightsProps {
   baby: BabyProfile;
@@ -215,6 +216,16 @@ export const RosieInsights: React.FC<RosieInsightsProps> = ({ baby, timeline }) 
     diapers: expectedValues.diapersPerDay * stats.days,
   };
 
+  // Get baby's age in weeks for normal ranges
+  const babyAgeWeeks = useMemo(() => {
+    const birth = new Date(baby.birthDate);
+    const now = new Date();
+    return Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24 * 7));
+  }, [baby.birthDate]);
+
+  // Get what's normal for this age
+  const normalRanges = useMemo(() => getNormalRangesForAge(babyAgeWeeks), [babyAgeWeeks]);
+
   return (
     <div className="rosie-insights">
       {/* Period Selector */}
@@ -360,12 +371,52 @@ export const RosieInsights: React.FC<RosieInsightsProps> = ({ baby, timeline }) 
         </div>
       </div>
 
+      {/* What's Normal Section - Show when viewing "Today" */}
+      {period === 'today' && (
+        <div className="rosie-insights-normal">
+          <h3 className="rosie-insights-normal-title">What's Normal at {babyAgeWeeks} Weeks</h3>
+          <p className="rosie-insights-normal-subtitle">These are typical ranges, not targets</p>
+          <div className="rosie-insights-normal-grid">
+            <div className="rosie-insights-normal-item">
+              <span className="rosie-insights-normal-icon">🍼</span>
+              <div className="rosie-insights-normal-content">
+                <span className="rosie-insights-normal-range">{normalRanges.feeds.range}</span>
+                <span className="rosie-insights-normal-label">{normalRanges.feeds.label}</span>
+                {normalRanges.feeds.note && (
+                  <span className="rosie-insights-normal-note">{normalRanges.feeds.note}</span>
+                )}
+              </div>
+            </div>
+            <div className="rosie-insights-normal-item">
+              <span className="rosie-insights-normal-icon">💤</span>
+              <div className="rosie-insights-normal-content">
+                <span className="rosie-insights-normal-range">{normalRanges.sleep.range}</span>
+                <span className="rosie-insights-normal-label">{normalRanges.sleep.label}</span>
+                {normalRanges.sleep.note && (
+                  <span className="rosie-insights-normal-note">{normalRanges.sleep.note}</span>
+                )}
+              </div>
+            </div>
+            <div className="rosie-insights-normal-item">
+              <span className="rosie-insights-normal-icon">🧷</span>
+              <div className="rosie-insights-normal-content">
+                <span className="rosie-insights-normal-range">{normalRanges.diapers.range}</span>
+                <span className="rosie-insights-normal-label">{normalRanges.diapers.label}</span>
+                {normalRanges.diapers.note && (
+                  <span className="rosie-insights-normal-note">{normalRanges.diapers.note}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Empty State */}
       {filteredEvents.length === 0 && (
         <div className="rosie-insights-empty">
           <div className="rosie-insights-empty-icon">📊</div>
-          <p className="rosie-insights-empty-text">No data for this period</p>
-          <p className="rosie-insights-empty-hint">Start tracking to see insights here</p>
+          <p className="rosie-insights-empty-text">No data for this period yet</p>
+          <p className="rosie-insights-empty-hint">Log events to see your insights here</p>
         </div>
       )}
     </div>

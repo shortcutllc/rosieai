@@ -344,7 +344,12 @@ const RosieAIContent: React.FC = () => {
 
   // Show onboarding if no baby data (for non-authenticated local usage)
   if (!data?.baby) {
-    return <RosieOnboarding onComplete={handleOnboardingComplete} />;
+    return (
+      <RosieOnboarding
+        onComplete={handleOnboardingComplete}
+        onSignIn={() => setShowAuth(true)}
+      />
+    );
   }
 
   const developmentalInfo = getDevelopmentalInfo(data.baby.birthDate);

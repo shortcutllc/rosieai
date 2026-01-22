@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TimelineEvent, BabyProfile } from './types';
 import { formatTimeAgo, formatTime } from './developmentalData';
+import { getEmptyStateMessage, getTimeBasedReassurance } from './reassuranceMessages';
 
 type FilterType = 'all' | 'feed' | 'sleep' | 'diaper';
 
@@ -434,11 +435,11 @@ export const RosieTimeline: React.FC<RosieTimelineProps> = ({ events, baby, onDe
         <div className="rosie-timeline-empty">
           <div className="rosie-timeline-empty-icon">📋</div>
           <div className="rosie-timeline-empty-text">
-            {isToday ? 'No events logged yet' : `No events on ${formatDateDisplay(selectedDate)}`}
+            {isToday ? getEmptyStateMessage(baby.name) : `No events on ${formatDateDisplay(selectedDate)}`}
           </div>
           <div className="rosie-timeline-empty-hint">
             {isToday
-              ? `Tap the buttons below to log ${baby.name}'s first feed, sleep, or diaper`
+              ? `Tap the buttons below when you're ready`
               : 'Use the arrows above to navigate to other days'}
           </div>
         </div>
