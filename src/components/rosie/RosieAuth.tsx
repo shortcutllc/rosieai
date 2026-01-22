@@ -86,6 +86,18 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
 
     if (!result.success) {
       setLocalError(result.error || 'Failed to create account');
+      setLocalLoading(false);
+      return;
+    }
+
+    // After successful signup, automatically sign in the user
+    // This handles the case where email confirmation is disabled in Supabase
+    // or when Supabase doesn't auto-sign-in after signup
+    const signInResult = await signInWithPassword(email, password);
+
+    if (!signInResult.success) {
+      // If sign-in fails, it might be because email confirmation is required
+      setLocalError('Account created! Please check your email to verify your account, then sign in.');
     }
 
     setLocalLoading(false);
