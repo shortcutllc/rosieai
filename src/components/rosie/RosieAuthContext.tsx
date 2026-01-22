@@ -238,7 +238,7 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setLoading(true);
       dataLoadedForUser.current = null;
 
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -248,6 +248,18 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           throw new Error('An account with this email already exists. Try signing in instead.');
         }
         throw signUpError;
+      }
+
+      // If we got a session back, user is signed in (email confirmation disabled)
+      if (data.session && data.user) {
+        console.log('[RosieAuth] Signup successful, user signed in:', data.user.id);
+        setSession(data.session);
+        setUser(data.user);
+        // Loading will be set to false by the auth state change handler
+      } else {
+        // No session means email confirmation is required
+        console.log('[RosieAuth] Signup successful, but no session - may need email confirmation');
+        setLoading(false);
       }
 
       return { success: true };
