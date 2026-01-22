@@ -238,12 +238,14 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setLoading(true);
       dataLoadedForUser.current = null;
 
+      console.log('[RosieAuth] Attempting signup for:', email);
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (signUpError) {
+        console.log('[RosieAuth] Signup error:', signUpError.message);
         if (signUpError.message.includes('already registered')) {
           throw new Error('An account with this email already exists. Try signing in instead.');
         }
@@ -256,15 +258,20 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSession(data.session);
         setUser(data.user);
         // Loading will be set to false by the auth state change handler
+      } else if (data.user) {
+        // User created but no session - email confirmation may be required
+        console.log('[RosieAuth] Signup successful, user created but no session (email confirmation may be required):', data.user.id);
+        setLoading(false);
       } else {
-        // No session means email confirmation is required
-        console.log('[RosieAuth] Signup successful, but no session - may need email confirmation');
+        // No user and no session - something unexpected
+        console.log('[RosieAuth] Signup completed but no user returned');
         setLoading(false);
       }
 
       return { success: true };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
+      console.log('[RosieAuth] Signup caught error:', errorMessage);
       setError(errorMessage);
       setLoading(false);
       return { success: false, error: errorMessage };
@@ -279,26 +286,43 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Reset data loaded flag so we fetch fresh data
       dataLoadedForUser.current = null;
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      console.log('[RosieAuth] Attempting sign in for:', email);
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
+        console.log('[RosieAuth] Sign in error:', signInError.message);
         if (signInError.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password');
+        }
+        if (signInError.message.includes('Email not confirmed')) {
+          throw new Error('Please check your email to verify your account before signing in.');
         }
         throw signInError;
       }
 
+      // If we got a session, set it immediately
+      if (data.session && data.user) {
+        console.log('[RosieAuth] Sign in successful:', data.user.id);
+        setSession(data.session);
+        setUser(data.user);
+        // Don't set loading false here - let onAuthStateChange handle it after loadUserData
+        return { success: true };
+      }
+
+      // No session returned (shouldn't happen on successful sign in)
+      console.log('[RosieAuth] Sign in completed but no session returned');
+      setLoading(false);
       return { success: true };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
+      console.log('[RosieAuth] Sign in caught error:', errorMessage);
       setError(errorMessage);
       setLoading(false);
       return { success: false, error: errorMessage };
     }
-    // Note: loading is set to false by onAuthStateChange handler
   };
 
   // Sign out

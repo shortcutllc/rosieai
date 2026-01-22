@@ -326,8 +326,9 @@ const RosieAIContent: React.FC = () => {
     setShowAuth(true);
   };
 
-  // Show loading state
-  if (isLoading || authLoading) {
+  // Show loading state only during initial data load, not during auth operations
+  // This allows the auth screen to handle its own loading states
+  if (isLoading) {
     return (
       <div className="rosie-container">
         <div className="rosie-loading">
@@ -337,8 +338,8 @@ const RosieAIContent: React.FC = () => {
     );
   }
 
-  // Show auth screen if user needs to sign in
-  if (showAuth || (!user && !data?.baby)) {
+  // Show auth screen if user needs to sign in (or during auth loading when no user yet)
+  if (showAuth || (!user && !data?.baby) || (authLoading && !user && !data?.baby)) {
     return <RosieAuth onComplete={() => setShowAuth(false)} />;
   }
 
