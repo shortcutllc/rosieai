@@ -6186,6 +6186,31 @@
   margin-bottom: 20px;
 }
 
+/* Email display for verification screen */
+.rosie-auth-email-display {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--rosie-purple);
+  margin: 8px 0 16px;
+  word-break: break-all;
+}
+
+/* Instructions text */
+.rosie-auth-instructions {
+  font-size: 14px;
+  color: var(--rosie-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* Hint text */
+.rosie-auth-hint {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--rosie-text-tertiary);
+  text-align: center;
+}
+
 /* Footer */
 .rosie-auth-footer {
   margin-top: 24px;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRosieAuth } from './RosieAuthContext';
 import './rosie.css';
 
-type AuthView = 'welcome' | 'signin' | 'signup' | 'signup-name' | 'signup-baby';
+type AuthView = 'welcome' | 'signin' | 'signup' | 'verify-email' | 'signup-name' | 'signup-baby';
 
 interface RosieAuthProps {
   onComplete: () => void;
@@ -90,17 +90,10 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
       return;
     }
 
-    // After successful signup, automatically sign in the user
-    // This handles the case where email confirmation is disabled in Supabase
-    // or when Supabase doesn't auto-sign-in after signup
-    const signInResult = await signInWithPassword(email, password);
-
-    if (!signInResult.success) {
-      // If sign-in fails, it might be because email confirmation is required
-      setLocalError('Account created! Please check your email to verify your account, then sign in.');
-    }
-
+    // Signup successful - show verification email screen
+    // Email confirmation is required in Supabase, so user needs to verify first
     setLocalLoading(false);
+    setView('verify-email');
   };
 
   const handleCreateProfile = async (e: React.FormEvent) => {
@@ -272,6 +265,42 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
               onClick={() => { setView('signin'); clearError(); setLocalError(null); }}
             >
               Sign in
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Email Verification Sent
+  if (view === 'verify-email') {
+    return (
+      <div className="rosie-auth-container">
+        <div className="rosie-auth-card">
+          <div className="rosie-auth-success-icon">✉️</div>
+          <h1 className="rosie-auth-title">Check your email</h1>
+          <p className="rosie-auth-subtitle">
+            We've sent a verification link to
+          </p>
+          <p className="rosie-auth-email-display">{email}</p>
+          <p className="rosie-auth-instructions">
+            Click the link in the email to verify your account, then come back here to sign in.
+          </p>
+
+          <button
+            className="rosie-auth-btn rosie-auth-btn-primary"
+            onClick={() => { setView('signin'); setLocalError(null); }}
+          >
+            Go to Sign In
+          </button>
+
+          <p className="rosie-auth-hint">
+            Didn't receive the email? Check your spam folder or{' '}
+            <button
+              className="rosie-auth-link"
+              onClick={() => { setView('signup'); setLocalError(null); }}
+            >
+              try again
             </button>
           </p>
         </div>
