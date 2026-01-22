@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData } from './types';
 import { formatTime } from './developmentalData';
+import { getChatPrompts, ChatPrompt } from './reassuranceMessages';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
 const generateUUID = (): string => {
@@ -25,13 +26,6 @@ interface RosieChatProps {
   weather?: WeatherData | null;
 }
 
-const quickQuestions = [
-  'Is this normal?',
-  'Sleep help',
-  'Feeding tips',
-  'Why so fussy?',
-];
-
 export const RosieChat: React.FC<RosieChatProps> = ({
   baby,
   messages,
@@ -45,6 +39,21 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Calculate baby's age in weeks
+  const babyAgeWeeks = useMemo(() => {
+    const birth = new Date(baby.birthDate);
+    const now = new Date();
+    return Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24 * 7));
+  }, [baby.birthDate]);
+
+  // Get contextual chat prompts based on baby's age and current state
+  const contextualPrompts = useMemo((): ChatPrompt[] => {
+    // Note: Leap status would need to be passed from parent component
+    // For now, prompts are based on age only
+    // Could analyze recent sleep quality from timeline in the future
+    return getChatPrompts(babyAgeWeeks);
+  }, [babyAgeWeeks]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -291,16 +300,17 @@ Could you tell me more about what you're experiencing?`;
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Questions */}
+      {/* Contextual Quick Questions */}
       {messages.length === 0 && (
         <div className="rosie-chat-quick">
-          {quickQuestions.map(question => (
+          {contextualPrompts.map((prompt, index) => (
             <button
-              key={question}
+              key={index}
               className="rosie-chat-quick-btn"
-              onClick={() => handleQuickQuestion(question)}
+              onClick={() => handleQuickQuestion(prompt.question)}
+              title={prompt.context}
             >
-              {question}
+              {prompt.question}
             </button>
           ))}
         </div>

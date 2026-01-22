@@ -29,6 +29,7 @@ interface RosieAuthContextType {
   error: string | null;
 
   // Auth methods
+  signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signInWithPassword: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
 
@@ -230,6 +231,34 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [loadUserData]);
 
+  // Sign up with email and password
+  const signUp = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setError(null);
+      setLoading(true);
+      dataLoadedForUser.current = null;
+
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          throw new Error('An account with this email already exists. Try signing in instead.');
+        }
+        throw signUpError;
+      }
+
+      return { success: true };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
+      setError(errorMessage);
+      setLoading(false);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   // Sign in with email and password
   const signInWithPassword = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -426,6 +455,7 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         currentBaby,
         loading,
         error,
+        signUp,
         signInWithPassword,
         signOut,
         createProfile,

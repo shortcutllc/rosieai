@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRosieAuth } from './RosieAuthContext';
 import './rosie.css';
 
-type AuthView = 'welcome' | 'signin' | 'signup-name' | 'signup-baby';
+type AuthView = 'welcome' | 'signin' | 'signup' | 'signup-name' | 'signup-baby';
 
 interface RosieAuthProps {
   onComplete: () => void;
@@ -15,6 +15,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     babies,
     loading,
     error,
+    signUp,
     signInWithPassword,
     createProfile,
     addBaby,
@@ -24,6 +25,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   const [view, setView] = useState<AuthView>('welcome');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [parentName, setParentName] = useState('');
   const [babyName, setBabyName] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -33,9 +35,8 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   const [localError, setLocalError] = useState<string | null>(null);
 
   // If user is signed in and has profile and babies, complete
-  // Wait for loading to complete before making decisions
   React.useEffect(() => {
-    if (loading) return; // Don't make decisions while still loading
+    if (loading) return;
 
     console.log('[RosieAuth] Checking state - user:', !!user, 'profile:', !!profile, 'babies:', babies.length);
 
@@ -60,6 +61,31 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
 
     if (!result.success) {
       setLocalError(result.error || 'Failed to sign in');
+    }
+
+    setLocalLoading(false);
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+
+    if (password !== confirmPassword) {
+      setLocalError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setLocalError('Password must be at least 6 characters');
+      return;
+    }
+
+    setLocalLoading(true);
+
+    const result = await signUp(email, password);
+
+    if (!result.success) {
+      setLocalError(result.error || 'Failed to create account');
     }
 
     setLocalLoading(false);
@@ -116,30 +142,125 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
         <div className="rosie-auth-card">
           <div className="rosie-auth-logo">
             <img src="/rosie-icon.svg" alt="Rosie" className="rosie-auth-logo-img" />
-            <h1 className="rosie-auth-logo-text">Rosie</h1>
           </div>
-
+          <h1 className="rosie-auth-title">Rosie</h1>
           <p className="rosie-auth-tagline">
             Calm technology for chaotic moments
           </p>
 
-          <p className="rosie-auth-description">
-            Track feeds, sleep, and diapers. Get personalized developmental insights.
-            All with the support of expert-backed guidance.
-          </p>
+          <div className="rosie-auth-features">
+            <div className="rosie-auth-feature">
+              <span className="rosie-auth-feature-icon">🌙</span>
+              <span>Track feeds, sleep, and diapers</span>
+            </div>
+            <div className="rosie-auth-feature">
+              <span className="rosie-auth-feature-icon">💭</span>
+              <span>Get answers to your questions</span>
+            </div>
+            <div className="rosie-auth-feature">
+              <span className="rosie-auth-feature-icon">🧠</span>
+              <span>Understand developmental leaps</span>
+            </div>
+          </div>
 
-          {/* Sign In Section */}
-          <div className="rosie-auth-section">
+          <div className="rosie-auth-actions">
             <button
               className="rosie-auth-btn rosie-auth-btn-primary"
+              onClick={() => setView('signup')}
+            >
+              Create Account
+            </button>
+            <button
+              className="rosie-auth-btn rosie-auth-btn-secondary"
               onClick={() => setView('signin')}
             >
               Sign In
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
 
-          <p className="rosie-auth-footer">
-            Use the same login as your Shortcut Proposals account
+  // Sign Up
+  if (view === 'signup') {
+    return (
+      <div className="rosie-auth-container">
+        <div className="rosie-auth-card">
+          <button
+            className="rosie-auth-back"
+            onClick={() => { setView('welcome'); clearError(); setLocalError(null); }}
+          >
+            ← Back
+          </button>
+
+          <h1 className="rosie-auth-title">Create Account</h1>
+          <p className="rosie-auth-subtitle">
+            Join Rosie to start tracking
+          </p>
+
+          {displayError && (
+            <div className="rosie-auth-error">
+              {displayError}
+            </div>
+          )}
+
+          <form onSubmit={handleSignUp} className="rosie-auth-form">
+            <div className="rosie-auth-field">
+              <label className="rosie-auth-label">Email address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="rosie-auth-input"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div className="rosie-auth-field">
+              <label className="rosie-auth-label">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                className="rosie-auth-input"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div className="rosie-auth-field">
+              <label className="rosie-auth-label">Confirm Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm your password"
+                className="rosie-auth-input"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="rosie-auth-btn rosie-auth-btn-primary"
+              disabled={localLoading || loading || !email || !password || !confirmPassword}
+            >
+              {localLoading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <p className="rosie-auth-switch">
+            Already have an account?{' '}
+            <button
+              className="rosie-auth-link"
+              onClick={() => { setView('signin'); clearError(); setLocalError(null); }}
+            >
+              Sign in
+            </button>
           </p>
         </div>
       </div>
@@ -158,9 +279,9 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
             ← Back
           </button>
 
-          <h1 className="rosie-auth-title">Sign in</h1>
+          <h1 className="rosie-auth-title">Welcome back</h1>
           <p className="rosie-auth-subtitle">
-            Use your Shortcut Proposals account
+            Sign in to your account
           </p>
 
           {displayError && (
@@ -203,6 +324,16 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
               {localLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+
+          <p className="rosie-auth-switch">
+            Don't have an account?{' '}
+            <button
+              className="rosie-auth-link"
+              onClick={() => { setView('signup'); clearError(); setLocalError(null); }}
+            >
+              Create one
+            </button>
+          </p>
         </div>
       </div>
     );
