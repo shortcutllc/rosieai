@@ -4,7 +4,8 @@ import { getLeapStatus, LeapStatus, leaps, LeapInfo } from './leapData';
 import {
   getParentWellnessForWeek,
   getQuickWinsForWeek,
-  expertInsights,
+  getInsightsForWeek,
+  getStageNameForWeek,
   ExpertInsight,
   QuickWin,
   ParentWellnessContent
@@ -37,24 +38,13 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
 
-  // Get all expert insights flattened and filtered for age appropriateness
+  // Get age-specific expert insights for this developmental stage
   const allInsights: ExpertInsight[] = useMemo(() => {
-    const all: ExpertInsight[] = [];
-    // Prioritize topics based on age
-    const topicOrder = weekNumber <= 12
-      ? ['sleep', 'feeding', 'development', 'behavior']
-      : weekNumber <= 26
-        ? ['sleep', 'feeding', 'behavior', 'development']
-        : ['behavior', 'development', 'sleep', 'feeding'];
-
-    topicOrder.forEach(topic => {
-      const insights = expertInsights[topic];
-      if (insights) {
-        all.push(...insights);
-      }
-    });
-    return all;
+    return getInsightsForWeek(weekNumber);
   }, [weekNumber]);
+
+  // Get the current stage name for display
+  const stageName = useMemo(() => getStageNameForWeek(weekNumber), [weekNumber]);
 
   // Carousel navigation
   const nextInsight = useCallback(() => {
@@ -121,19 +111,6 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
     () => getQuickWinsForWeek(weekNumber),
     [weekNumber]
   );
-
-  // Get a relevant expert insight for this week
-  const getWeeklyInsight = () => {
-    // Rotate through topics based on week
-    const topics = ['sleep', 'feeding', 'behavior', 'development'] as const;
-    const topicIndex = weekNumber % topics.length;
-    const topic = topics[topicIndex];
-    const insights = expertInsights[topic];
-    if (!insights || insights.length === 0) return null;
-    return insights[weekNumber % insights.length];
-  };
-
-  const weeklyInsight = useMemo(() => getWeeklyInsight(), [weekNumber]);
 
   // Generate a summary intro based on the week and leap status
   const getWeekIntro = (): string => {
@@ -383,6 +360,7 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
           <div className="rosie-dev-section">
             <h3 className="rosie-dev-section-title rosie-research-title">
               <span>📚</span> Expert Insights
+              <span className="rosie-stage-badge">{stageName}</span>
             </h3>
             <div
               className="rosie-insights-carousel"
