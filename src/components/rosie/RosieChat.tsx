@@ -38,7 +38,10 @@ export const RosieChat: React.FC<RosieChatProps> = ({
 }) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [hasEnteredView, setHasEnteredView] = useState(false);
+  const [chatAreaHeight, setChatAreaHeight] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatAreaRef = useRef<HTMLDivElement>(null);
 
   // Calculate baby's age in weeks
   const babyAgeWeeks = useMemo(() => {
@@ -49,18 +52,45 @@ export const RosieChat: React.FC<RosieChatProps> = ({
 
   // Get contextual chat prompts based on baby's age and current state
   const contextualPrompts = useMemo((): ChatPrompt[] => {
-    // Note: Leap status would need to be passed from parent component
-    // For now, prompts are based on age only
-    // Could analyze recent sleep quality from timeline in the future
     return getChatPrompts(babyAgeWeeks);
   }, [babyAgeWeeks]);
+
+  // Measure available viewport space so the chat area (empty state or conversation)
+  // fits exactly within the visible viewport — input always on screen
+  useEffect(() => {
+    const measure = () => {
+      if (chatAreaRef.current) {
+        const top = chatAreaRef.current.getBoundingClientRect().top;
+        const available = window.innerHeight - top - 8;
+        setChatAreaHeight(Math.max(available, 300));
+      }
+    };
+    // Measure after a tick so layout is settled
+    const raf = requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', measure);
+    };
+  }, [messages.length, isTyping]);
+
+  // Staggered entrance animation — trigger after mount
+  useEffect(() => {
+    const timer = setTimeout(() => setHasEnteredView(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Only scroll to bottom when new messages are added, not on initial mount
+  const prevMessageCount = useRef(messages.length);
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > prevMessageCount.current) {
+      scrollToBottom();
+    }
+    prevMessageCount.current = messages.length;
   }, [messages]);
 
   // Call the Claude API via Netlify function
@@ -188,8 +218,11 @@ Could you tell me more about what you're experiencing?`;
     }
   };
 
-  const handleQuickQuestion = (question: string) => {
+  const handleSuggestionClick = (question: string) => {
     setInput(question);
+    // Focus the input after setting the question
+    const inputEl = document.querySelector('.rosie-chat-input') as HTMLInputElement;
+    inputEl?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -237,83 +270,157 @@ Could you tell me more about what you're experiencing?`;
     });
   };
 
+  const handleNewChat = () => {
+    onUpdateHistory([]);
+    setInput('');
+    setHasEnteredView(false);
+    // Re-trigger entrance animation
+    setTimeout(() => setHasEnteredView(true), 100);
+  };
+
   return (
-    <div className="rosie-chat">
-      {/* Input Area - Always visible at top */}
-      <div className="rosie-chat-input-area">
-        <div className="rosie-chat-input-header">
-          <span>💬</span>
-          <span>Ask me anything about {baby.name}</span>
-        </div>
-        <div className="rosie-chat-input-wrapper">
-          <input
-            type="text"
-            className="rosie-chat-input"
-            placeholder={`Why is ${baby.name} waking every 2 hours?`}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isTyping}
-          />
+    <div ref={chatAreaRef} className="rosie-chat" style={chatAreaHeight ? { height: chatAreaHeight } : undefined}>
+      {/* Chat header — shows "New Chat" when there are messages */}
+      {messages.length > 0 && (
+        <div className="rosie-chat-header">
+          <div className="rosie-chat-header-info">
+            <span className="rosie-chat-header-count">{messages.length} message{messages.length !== 1 ? 's' : ''}</span>
+          </div>
           <button
-            className="rosie-chat-send"
-            onClick={handleSend}
-            disabled={!input.trim() || isTyping}
+            className="rosie-chat-new-btn"
+            onClick={handleNewChat}
+            disabled={isTyping}
           >
-            Send
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            New Chat
           </button>
         </div>
-      </div>
+      )}
 
-      {/* Messages */}
-      <div className="rosie-chat-messages">
-        {messages.length === 0 && !isTyping && (
-          <div className="rosie-empty">
-            <div className="rosie-empty-icon">💭</div>
-            <div className="rosie-empty-title">Hi! I'm Rosie</div>
-            <div className="rosie-empty-text">
-              I know {baby.name} is {developmentalInfo.ageDisplay}. Ask me anything about sleep, feeding, development, or what's normal at this age.
+      {messages.length === 0 && !isTyping ? (
+        /* ── Empty state — greeting + suggestions + input all in one flow ── */
+        <div className="rosie-chat-empty-state">
+          {/* Greeting — compact, top-aligned */}
+          <div className={`rosie-chat-greeting ${hasEnteredView ? 'entered' : ''}`}>
+            <div className="rosie-chat-greeting-avatar">
+              <img src="/rosie-icon.svg" alt="Rosie" className="rosie-chat-greeting-logo" />
+            </div>
+            <div className="rosie-chat-greeting-text">
+              <span className="rosie-chat-greeting-hey">Hey there</span>
+              <span className="rosie-chat-greeting-sub">
+                I know all about {baby.name} at {developmentalInfo.ageDisplay}. What's on your mind?
+              </span>
             </div>
           </div>
-        )}
 
-        {messages.map(message => (
-          <div
-            key={message.id}
-            className={`rosie-chat-message ${message.role}`}
-          >
-            {renderMessage(message.content)}
-            <div className="rosie-chat-message-time">
-              {formatTime(message.timestamp)}
+          {/* Suggestions — compact cards */}
+          <div className="rosie-chat-suggestions">
+            <div className={`rosie-chat-suggestions-header ${hasEnteredView ? 'entered' : ''}`}>
+              Try asking
+            </div>
+            <div className="rosie-chat-suggestions-list">
+              {contextualPrompts.slice(0, 4).map((prompt, index) => (
+                <button
+                  key={prompt.question}
+                  className={`rosie-chat-suggestion ${hasEnteredView ? 'entered' : ''}`}
+                  style={{ transitionDelay: hasEnteredView ? `${150 + index * 80}ms` : '0ms' }}
+                  onClick={() => handleSuggestionClick(prompt.question)}
+                >
+                  <span className="rosie-chat-suggestion-icon">
+                    {prompt.trigger === 'sleep_issue' ? '🌙' :
+                     prompt.trigger === 'feeding_question' ? '🍼' :
+                     prompt.trigger === 'developmental' ? '🧠' :
+                     prompt.trigger === 'leap' ? '🌊' : '💬'}
+                  </span>
+                  <span className="rosie-chat-suggestion-text">{prompt.question}</span>
+                  <span className="rosie-chat-suggestion-arrow">›</span>
+                </button>
+              ))}
             </div>
           </div>
-        ))}
 
-        {isTyping && (
-          <div className="rosie-chat-typing">
-            <div className="rosie-chat-typing-dot" />
-            <div className="rosie-chat-typing-dot" />
-            <div className="rosie-chat-typing-dot" />
+          {/* Input — always visible at bottom of empty state */}
+          <div className="rosie-chat-input-area">
+            <div className="rosie-chat-input-wrapper">
+              <input
+                type="text"
+                className="rosie-chat-input"
+                placeholder={`Ask about ${baby.name}...`}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isTyping}
+              />
+              <button
+                className="rosie-chat-send"
+                onClick={handleSend}
+                disabled={!input.trim() || isTyping}
+                aria-label="Send message"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </div>
           </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Contextual Quick Questions */}
-      {messages.length === 0 && (
-        <div className="rosie-chat-quick">
-          {contextualPrompts.map((prompt, index) => (
-            <button
-              key={index}
-              className="rosie-chat-quick-btn"
-              onClick={() => handleQuickQuestion(prompt.question)}
-              title={prompt.context}
-            >
-              {prompt.question}
-            </button>
-          ))}
         </div>
+      ) : (
+        /* ── Active conversation — messages + input ── */
+        <>
+          <div className="rosie-chat-messages">
+            {messages.map(message => (
+              <div
+                key={message.id}
+                className={`rosie-chat-message ${message.role}`}
+              >
+                {renderMessage(message.content)}
+                <div className="rosie-chat-message-time">
+                  {formatTime(message.timestamp)}
+                </div>
+              </div>
+            ))}
+
+            {isTyping && (
+              <div className="rosie-chat-typing">
+                <div className="rosie-chat-typing-dot" />
+                <div className="rosie-chat-typing-dot" />
+                <div className="rosie-chat-typing-dot" />
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input — pinned to bottom during conversation */}
+          <div className="rosie-chat-input-area">
+            <div className="rosie-chat-input-wrapper">
+              <input
+                type="text"
+                className="rosie-chat-input"
+                placeholder={`Ask about ${baby.name}...`}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isTyping}
+              />
+              <button
+                className="rosie-chat-send"
+                onClick={handleSend}
+                disabled={!input.trim() || isTyping}
+                aria-label="Send message"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

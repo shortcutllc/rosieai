@@ -170,32 +170,87 @@ export const getChatPrompts = (
     });
   }
 
-  // Age-specific prompts
-  if (babyAgeWeeks >= 14 && babyAgeWeeks <= 20) {
+  // Newborn stage (0-12 weeks)
+  if (babyAgeWeeks >= 0 && babyAgeWeeks <= 12) {
+    prompts.push({
+      question: 'How much should a newborn sleep?',
+      context: 'Newborn sleep patterns',
+      trigger: 'sleep_issue',
+    });
+    prompts.push({
+      question: 'Is cluster feeding normal?',
+      context: 'Common in early weeks',
+      trigger: 'feeding_question',
+    });
+    prompts.push({
+      question: 'When will my baby smile at me?',
+      context: 'Early milestones',
+      trigger: 'developmental',
+    });
+  }
+
+  // 3-4 month stage
+  if (babyAgeWeeks >= 12 && babyAgeWeeks <= 20) {
     prompts.push({
       question: 'Is this the 4-month sleep regression?',
       context: 'Common around this age',
       trigger: 'developmental',
     });
+    prompts.push({
+      question: 'Should I start a nap schedule?',
+      context: 'Sleep routines at this age',
+      trigger: 'sleep_issue',
+    });
   }
 
+  // Solids introduction (4-6 months)
   if (babyAgeWeeks >= 16 && babyAgeWeeks <= 26) {
     prompts.push({
       question: 'When should we start solids?',
       context: 'Typical timing for this age',
       trigger: 'feeding_question',
     });
+    prompts.push({
+      question: 'What are signs of readiness for food?',
+      context: 'Solid food readiness cues',
+      trigger: 'feeding_question',
+    });
   }
 
-  if (babyAgeWeeks >= 20 && babyAgeWeeks <= 30) {
+  // 5-8 month stage
+  if (babyAgeWeeks >= 20 && babyAgeWeeks <= 34) {
     prompts.push({
       question: 'Is separation anxiety normal?',
       context: 'Common around 6-8 months',
       trigger: 'developmental',
     });
+    prompts.push({
+      question: 'When do babies start crawling?',
+      context: 'Motor milestone timing',
+      trigger: 'developmental',
+    });
   }
 
-  // General prompts as fallback
+  // 8-12 month stage
+  if (babyAgeWeeks >= 34 && babyAgeWeeks <= 52) {
+    prompts.push({
+      question: 'Is my baby ready for finger foods?',
+      context: 'Self-feeding milestones',
+      trigger: 'feeding_question',
+    });
+    prompts.push({
+      question: 'When will my baby start talking?',
+      context: 'Language development',
+      trigger: 'developmental',
+    });
+    prompts.push({
+      question: 'How do I baby-proof for a crawler?',
+      context: 'Safety at this stage',
+      trigger: 'general',
+    });
+  }
+
+  // General prompts — always available
   prompts.push({
     question: 'What should I expect this week?',
     context: 'Developmental guidance',
@@ -203,12 +258,18 @@ export const getChatPrompts = (
   });
 
   prompts.push({
+    question: 'How many wake windows today?',
+    context: 'Age-appropriate schedule',
+    trigger: 'sleep_issue',
+  });
+
+  prompts.push({
     question: 'Am I doing this right?',
-    context: 'We all ask this',
+    context: 'Every parent asks this',
     trigger: 'general',
   });
 
-  return prompts.slice(0, 3); // Return max 3 prompts
+  return prompts.slice(0, 5); // Return max 5 prompts for cycling
 };
 
 // "What's Normal" context for stats

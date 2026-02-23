@@ -67,29 +67,21 @@ export const RosieOnboarding: React.FC<RosieOnboardingProps> = ({ onComplete, on
               </div>
             </div>
             <div className="rosie-onboarding-actions-welcome">
+              {onSignIn && (
+                <button
+                  className="rosie-btn-primary"
+                  onClick={onSignIn}
+                >
+                  Sign In or Create Account
+                </button>
+              )}
               <button
-                className="rosie-btn-primary"
+                className="rosie-btn-secondary"
                 onClick={() => setStep('baby-info')}
               >
                 Try Without Account
               </button>
-              {onSignIn && (
-                <button
-                  className="rosie-btn-secondary"
-                  onClick={onSignIn}
-                >
-                  Sign In
-                </button>
-              )}
             </div>
-            {onSignIn && (
-              <p className="rosie-onboarding-signin-hint">
-                Have an account?{' '}
-                <button className="rosie-onboarding-link" onClick={onSignIn}>
-                  Sign in to sync your data
-                </button>
-              </p>
-            )}
           </div>
         );
 

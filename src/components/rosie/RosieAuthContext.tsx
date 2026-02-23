@@ -29,8 +29,9 @@ interface RosieAuthContextType {
   error: string | null;
 
   // Auth methods
-  signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signInWithPassword: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string) => Promise<{ success: boolean; confirmationPending?: boolean; error?: string }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ success: boolean; emailNotConfirmed?: boolean; error?: string }>;
+  resendConfirmation: (email: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
 
   // Profile methods
@@ -65,6 +66,8 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Track if we've already loaded user data to prevent double-loading
   const dataLoadedForUser = useRef<string | null>(null);
   const isLoadingData = useRef(false);
+  // Flag to suppress onAuthStateChange during sign-up (confirmation pending)
+  const suppressAuthEvent = useRef(false);
 
   // Fetch user profile from rosie_profiles table
   const fetchProfile = useCallback(async (userId: string): Promise<RosieUserProfile | null> => {
@@ -199,7 +202,7 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!isMounted) return;
 
-      console.log('[RosieAuth] Auth state changed:', event);
+      console.log('[RosieAuth] Auth state changed:', event, 'suppressed:', suppressAuthEvent.current);
 
       if (event === 'SIGNED_OUT') {
         setSession(null);
@@ -208,7 +211,16 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setBabies([]);
         setCurrentBabyState(null);
         dataLoadedForUser.current = null;
+        suppressAuthEvent.current = false;
         setLoading(false);
+        return;
+      }
+
+      // During sign-up with confirmation pending, ignore auth events —
+      // we don't want to set user/session state which would cause
+      // the RosieAuth useEffect to redirect to profile setup.
+      if (suppressAuthEvent.current) {
+        console.log('[RosieAuth] Suppressing auth event during sign-up');
         return;
       }
 
@@ -232,15 +244,25 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [loadUserData]);
 
   // Sign up with email and password
-  const signUp = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  // NOTE: This does NOT set loading state — the caller (RosieAuth) uses its own localLoading.
+  // This prevents the auth useEffect from firing and redirecting before the caller
+  // can show the confirmation screen.
+  const signUp = async (email: string, password: string): Promise<{ success: boolean; confirmationPending?: boolean; error?: string }> => {
     try {
       setError(null);
-      setLoading(true);
-      dataLoadedForUser.current = null;
+      // Suppress onAuthStateChange from setting user during sign-up
+      suppressAuthEvent.current = true;
 
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+      });
+
+      console.log('[RosieAuth] signUp response:', {
+        hasUser: !!signUpData.user,
+        hasSession: !!signUpData.session,
+        identities: signUpData.user?.identities?.length,
+        error: signUpError?.message,
       });
 
       if (signUpError) {
@@ -250,22 +272,74 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         throw signUpError;
       }
 
-      return { success: true };
+      // Supabase returns a user with empty identities array when the email
+      // already exists (to prevent email enumeration). Detect this case.
+      if (signUpData.user && signUpData.user.identities?.length === 0) {
+        throw new Error('An account with this email already exists. Try signing in instead.');
+      }
+
+      // Check if email confirmation is required
+      // If session is null but user exists, confirmation email was sent
+      const confirmationPending = !signUpData.session && !!signUpData.user;
+
+      console.log('[RosieAuth] confirmationPending:', confirmationPending);
+
+      // If confirmation is pending, do NOT set user state — we don't want
+      // the auth useEffect to fire and redirect to profile setup.
+      // The user hasn't confirmed their email yet.
+      if (confirmationPending) {
+        // Supabase may have fired onAuthStateChange, but without a session
+        // the user isn't really authenticated. Clear any user state that
+        // may have been set by the event listener.
+        setUser(null);
+        setSession(null);
+        // Keep suppressAuthEvent true — will be cleared when component unmounts
+        // or user signs in later
+      } else {
+        // Not pending — allow auth events normally
+        suppressAuthEvent.current = false;
+      }
+
+      return { success: true, confirmationPending };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
       setError(errorMessage);
-      setLoading(false);
+      suppressAuthEvent.current = false;
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Resend confirmation email
+  const resendConfirmation = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      });
+
+      if (resendError) {
+        throw resendError;
+      }
+
+      return { success: true };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to resend confirmation email';
       return { success: false, error: errorMessage };
     }
   };
 
   // Sign in with email and password
-  const signInWithPassword = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  // NOTE: This does NOT set context loading state — the caller (RosieAuth) uses its own localLoading.
+  // Setting context loading causes RosieAI to unmount RosieAuth (replacing it with a spinner),
+  // which destroys all component state (view, form fields, error messages).
+  // On success, onAuthStateChange will handle loading/user state transitions.
+  const signInWithPassword = async (email: string, password: string): Promise<{ success: boolean; emailNotConfirmed?: boolean; error?: string }> => {
     try {
       setError(null);
-      setLoading(true);
       // Reset data loaded flag so we fetch fresh data
       dataLoadedForUser.current = null;
+      // Clear the sign-up suppression flag — this is a real sign-in
+      suppressAuthEvent.current = false;
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -273,9 +347,24 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
 
       if (signInError) {
-        if (signInError.message.includes('Invalid login credentials')) {
-          throw new Error('Invalid email or password');
+        // Check error.code (not error.message) — Supabase returns
+        // 'email_not_confirmed' when the password is correct but
+        // the user hasn't clicked the confirmation link yet.
+        // It only reveals this when the password is correct (prevents enumeration).
+        const errorCode = (signInError as { code?: string }).code;
+
+        if (errorCode === 'email_not_confirmed') {
+          return {
+            success: false,
+            emailNotConfirmed: true,
+            error: 'Please check your email and click the confirmation link before signing in.',
+          };
         }
+
+        if (errorCode === 'invalid_credentials' || signInError.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password.');
+        }
+
         throw signInError;
       }
 
@@ -283,10 +372,9 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
       setError(errorMessage);
-      setLoading(false);
       return { success: false, error: errorMessage };
     }
-    // Note: loading is set to false by onAuthStateChange handler
+    // Note: on success, loading is set to false by onAuthStateChange handler
   };
 
   // Sign out
@@ -457,6 +545,7 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         error,
         signUp,
         signInWithPassword,
+        resendConfirmation,
         signOut,
         createProfile,
         addBaby,

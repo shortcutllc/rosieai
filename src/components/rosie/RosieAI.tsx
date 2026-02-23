@@ -13,6 +13,8 @@ import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, Growth
 import { getStoredData, saveData, clearData } from './storage';
 import { getDevelopmentalInfo } from './developmentalData';
 import { fetchEvents, addEvent, deleteEvent as deleteEventFromDB } from './supabaseEvents';
+import { fetchSettings, saveSettings } from './supabaseSettings';
+import { fetchGrowthMeasurements, addGrowthMeasurement, deleteGrowthMeasurement } from './supabaseGrowth';
 import './rosie.css';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
@@ -81,18 +83,27 @@ const RosieAIContent: React.FC = () => {
 
         // Then fetch from Supabase in background and update
         try {
-          const events = await fetchEvents(user.id, currentBaby.id);
-          if (events.length > 0 || !stored?.timeline?.length) {
-            // Preserve all other data when updating timeline from Supabase
-            const updatedData: RosieData = {
-              ...initialData,
-              timeline: events,
-            };
-            setData(updatedData);
-            saveData(updatedData); // Cache locally
-          }
+          const [events, supabaseSettings, supabaseGrowth] = await Promise.all([
+            fetchEvents(user.id, currentBaby.id),
+            fetchSettings(user.id),
+            fetchGrowthMeasurements(user.id, currentBaby.id),
+          ]);
+
+          const updatedData: RosieData = {
+            ...initialData,
+            // Use Supabase events if available, otherwise keep local cache
+            timeline: events.length > 0 || !stored?.timeline?.length ? events : initialData.timeline,
+            // Supabase settings take priority over local cache
+            userSettings: supabaseSettings || initialData.userSettings,
+            // Supabase growth measurements take priority over local cache
+            growthMeasurements: supabaseGrowth.length > 0 || !stored?.growthMeasurements?.length
+              ? supabaseGrowth
+              : initialData.growthMeasurements,
+          };
+          setData(updatedData);
+          saveData(updatedData); // Cache locally
         } catch (err) {
-          console.error('Error fetching events from Supabase:', err);
+          console.error('Error fetching data from Supabase:', err);
           // Keep using local data on error
         }
       } else if (!authLoading && !user) {
@@ -270,7 +281,7 @@ const RosieAIContent: React.FC = () => {
     setData(updatedData);
   };
 
-  const handleUpdateSettings = (settings: UserSettings) => {
+  const handleUpdateSettings = async (settings: UserSettings) => {
     if (!data) return;
 
     const updatedData = {
@@ -278,11 +289,20 @@ const RosieAIContent: React.FC = () => {
       userSettings: settings,
     };
 
+    // Optimistic update + local cache
     saveData(updatedData);
     setData(updatedData);
+
+    // Persist to Supabase if authenticated
+    if (user) {
+      const result = await saveSettings(user.id, settings);
+      if (!result.success) {
+        console.error('Failed to save settings to Supabase:', result.error);
+      }
+    }
   };
 
-  const handleAddMeasurement = (measurement: Omit<GrowthMeasurement, 'id' | 'timestamp'>) => {
+  const handleAddMeasurement = async (measurement: Omit<GrowthMeasurement, 'id' | 'timestamp'>) => {
     if (!data) return;
 
     const newMeasurement: GrowthMeasurement = {
@@ -296,11 +316,20 @@ const RosieAIContent: React.FC = () => {
       growthMeasurements: [newMeasurement, ...(data.growthMeasurements || [])],
     };
 
+    // Optimistic update + local cache
     saveData(updatedData);
     setData(updatedData);
+
+    // Persist to Supabase if authenticated
+    if (user && currentBaby) {
+      const result = await addGrowthMeasurement(newMeasurement, user.id, currentBaby.id);
+      if (!result.success) {
+        console.error('Failed to save measurement to Supabase:', result.error);
+      }
+    }
   };
 
-  const handleDeleteMeasurement = (id: string) => {
+  const handleDeleteMeasurement = async (id: string) => {
     if (!data) return;
 
     const updatedData = {
@@ -308,8 +337,17 @@ const RosieAIContent: React.FC = () => {
       growthMeasurements: (data.growthMeasurements || []).filter(m => m.id !== id),
     };
 
+    // Optimistic update + local cache
     saveData(updatedData);
     setData(updatedData);
+
+    // Delete from Supabase if authenticated
+    if (user) {
+      const result = await deleteGrowthMeasurement(id, user.id);
+      if (!result.success) {
+        console.error('Failed to delete measurement from Supabase:', result.error);
+      }
+    }
   };
 
   const handleResetData = () => {

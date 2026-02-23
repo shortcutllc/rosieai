@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRosieAuth } from './RosieAuthContext';
 import './rosie.css';
 
-type AuthView = 'welcome' | 'signin' | 'signup' | 'signup-name' | 'signup-baby';
+type AuthView = 'welcome' | 'signin' | 'signup' | 'confirm-email' | 'signup-name' | 'signup-baby';
 
 interface RosieAuthProps {
   onComplete: () => void;
@@ -17,6 +17,8 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     error,
     signUp,
     signInWithPassword,
+    resendConfirmation,
+    signOut,
     createProfile,
     addBaby,
     clearError,
@@ -33,24 +35,37 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   const [birthWeightOz, setBirthWeightOz] = useState('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+
+  // Real-time password validation
+  const passwordTouched = password.length > 0;
+  const confirmTouched = confirmPassword.length > 0;
+
+  const passwordValidation = useMemo(() => ({
+    hasMinLength: password.length >= 6,
+    hasUpperCase: /[A-Z]/.test(password),
+    hasNumber: /\d/.test(password),
+    passwordsMatch: password === confirmPassword && confirmPassword.length > 0,
+  }), [password, confirmPassword]);
+
+  const isPasswordValid = passwordValidation.hasMinLength;
+  const isFormValid = email.trim() && isPasswordValid && passwordValidation.passwordsMatch;
 
   // If user is signed in and has profile and babies, complete
   React.useEffect(() => {
     if (loading) return;
-
-    console.log('[RosieAuth] Checking state - user:', !!user, 'profile:', !!profile, 'babies:', babies.length);
+    // Don't override the confirm-email screen — user hasn't verified yet
+    if (view === 'confirm-email') return;
 
     if (user && profile && babies.length > 0) {
-      console.log('[RosieAuth] User fully set up, completing auth');
       onComplete();
     } else if (user && !profile) {
-      console.log('[RosieAuth] User needs to create profile');
       setView('signup-name');
     } else if (user && profile && babies.length === 0) {
-      console.log('[RosieAuth] User needs to add baby');
       setView('signup-baby');
     }
-  }, [user, profile, babies, loading, onComplete]);
+  }, [user, profile, babies, loading, onComplete, view]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +75,12 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     const result = await signInWithPassword(email, password);
 
     if (!result.success) {
-      setLocalError(result.error || 'Failed to sign in');
+      if (result.emailNotConfirmed) {
+        // User hasn't confirmed their email yet — show the confirmation screen
+        setView('confirm-email');
+      } else {
+        setLocalError(result.error || 'Failed to sign in');
+      }
     }
 
     setLocalLoading(false);
@@ -70,13 +90,13 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     e.preventDefault();
     setLocalError(null);
 
-    if (password !== confirmPassword) {
-      setLocalError('Passwords do not match');
+    if (!passwordValidation.hasMinLength) {
+      setLocalError('Password must be at least 6 characters');
       return;
     }
 
-    if (password.length < 6) {
-      setLocalError('Password must be at least 6 characters');
+    if (!passwordValidation.passwordsMatch) {
+      setLocalError('Passwords do not match');
       return;
     }
 
@@ -86,9 +106,33 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
 
     if (!result.success) {
       setLocalError(result.error || 'Failed to create account');
+      setLocalLoading(false);
+    } else {
+      // Sign-up succeeded — show "check your email" screen BEFORE clearing loading.
+      // This order matters: setting the view first ensures the useEffect guard
+      // (which checks view === 'confirm-email') is already in place.
+      setView('confirm-email');
+      setLocalLoading(false);
     }
+  };
 
-    setLocalLoading(false);
+  const handleResendConfirmation = async () => {
+    if (resendCooldown) return;
+
+    setResendMessage(null);
+    const result = await resendConfirmation(email);
+
+    if (result.success) {
+      setResendMessage('Confirmation email resent!');
+      setResendCooldown(true);
+      // 60-second cooldown before allowing another resend
+      setTimeout(() => {
+        setResendCooldown(false);
+        setResendMessage(null);
+      }, 60000);
+    } else {
+      setResendMessage(result.error || 'Failed to resend. Please try again.');
+    }
   };
 
   const handleCreateProfile = async (e: React.FormEvent) => {
@@ -226,10 +270,19 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 6 characters"
-                className="rosie-auth-input"
+                className={`rosie-auth-input ${passwordTouched ? (isPasswordValid ? 'valid' : 'invalid') : ''}`}
                 required
-                minLength={6}
               />
+              {passwordTouched && (
+                <div className="rosie-auth-validation">
+                  <div className={`rosie-auth-validation-item ${passwordValidation.hasMinLength ? 'valid' : 'invalid'}`}>
+                    <span className="rosie-auth-validation-icon">
+                      {passwordValidation.hasMinLength ? '✓' : '✗'}
+                    </span>
+                    At least 6 characters
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="rosie-auth-field">
@@ -239,15 +292,25 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
-                className="rosie-auth-input"
+                className={`rosie-auth-input ${confirmTouched ? (passwordValidation.passwordsMatch ? 'valid' : 'invalid') : ''}`}
                 required
               />
+              {confirmTouched && (
+                <div className="rosie-auth-validation">
+                  <div className={`rosie-auth-validation-item ${passwordValidation.passwordsMatch ? 'valid' : 'invalid'}`}>
+                    <span className="rosie-auth-validation-icon">
+                      {passwordValidation.passwordsMatch ? '✓' : '✗'}
+                    </span>
+                    Passwords match
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
               type="submit"
               className="rosie-auth-btn rosie-auth-btn-primary"
-              disabled={localLoading || loading || !email || !password || !confirmPassword}
+              disabled={localLoading || loading || !isFormValid}
             >
               {localLoading ? 'Creating account...' : 'Create Account'}
             </button>
@@ -262,6 +325,60 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
               Sign in
             </button>
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Email Confirmation Screen
+  if (view === 'confirm-email') {
+    return (
+      <div className="rosie-auth-container">
+        <div className="rosie-auth-card">
+          <div className="rosie-auth-confirm">
+            <div className="rosie-auth-confirm-icon">✉️</div>
+            <h1 className="rosie-auth-title">Check your email</h1>
+            <p className="rosie-auth-confirm-text">
+              We sent a confirmation link to
+            </p>
+            <p className="rosie-auth-confirm-email">{email}</p>
+            <p className="rosie-auth-confirm-instruction">
+              Click the link in the email to activate your account, then come back here to sign in.
+            </p>
+
+            {resendMessage && (
+              <div className={`rosie-auth-confirm-message ${resendMessage.includes('resent') ? 'success' : 'error'}`}>
+                {resendMessage}
+              </div>
+            )}
+
+            <div className="rosie-auth-confirm-actions">
+              <button
+                className="rosie-auth-btn rosie-auth-btn-secondary"
+                onClick={handleResendConfirmation}
+                disabled={resendCooldown}
+              >
+                {resendCooldown ? 'Email sent' : "Didn't get the email? Resend"}
+              </button>
+
+              <button
+                className="rosie-auth-btn rosie-auth-btn-primary"
+                onClick={() => {
+                  setView('signin');
+                  setPassword('');
+                  setConfirmPassword('');
+                  clearError();
+                  setLocalError(null);
+                }}
+              >
+                Go to Sign In
+              </button>
+            </div>
+
+            <p className="rosie-auth-confirm-hint">
+              Check your spam folder if you don't see the email.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -383,6 +500,13 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
               {localLoading ? 'Saving...' : 'Continue'}
             </button>
           </form>
+
+          <p className="rosie-auth-switch">
+            Wrong account?{' '}
+            <button className="rosie-auth-link" onClick={signOut}>
+              Sign out
+            </button>
+          </p>
         </div>
       </div>
     );
@@ -474,6 +598,13 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
               {localLoading ? 'Setting up...' : 'Start Using Rosie'}
             </button>
           </form>
+
+          <p className="rosie-auth-switch">
+            Wrong account?{' '}
+            <button className="rosie-auth-link" onClick={signOut}>
+              Sign out
+            </button>
+          </p>
         </div>
       </div>
     );
