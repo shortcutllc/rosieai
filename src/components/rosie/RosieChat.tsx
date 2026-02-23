@@ -57,8 +57,8 @@ export const RosieChat: React.FC<RosieChatProps> = ({
 
   // Get contextual chat prompts based on baby's age and current state
   const contextualPrompts = useMemo((): ChatPrompt[] => {
-    return getChatPrompts(babyAgeWeeks);
-  }, [babyAgeWeeks]);
+    return getChatPrompts(babyAgeWeeks, baby.name);
+  }, [babyAgeWeeks, baby.name]);
 
   // Handle open/close animation lifecycle
   useEffect(() => {
@@ -240,36 +240,61 @@ Could you tell me more about what you're experiencing?`;
     }
   };
 
+  // Render inline formatting (bold, italic)
+  const renderInline = (text: string, keyPrefix: string) => {
+    // Handle **bold** markers
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return parts.map((part, k) =>
+      k % 2 === 1 ? <strong key={`${keyPrefix}-${k}`}>{part}</strong> : part
+    );
+  };
+
+  // Render a single line, detecting headers, bullets, dashes
+  const renderLine = (line: string, key: string): React.ReactNode => {
+    const trimmed = line.trim();
+
+    // Headers: ###, ##, # → render as bold text (strip the hashtags)
+    const headerMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (headerMatch) {
+      return (
+        <p key={key} style={{ fontWeight: 600 }}>
+          {renderInline(headerMatch[2], key)}
+        </p>
+      );
+    }
+
+    // Bullet points: • or - at start of line
+    if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+      const bulletText = trimmed.replace(/^[•\-]\s*/, '');
+      return (
+        <p key={key} style={{ marginLeft: '8px' }}>
+          {'• '}{renderInline(bulletText, key)}
+        </p>
+      );
+    }
+
+    // Regular text with inline formatting
+    return (
+      <p key={key}>
+        {renderInline(trimmed, key)}
+      </p>
+    );
+  };
+
   const renderMessage = (content: string) => {
+    // Split on double newlines for paragraph breaks
     return content.split('\n\n').map((paragraph, i) => {
-      if (paragraph.includes('\n•') || paragraph.startsWith('•')) {
-        const items = paragraph.split('\n').filter(line => line.trim());
-        return (
-          <div key={i}>
-            {items.map((item, j) => {
-              if (item.startsWith('•')) {
-                return <p key={j} style={{ marginLeft: '8px' }}>{item}</p>;
-              }
-              const parts = item.split(/\*\*(.*?)\*\*/g);
-              return (
-                <p key={j}>
-                  {parts.map((part, k) =>
-                    k % 2 === 1 ? <strong key={k}>{part}</strong> : part
-                  )}
-                </p>
-              );
-            })}
-          </div>
-        );
+      const lines = paragraph.split('\n').filter(line => line.trim());
+
+      if (lines.length === 1) {
+        return renderLine(lines[0], `p-${i}`);
       }
 
-      const parts = paragraph.split(/\*\*(.*?)\*\*/g);
+      // Multiple lines in a paragraph — render each
       return (
-        <p key={i}>
-          {parts.map((part, k) =>
-            k % 2 === 1 ? <strong key={k}>{part}</strong> : part
-          )}
-        </p>
+        <div key={`p-${i}`}>
+          {lines.map((line, j) => renderLine(line, `p-${i}-${j}`))}
+        </div>
       );
     });
   };
@@ -300,12 +325,12 @@ Could you tell me more about what you're experiencing?`;
           className="rosie-chat-new-btn"
           onClick={handleNewChat}
           disabled={isTyping || messages.length === 0}
+          aria-label="New chat"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
           </svg>
-          New
         </button>
       </div>
 

@@ -141,22 +141,24 @@ export interface ChatPrompt {
 
 export const getChatPrompts = (
   babyAgeWeeks: number,
+  babyName?: string,
   recentSleepQuality?: string,
   isInLeap?: boolean,
   leapNumber?: number
 ): ChatPrompt[] => {
+  const name = babyName || 'my baby';
   const prompts: ChatPrompt[] = [];
 
   // Leap-related prompts
   if (isInLeap && leapNumber) {
     prompts.push({
-      question: `Why is ${leapNumber === 4 ? 'the 4-month regression' : `Leap ${leapNumber}`} so hard?`,
-      context: 'Your baby is in a developmental leap',
+      question: `Why is ${name} so fussy all of a sudden?`,
+      context: 'Developmental leap',
       trigger: 'leap',
     });
     prompts.push({
-      question: 'How long will this fussy phase last?',
-      context: 'Leaps are temporary',
+      question: 'Is this phase ever going to end?',
+      context: 'It will, promise',
       trigger: 'leap',
     });
   }
@@ -164,8 +166,8 @@ export const getChatPrompts = (
   // Sleep-related prompts
   if (recentSleepQuality === 'poor' || recentSleepQuality === 'okay') {
     prompts.push({
-      question: 'Why is my baby sleeping poorly?',
-      context: 'Based on recent sleep logs',
+      question: `${name} won't sleep — what am I doing wrong?`,
+      context: 'Probably nothing',
       trigger: 'sleep_issue',
     });
   }
@@ -173,18 +175,18 @@ export const getChatPrompts = (
   // Newborn stage (0-12 weeks)
   if (babyAgeWeeks >= 0 && babyAgeWeeks <= 12) {
     prompts.push({
-      question: 'How much should a newborn sleep?',
-      context: 'Newborn sleep patterns',
+      question: `Is ${name} sleeping enough?`,
+      context: 'Newborn sleep is wild',
       trigger: 'sleep_issue',
     });
     prompts.push({
-      question: 'Is cluster feeding normal?',
-      context: 'Common in early weeks',
+      question: `${name} wants to eat constantly — is that ok?`,
+      context: 'Cluster feeding is real',
       trigger: 'feeding_question',
     });
     prompts.push({
-      question: 'When will my baby smile at me?',
-      context: 'Early milestones',
+      question: `When will ${name} start recognizing me?`,
+      context: 'Sooner than you think',
       trigger: 'developmental',
     });
   }
@@ -192,13 +194,13 @@ export const getChatPrompts = (
   // 3-4 month stage
   if (babyAgeWeeks >= 12 && babyAgeWeeks <= 20) {
     prompts.push({
-      question: 'Is this the 4-month sleep regression?',
-      context: 'Common around this age',
+      question: `Is ${name} going through the 4-month regression?`,
+      context: 'Sleep changes are normal',
       trigger: 'developmental',
     });
     prompts.push({
-      question: 'Should I start a nap schedule?',
-      context: 'Sleep routines at this age',
+      question: `Should ${name} be on a nap schedule yet?`,
+      context: 'No pressure',
       trigger: 'sleep_issue',
     });
   }
@@ -206,13 +208,13 @@ export const getChatPrompts = (
   // Solids introduction (4-6 months)
   if (babyAgeWeeks >= 16 && babyAgeWeeks <= 26) {
     prompts.push({
-      question: 'When should we start solids?',
-      context: 'Typical timing for this age',
+      question: `Is ${name} ready for solid food?`,
+      context: 'Signs to look for',
       trigger: 'feeding_question',
     });
     prompts.push({
-      question: 'What are signs of readiness for food?',
-      context: 'Solid food readiness cues',
+      question: 'What should I try as a first food?',
+      context: 'It doesn\'t have to be rice cereal',
       trigger: 'feeding_question',
     });
   }
@@ -220,13 +222,13 @@ export const getChatPrompts = (
   // 5-8 month stage
   if (babyAgeWeeks >= 20 && babyAgeWeeks <= 34) {
     prompts.push({
-      question: 'Is separation anxiety normal?',
-      context: 'Common around 6-8 months',
+      question: `${name} cries when I leave the room — is that normal?`,
+      context: 'Separation anxiety',
       trigger: 'developmental',
     });
     prompts.push({
-      question: 'When do babies start crawling?',
-      context: 'Motor milestone timing',
+      question: `Should ${name} be crawling by now?`,
+      context: 'Every baby is different',
       trigger: 'developmental',
     });
   }
@@ -234,42 +236,42 @@ export const getChatPrompts = (
   // 8-12 month stage
   if (babyAgeWeeks >= 34 && babyAgeWeeks <= 52) {
     prompts.push({
-      question: 'Is my baby ready for finger foods?',
-      context: 'Self-feeding milestones',
+      question: `Can ${name} have finger foods yet?`,
+      context: 'Self-feeding is messy but great',
       trigger: 'feeding_question',
     });
     prompts.push({
-      question: 'When will my baby start talking?',
-      context: 'Language development',
+      question: `When should ${name} start talking?`,
+      context: 'Big range of normal',
       trigger: 'developmental',
     });
     prompts.push({
-      question: 'How do I baby-proof for a crawler?',
-      context: 'Safety at this stage',
+      question: `${name} is getting into everything — help!`,
+      context: 'Baby-proofing time',
       trigger: 'general',
     });
   }
 
   // General prompts — always available
   prompts.push({
-    question: 'What should I expect this week?',
-    context: 'Developmental guidance',
+    question: `What's coming up for ${name} this week?`,
+    context: 'Week-by-week guidance',
     trigger: 'general',
   });
 
   prompts.push({
-    question: 'How many wake windows today?',
-    context: 'Age-appropriate schedule',
+    question: `How long should ${name} be awake between naps?`,
+    context: 'Wake windows',
     trigger: 'sleep_issue',
   });
 
   prompts.push({
-    question: 'Am I doing this right?',
-    context: 'Every parent asks this',
+    question: 'Am I overthinking this?',
+    context: 'Probably — and that\'s ok',
     trigger: 'general',
   });
 
-  return prompts.slice(0, 5); // Return max 5 prompts for cycling
+  return prompts.slice(0, 5);
 };
 
 // "What's Normal" context for stats
