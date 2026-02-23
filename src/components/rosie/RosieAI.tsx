@@ -47,6 +47,8 @@ const RosieAIContent: React.FC = () => {
   const { user, currentBaby, loading: authLoading, signOut } = useRosieAuth();
   const [data, setData] = useState<RosieData | null>(null);
   const [activeTab, setActiveTab] = useState<'timeline' | 'insights' | 'development' | 'chat'>('timeline');
+  const [showChat, setShowChat] = useState(false);
+  const [previousTab, setPreviousTab] = useState<'timeline' | 'insights' | 'development'>('timeline');
   const [isLoading, setIsLoading] = useState(true);
   const [bannerTimerDisplay, setBannerTimerDisplay] = useState(0);
   const [showQuickLogModal, setShowQuickLogModal] = useState<'feed' | 'sleep' | null>(null);
@@ -445,26 +447,31 @@ const RosieAIContent: React.FC = () => {
       {/* Tab Navigation */}
       <nav className="rosie-tabs">
         <button
-          className={`rosie-tab ${activeTab === 'timeline' ? 'active' : ''}`}
-          onClick={() => setActiveTab('timeline')}
+          className={`rosie-tab ${activeTab === 'timeline' && !showChat ? 'active' : ''}`}
+          onClick={() => { setActiveTab('timeline'); setShowChat(false); }}
         >
           Timeline
         </button>
         <button
-          className={`rosie-tab ${activeTab === 'insights' ? 'active' : ''}`}
-          onClick={() => setActiveTab('insights')}
+          className={`rosie-tab ${activeTab === 'insights' && !showChat ? 'active' : ''}`}
+          onClick={() => { setActiveTab('insights'); setShowChat(false); }}
         >
           Insights
         </button>
         <button
-          className={`rosie-tab ${activeTab === 'development' ? 'active' : ''}`}
-          onClick={() => setActiveTab('development')}
+          className={`rosie-tab ${activeTab === 'development' && !showChat ? 'active' : ''}`}
+          onClick={() => { setActiveTab('development'); setShowChat(false); }}
         >
           This Week
         </button>
         <button
-          className={`rosie-tab ${activeTab === 'chat' ? 'active' : ''}`}
-          onClick={() => setActiveTab('chat')}
+          className={`rosie-tab ${showChat ? 'active' : ''}`}
+          onClick={() => {
+            if (!showChat) {
+              setPreviousTab(activeTab === 'chat' ? 'timeline' : activeTab as 'timeline' | 'insights' | 'development');
+            }
+            setShowChat(true);
+          }}
         >
           Ask Rosie
         </button>
@@ -491,19 +498,24 @@ const RosieAIContent: React.FC = () => {
             developmentalInfo={developmentalInfo}
           />
         )}
-        {activeTab === 'chat' && (
-          <RosieChat
-            baby={data.baby}
-            messages={data.chatHistory}
-            onAddMessage={handleAddMessage}
-            onUpdateHistory={handleUpdateChatHistory}
-            timeline={data.timeline}
-            developmentalInfo={developmentalInfo}
-            growthMeasurements={data.growthMeasurements}
-            weather={weather}
-          />
-        )}
       </main>
+
+      {/* Chat overlay — fullscreen takeover, rendered outside main */}
+      <RosieChat
+        baby={data.baby}
+        messages={data.chatHistory}
+        onAddMessage={handleAddMessage}
+        onUpdateHistory={handleUpdateChatHistory}
+        timeline={data.timeline}
+        developmentalInfo={developmentalInfo}
+        growthMeasurements={data.growthMeasurements}
+        weather={weather}
+        isOpen={showChat}
+        onClose={() => {
+          setShowChat(false);
+          setActiveTab(previousTab);
+        }}
+      />
 
       {/* Quick Log Buttons - Always visible on timeline/insights tabs, or when modal opened from banner */}
       {(activeTab === 'timeline' || activeTab === 'insights' || showQuickLogModal) && (

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData } from './types';
 import { formatTime } from './developmentalData';
 import { getChatPrompts, ChatPrompt } from './reassuranceMessages';
@@ -24,6 +24,8 @@ interface RosieChatProps {
   developmentalInfo: DevelopmentalInfo;
   growthMeasurements?: GrowthMeasurement[];
   weather?: WeatherData | null;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const RosieChat: React.FC<RosieChatProps> = ({
@@ -35,13 +37,16 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   developmentalInfo,
   growthMeasurements,
   weather,
+  isOpen,
+  onClose,
 }) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [hasEnteredView, setHasEnteredView] = useState(false);
-  const [chatAreaHeight, setChatAreaHeight] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState(false); // controls CSS class for animation
+  const [shouldRender, setShouldRender] = useState(false); // controls DOM presence
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Calculate baby's age in weeks
   const babyAgeWeeks = useMemo(() => {
@@ -55,43 +60,51 @@ export const RosieChat: React.FC<RosieChatProps> = ({
     return getChatPrompts(babyAgeWeeks);
   }, [babyAgeWeeks]);
 
-  // Measure available viewport space so the chat area (empty state or conversation)
-  // fits exactly within the visible viewport — input always on screen
+  // Handle open/close animation lifecycle
   useEffect(() => {
-    const measure = () => {
-      if (chatAreaRef.current) {
-        const top = chatAreaRef.current.getBoundingClientRect().top;
-        const available = window.innerHeight - top - 8;
-        setChatAreaHeight(Math.max(available, 300));
-      }
-    };
-    // Measure after a tick so layout is settled
-    const raf = requestAnimationFrame(measure);
-    window.addEventListener('resize', measure);
+    if (isOpen) {
+      // Mount, then animate in on next frame
+      setShouldRender(true);
+      document.body.style.overflow = 'hidden'; // lock body scroll
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+    } else {
+      // Animate out, then unmount after transition
+      setIsVisible(false);
+      document.body.style.overflow = '';
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 350); // match exit animation duration
+      return () => clearTimeout(timer);
+    }
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', measure);
+      document.body.style.overflow = '';
     };
-  }, [messages.length, isTyping]);
+  }, [isOpen]);
 
-  // Staggered entrance animation — trigger after mount
+  // Staggered entrance animation for empty state — trigger after overlay is visible
   useEffect(() => {
-    const timer = setTimeout(() => setHasEnteredView(true), 100);
-    return () => clearTimeout(timer);
+    if (isVisible && messages.length === 0) {
+      const timer = setTimeout(() => setHasEnteredView(true), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, messages.length]);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Only scroll to bottom when new messages are added, not on initial mount
+  // Only scroll to bottom when new messages are added
   const prevMessageCount = useRef(messages.length);
   useEffect(() => {
     if (messages.length > prevMessageCount.current) {
       scrollToBottom();
     }
     prevMessageCount.current = messages.length;
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   // Call the Claude API via Netlify function
   const callClaudeAPI = async (userMessage: string): Promise<string> => {
@@ -175,7 +188,6 @@ Could you tell me more about what you're experiencing?`;
       return await callClaudeAPI(userMessage);
     } catch (error) {
       console.warn('Claude API failed, using fallback response');
-      // Small delay to simulate response time
       await new Promise(resolve => setTimeout(resolve, 500));
       return generateFallbackResponse(userMessage);
     }
@@ -187,7 +199,6 @@ Could you tell me more about what you're experiencing?`;
     const userMessage = input.trim();
     setInput('');
 
-    // Add user message
     const userMsg: ChatMessage = {
       id: generateUUID(),
       timestamp: new Date().toISOString(),
@@ -198,7 +209,6 @@ Could you tell me more about what you're experiencing?`;
     const updatedMessages = [...messages, userMsg];
     onUpdateHistory(updatedMessages);
 
-    // Generate AI response
     setIsTyping(true);
     try {
       const response = await generateResponse(userMessage);
@@ -220,9 +230,7 @@ Could you tell me more about what you're experiencing?`;
 
   const handleSuggestionClick = (question: string) => {
     setInput(question);
-    // Focus the input after setting the question
-    const inputEl = document.querySelector('.rosie-chat-input') as HTMLInputElement;
-    inputEl?.focus();
+    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -233,9 +241,7 @@ Could you tell me more about what you're experiencing?`;
   };
 
   const renderMessage = (content: string) => {
-    // Simple markdown-like rendering
     return content.split('\n\n').map((paragraph, i) => {
-      // Handle bullet points
       if (paragraph.includes('\n•') || paragraph.startsWith('•')) {
         const items = paragraph.split('\n').filter(line => line.trim());
         return (
@@ -244,7 +250,6 @@ Could you tell me more about what you're experiencing?`;
               if (item.startsWith('•')) {
                 return <p key={j} style={{ marginLeft: '8px' }}>{item}</p>;
               }
-              // Handle bold text with **
               const parts = item.split(/\*\*(.*?)\*\*/g);
               return (
                 <p key={j}>
@@ -258,7 +263,6 @@ Could you tell me more about what you're experiencing?`;
         );
       }
 
-      // Handle bold text with **
       const parts = paragraph.split(/\*\*(.*?)\*\*/g);
       return (
         <p key={i}>
@@ -274,103 +278,81 @@ Could you tell me more about what you're experiencing?`;
     onUpdateHistory([]);
     setInput('');
     setHasEnteredView(false);
-    // Re-trigger entrance animation
     setTimeout(() => setHasEnteredView(true), 100);
   };
 
+  if (!shouldRender) return null;
+
   return (
-    <div ref={chatAreaRef} className="rosie-chat" style={chatAreaHeight ? { height: chatAreaHeight } : undefined}>
-      {/* Chat header — shows "New Chat" when there are messages */}
-      {messages.length > 0 && (
-        <div className="rosie-chat-header">
-          <div className="rosie-chat-header-info">
-            <span className="rosie-chat-header-count">{messages.length} message{messages.length !== 1 ? 's' : ''}</span>
-          </div>
-          <button
-            className="rosie-chat-new-btn"
-            onClick={handleNewChat}
-            disabled={isTyping}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            New Chat
-          </button>
+    <div className={`rosie-chat-overlay ${isVisible ? 'open' : ''}`}>
+      {/* ── Fullscreen header — back, title, new chat ── */}
+      <div className="rosie-chat-topbar">
+        <button className="rosie-chat-back" onClick={onClose} aria-label="Close chat">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <div className="rosie-chat-topbar-title">
+          <img src="/rosie-icon.svg" alt="" className="rosie-chat-topbar-logo" />
+          <span>Ask Rosie</span>
         </div>
-      )}
+        <button
+          className="rosie-chat-new-btn"
+          onClick={handleNewChat}
+          disabled={isTyping || messages.length === 0}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          New
+        </button>
+      </div>
 
-      {messages.length === 0 && !isTyping ? (
-        /* ── Empty state — greeting + suggestions + input all in one flow ── */
-        <div className="rosie-chat-empty-state">
-          {/* Greeting — compact, top-aligned */}
-          <div className={`rosie-chat-greeting ${hasEnteredView ? 'entered' : ''}`}>
-            <div className="rosie-chat-greeting-avatar">
-              <img src="/rosie-icon.svg" alt="Rosie" className="rosie-chat-greeting-logo" />
+      {/* ── Body — empty state or messages ── */}
+      <div className="rosie-chat-body">
+        {messages.length === 0 && !isTyping ? (
+          <div className="rosie-chat-empty-state">
+            {/* Greeting */}
+            <div className={`rosie-chat-greeting ${hasEnteredView ? 'entered' : ''}`}>
+              <div className="rosie-chat-greeting-avatar">
+                <img src="/rosie-icon.svg" alt="Rosie" className="rosie-chat-greeting-logo" />
+              </div>
+              <div className="rosie-chat-greeting-text">
+                <span className="rosie-chat-greeting-hey">Hey there</span>
+                <span className="rosie-chat-greeting-sub">
+                  I know all about {baby.name} at {developmentalInfo.ageDisplay}. What's on your mind?
+                </span>
+              </div>
             </div>
-            <div className="rosie-chat-greeting-text">
-              <span className="rosie-chat-greeting-hey">Hey there</span>
-              <span className="rosie-chat-greeting-sub">
-                I know all about {baby.name} at {developmentalInfo.ageDisplay}. What's on your mind?
-              </span>
+
+            {/* Suggestions */}
+            <div className="rosie-chat-suggestions">
+              <div className={`rosie-chat-suggestions-header ${hasEnteredView ? 'entered' : ''}`}>
+                Try asking
+              </div>
+              <div className="rosie-chat-suggestions-list">
+                {contextualPrompts.slice(0, 4).map((prompt, index) => (
+                  <button
+                    key={prompt.question}
+                    className={`rosie-chat-suggestion ${hasEnteredView ? 'entered' : ''}`}
+                    style={{ transitionDelay: hasEnteredView ? `${150 + index * 80}ms` : '0ms' }}
+                    onClick={() => handleSuggestionClick(prompt.question)}
+                  >
+                    <span className="rosie-chat-suggestion-icon">
+                      {prompt.trigger === 'sleep_issue' ? '🌙' :
+                       prompt.trigger === 'feeding_question' ? '🍼' :
+                       prompt.trigger === 'developmental' ? '🧠' :
+                       prompt.trigger === 'leap' ? '🌊' : '💬'}
+                    </span>
+                    <span className="rosie-chat-suggestion-text">{prompt.question}</span>
+                    <span className="rosie-chat-suggestion-arrow">›</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-
-          {/* Suggestions — compact cards */}
-          <div className="rosie-chat-suggestions">
-            <div className={`rosie-chat-suggestions-header ${hasEnteredView ? 'entered' : ''}`}>
-              Try asking
-            </div>
-            <div className="rosie-chat-suggestions-list">
-              {contextualPrompts.slice(0, 4).map((prompt, index) => (
-                <button
-                  key={prompt.question}
-                  className={`rosie-chat-suggestion ${hasEnteredView ? 'entered' : ''}`}
-                  style={{ transitionDelay: hasEnteredView ? `${150 + index * 80}ms` : '0ms' }}
-                  onClick={() => handleSuggestionClick(prompt.question)}
-                >
-                  <span className="rosie-chat-suggestion-icon">
-                    {prompt.trigger === 'sleep_issue' ? '🌙' :
-                     prompt.trigger === 'feeding_question' ? '🍼' :
-                     prompt.trigger === 'developmental' ? '🧠' :
-                     prompt.trigger === 'leap' ? '🌊' : '💬'}
-                  </span>
-                  <span className="rosie-chat-suggestion-text">{prompt.question}</span>
-                  <span className="rosie-chat-suggestion-arrow">›</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Input — always visible at bottom of empty state */}
-          <div className="rosie-chat-input-area">
-            <div className="rosie-chat-input-wrapper">
-              <input
-                type="text"
-                className="rosie-chat-input"
-                placeholder={`Ask about ${baby.name}...`}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isTyping}
-              />
-              <button
-                className="rosie-chat-send"
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
-                aria-label="Send message"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* ── Active conversation — messages + input ── */
-        <>
+        ) : (
           <div className="rosie-chat-messages">
             {messages.map(message => (
               <div
@@ -394,34 +376,35 @@ Could you tell me more about what you're experiencing?`;
 
             <div ref={messagesEndRef} />
           </div>
+        )}
+      </div>
 
-          {/* Input — pinned to bottom during conversation */}
-          <div className="rosie-chat-input-area">
-            <div className="rosie-chat-input-wrapper">
-              <input
-                type="text"
-                className="rosie-chat-input"
-                placeholder={`Ask about ${baby.name}...`}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isTyping}
-              />
-              <button
-                className="rosie-chat-send"
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
-                aria-label="Send message"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      {/* ── Input — always pinned to bottom ── */}
+      <div className="rosie-chat-input-area">
+        <div className="rosie-chat-input-wrapper">
+          <input
+            ref={inputRef}
+            type="text"
+            className="rosie-chat-input"
+            placeholder={`Ask about ${baby.name}...`}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={isTyping}
+          />
+          <button
+            className="rosie-chat-send"
+            onClick={handleSend}
+            disabled={!input.trim() || isTyping}
+            aria-label="Send message"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
