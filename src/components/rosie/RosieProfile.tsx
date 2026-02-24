@@ -79,9 +79,15 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
     return `${lbs} lb ${oz} oz`;
   };
 
+  // Parse birth date safely — append noon UTC to avoid timezone day-shift
+  const parseBirthDate = (dateStr: string) => {
+    const dateOnly = dateStr.split('T')[0];
+    return new Date(dateOnly + 'T12:00:00');
+  };
+
   // Calculate age
   const getAgeDisplay = () => {
-    const birth = new Date(baby.birthDate);
+    const birth = parseBirthDate(baby.birthDate);
     const now = new Date();
     const days = Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24));
     const weeks = Math.floor(days / 7);
@@ -100,7 +106,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
     onUpdateBaby({
       ...baby,
       name: editName.trim() || baby.name,
-      birthDate: new Date(editBirthDate).toISOString(),
+      birthDate: editBirthDate,
       gender: editGender,
       avatarEmoji: editAvatar,
       avatarImage: editAvatarImage,
@@ -312,7 +318,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
                     <div className="rosie-profile-info-card">
                       <div className="rosie-profile-info-label">Birth Date</div>
                       <div className="rosie-profile-info-value">
-                        {new Date(baby.birthDate).toLocaleDateString('en-US', {
+                        {parseBirthDate(baby.birthDate).toLocaleDateString('en-US', {
                           month: 'long',
                           day: 'numeric',
                           year: 'numeric',

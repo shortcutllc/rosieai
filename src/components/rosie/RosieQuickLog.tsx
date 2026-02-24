@@ -830,24 +830,27 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                 <div className="rosie-options">
                   <button
                     className={`rosie-option ${feedType === 'breast' ? 'selected' : ''}`}
+                    style={feedType === 'breast' ? { background: '#FFF3E0', borderColor: '#FF9500' } : undefined}
                     onClick={() => setFeedType('breast')}
                   >
                     <div className="rosie-option-icon">🤱</div>
-                    <div className="rosie-option-label">Breast</div>
+                    <div className="rosie-option-label" style={feedType === 'breast' ? { color: '#FF9500' } : undefined}>Breast</div>
                   </button>
                   <button
                     className={`rosie-option ${feedType === 'bottle' ? 'selected' : ''}`}
+                    style={feedType === 'bottle' ? { background: '#FFF3E0', borderColor: '#FF9500' } : undefined}
                     onClick={() => setFeedType('bottle')}
                   >
                     <div className="rosie-option-icon">🍼</div>
-                    <div className="rosie-option-label">Bottle</div>
+                    <div className="rosie-option-label" style={feedType === 'bottle' ? { color: '#FF9500' } : undefined}>Bottle</div>
                   </button>
                   <button
                     className={`rosie-option ${feedType === 'solid' ? 'selected' : ''}`}
+                    style={feedType === 'solid' ? { background: '#FFF3E0', borderColor: '#FF9500' } : undefined}
                     onClick={() => setFeedType('solid')}
                   >
                     <div className="rosie-option-icon">🥣</div>
-                    <div className="rosie-option-label">Solid</div>
+                    <div className="rosie-option-label" style={feedType === 'solid' ? { color: '#FF9500' } : undefined}>Solid</div>
                   </button>
                 </div>
               </div>
@@ -1157,6 +1160,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
                     <button
                       className="rosie-btn-primary"
+                      style={{ background: 'linear-gradient(135deg, #FF9500, #FFB340)' }}
                       onClick={handleSaveFeedManual}
                       disabled={!feedManualLeftMins && !feedManualRightMins}
                     >
@@ -1217,6 +1221,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
                 <button
                   className="rosie-btn-primary"
+                  style={{ background: 'linear-gradient(135deg, #FF9500, #FFB340)' }}
                   onClick={handleSaveFeedManual}
                   disabled={!feedAmount}
                 >
@@ -1238,7 +1243,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                   />
                 </div>
 
-                <button className="rosie-btn-primary" onClick={handleSaveFeedManual}>
+                <button className="rosie-btn-primary" style={{ background: 'linear-gradient(135deg, #FF9500, #FFB340)' }} onClick={handleSaveFeedManual}>
                   Save Feed
                 </button>
               </>
@@ -1264,17 +1269,19 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
               <div className="rosie-options">
                 <button
                   className={`rosie-option ${sleepType === 'nap' ? 'selected' : ''}`}
+                  style={sleepType === 'nap' ? { background: '#FAF5FF', borderColor: '#B57BEC' } : undefined}
                   onClick={() => setSleepType('nap')}
                 >
                   <div className="rosie-option-icon">😴</div>
-                  <div className="rosie-option-label">Nap</div>
+                  <div className="rosie-option-label" style={sleepType === 'nap' ? { color: '#B57BEC' } : undefined}>Nap</div>
                 </button>
                 <button
                   className={`rosie-option ${sleepType === 'night' ? 'selected' : ''}`}
+                  style={sleepType === 'night' ? { background: '#FAF5FF', borderColor: '#B57BEC' } : undefined}
                   onClick={() => setSleepType('night')}
                 >
                   <div className="rosie-option-icon">🌙</div>
-                  <div className="rosie-option-label">Night</div>
+                  <div className="rosie-option-label" style={sleepType === 'night' ? { color: '#B57BEC' } : undefined}>Night</div>
                 </button>
               </div>
             </div>
@@ -1415,10 +1422,11 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                       <div className="rosie-options">
                         <button
                           className={`rosie-option ${sleepQuality === 'good' ? 'selected' : ''}`}
+                          style={sleepQuality === 'good' ? { background: '#F0FFF4', borderColor: '#34C759' } : undefined}
                           onClick={() => setSleepQuality('good')}
                         >
                           <div className="rosie-option-icon">😊</div>
-                          <div className="rosie-option-label">Good</div>
+                          <div className="rosie-option-label" style={sleepQuality === 'good' ? { color: '#34C759' } : undefined}>Good</div>
                         </button>
                         <button
                           className={`rosie-option ${sleepQuality === 'restless' ? 'selected' : ''}`}
@@ -1525,10 +1533,11 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                   <div className="rosie-options">
                     <button
                       className={`rosie-option ${sleepQuality === 'good' ? 'selected' : ''}`}
+                      style={sleepQuality === 'good' ? { background: '#F0FFF4', borderColor: '#34C759' } : undefined}
                       onClick={() => setSleepQuality('good')}
                     >
                       <div className="rosie-option-icon">😊</div>
-                      <div className="rosie-option-label">Good</div>
+                      <div className="rosie-option-label" style={sleepQuality === 'good' ? { color: '#34C759' } : undefined}>Good</div>
                     </button>
                     <button
                       className={`rosie-option ${sleepQuality === 'restless' ? 'selected' : ''}`}
@@ -1559,6 +1568,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
                 <button
                   className="rosie-btn-primary"
+                  style={{ background: 'linear-gradient(135deg, #B57BEC, #D4A5FF)' }}
                   onClick={handleSaveSleepManual}
                   disabled={!((sleepStartTime && sleepEndTime) || sleepManualDuration > 0)}
                 >
@@ -1586,24 +1596,27 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
               <div className="rosie-options">
                 <button
                   className={`rosie-option ${diaperType === 'wet' ? 'selected' : ''}`}
+                  style={diaperType === 'wet' ? { background: '#F0FFF4', borderColor: '#34C759' } : undefined}
                   onClick={() => setDiaperType('wet')}
                 >
                   <div className="rosie-option-icon">💧</div>
-                  <div className="rosie-option-label">Pee</div>
+                  <div className="rosie-option-label" style={diaperType === 'wet' ? { color: '#34C759' } : undefined}>Pee</div>
                 </button>
                 <button
                   className={`rosie-option ${diaperType === 'dirty' ? 'selected' : ''}`}
+                  style={diaperType === 'dirty' ? { background: '#F0FFF4', borderColor: '#34C759' } : undefined}
                   onClick={() => setDiaperType('dirty')}
                 >
                   <div className="rosie-option-icon">💩</div>
-                  <div className="rosie-option-label">Poop</div>
+                  <div className="rosie-option-label" style={diaperType === 'dirty' ? { color: '#34C759' } : undefined}>Poop</div>
                 </button>
                 <button
                   className={`rosie-option ${diaperType === 'both' ? 'selected' : ''}`}
+                  style={diaperType === 'both' ? { background: '#F0FFF4', borderColor: '#34C759' } : undefined}
                   onClick={() => setDiaperType('both')}
                 >
                   <div className="rosie-option-icon">💧💩</div>
-                  <div className="rosie-option-label">Both</div>
+                  <div className="rosie-option-label" style={diaperType === 'both' ? { color: '#34C759' } : undefined}>Both</div>
                 </button>
               </div>
             </div>
@@ -1618,7 +1631,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
               />
             </div>
 
-            <button className="rosie-btn-primary" onClick={handleSaveDiaper}>
+            <button className="rosie-btn-primary" style={{ background: 'linear-gradient(135deg, #30D158, #7EE88B)' }} onClick={handleSaveDiaper}>
               Save Diaper
             </button>
           </div>

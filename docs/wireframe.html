@@ -3,29 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rosie — Proposed Layout Wireframe</title>
+<title>Rosie — Design Refresh Wireframes</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     background: #F0F0F5;
+    padding: 40px 20px;
+    color: #1D1D1F;
+  }
+
+  /* ====== PAGE LAYOUT ====== */
+  .page-header {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 40px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .page-header p {
+    font-size: 15px;
+    color: #86868B;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .wireframe-row {
     display: flex;
-    gap: 40px;
-    padding: 40px;
+    gap: 32px;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .section-header-page {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 24px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .section-header-page h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section-header-page p {
+    font-size: 14px;
+    color: #86868B;
+    margin-top: 4px;
   }
 
   .label {
     text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: #666;
+    font-size: 13px;
+    font-weight: 700;
+    color: #86868B;
     margin-bottom: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
   }
+  .label.new { color: #34C759; }
 
+  /* ====== PHONE FRAME ====== */
   .phone {
     width: 390px;
     height: 844px;
@@ -35,557 +84,81 @@
     position: relative;
     box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
   }
-
   .phone-inner {
     height: 100%;
     overflow-y: auto;
     padding-top: 48px; /* status bar */
-  }
-
-  /* ====== CURRENT LAYOUT ====== */
-  .current .header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #FAFAFA;
-    padding: 16px 16px 0;
-    text-align: center;
-  }
-  .current .clock {
-    font-size: 44px;
-    font-weight: 300;
-    color: #1D1D1F;
-    letter-spacing: -0.02em;
-  }
-  .current .date {
-    font-size: 14px;
-    color: #86868B;
-    font-weight: 500;
-    margin-top: 2px;
-  }
-  .current .weather {
-    font-size: 13px;
-    color: #86868B;
-    margin-top: 4px;
-  }
-  .current .greeting-bar {
-    margin-top: 12px;
-    padding: 16px;
-    text-align: center;
-    border-top: 3px solid #007AFF;
-    background: white;
-    border-radius: 16px;
-  }
-  .current .greeting-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1D1D1F;
-  }
-  .current .greeting-sub {
-    font-size: 14px;
-    color: #86868B;
-    margin-top: 4px;
-  }
-  .current .age-badge {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 6px 16px;
-    background: #F0F0F5;
-    border-radius: 999px;
-    font-size: 13px;
-    color: #86868B;
-    font-weight: 500;
-  }
-  .current .tabs {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    background: rgba(120,120,128,0.08);
-    border-radius: 12px;
-    margin: 12px 16px;
-  }
-  .current .tab {
-    flex: 1;
-    text-align: center;
-    padding: 8px 4px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #86868B;
-    border-radius: 8px;
-  }
-  .current .tab.active {
-    background: white;
-    color: #1D1D1F;
-    font-weight: 700;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  .current .summary-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    padding: 0 16px;
-    margin-top: 8px;
-  }
-  .current .summary-card {
-    background: white;
-    border-radius: 20px;
-    padding: 16px 8px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  .current .summary-card .accent {
-    height: 4px;
-    border-radius: 2px;
-    margin: -16px -8px 12px;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-  }
-  .current .summary-card .icon { font-size: 24px; }
-  .current .summary-card .label-sm {
-    font-size: 10px;
-    font-weight: 700;
-    color: #86868B;
-    text-transform: uppercase;
-    margin-top: 4px;
-  }
-  .current .summary-card .value {
-    font-size: 15px;
-    font-weight: 700;
-    margin-top: 4px;
-  }
-  .current .summary-card .detail {
-    font-size: 11px;
-    color: #86868B;
-    margin-top: 2px;
-  }
-  .current .day-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 16px;
-    font-size: 18px;
-    font-weight: 700;
-  }
-  .current .day-nav .chevron {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(120,120,128,0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #86868B;
-    font-size: 14px;
-  }
-  .current .event {
-    margin: 0 16px 10px;
-    padding: 16px;
-    background: white;
-    border-radius: 20px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  .current .event .bar {
-    width: 4px;
-    height: 48px;
-    border-radius: 2px;
-  }
-  .current .event .ev-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-  }
-  .current .event .ev-time {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1D1D1F;
-  }
-  .current .event .ev-detail {
-    font-size: 13px;
-    color: #86868B;
-    margin-top: 2px;
-  }
-  .current .quicklog {
-    position: sticky;
-    bottom: 0;
-    background: rgba(250,250,250,0.85);
-    backdrop-filter: blur(24px);
-    padding: 12px 16px 28px;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-  }
-  .current .quicklog-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 12px 24px;
-    background: white;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #1D1D1F;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-  .current .quicklog-btn .btn-icon { font-size: 20px; }
-
-  /* ====== PROPOSED LAYOUT ====== */
-  .proposed .header-compact {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #FAFAFA;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    height: 56px;
-  }
-  .proposed .header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .proposed .header-left .mini-clock {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1D1D1F;
-  }
-  .proposed .header-left .mini-weather {
-    font-size: 13px;
-    color: #86868B;
-  }
-  .proposed .header-right {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .proposed .header-right .age-pill {
-    padding: 4px 12px;
-    background: rgba(120,120,128,0.08);
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #86868B;
-  }
-  .proposed .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: #FFE5B4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-  }
-  .proposed .greeting-hero {
-    padding: 20px 16px 16px;
-    text-align: left;
-  }
-  .proposed .greeting-hero h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1D1D1F;
-    letter-spacing: -0.02em;
-  }
-  .proposed .greeting-hero p {
-    font-size: 15px;
-    color: #86868B;
-    margin-top: 4px;
-  }
-
-  .proposed .tabs {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    background: rgba(120,120,128,0.08);
-    border-radius: 12px;
-    margin: 0 16px 16px;
-  }
-  .proposed .tab {
-    flex: 1;
-    text-align: center;
-    padding: 8px 4px;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-  }
-  .proposed .tab .tab-icon { font-size: 16px; }
-  .proposed .tab .tab-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #86868B;
-  }
-  .proposed .tab.active {
-    background: white;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  .proposed .tab.active .tab-label {
-    color: #1D1D1F;
-    font-weight: 700;
-  }
-
-  /* Section pattern (Airbnb-inspired) */
-  .proposed .section {
-    margin-bottom: 24px;
-  }
-  .proposed .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px 12px;
-  }
-  .proposed .section-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #1D1D1F;
-    letter-spacing: -0.02em;
-  }
-  .proposed .section-link {
-    font-size: 14px;
-    font-weight: 600;
-    color: #007AFF;
-  }
-
-  /* Horizontal scroll summary cards (Airbnb carousel) */
-  .proposed .h-scroll {
-    display: flex;
-    gap: 12px;
-    padding: 0 16px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  .proposed .h-scroll::-webkit-scrollbar { display: none; }
-  .proposed .h-scroll .stat-card {
-    scroll-snap-align: start;
-    min-width: 140px;
-    background: white;
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    flex-shrink: 0;
-  }
-  .proposed .stat-card .stat-icon { font-size: 24px; margin-bottom: 8px; }
-  .proposed .stat-card .stat-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #86868B;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-  .proposed .stat-card .stat-value {
-    font-size: 20px;
-    font-weight: 700;
-    margin-top: 4px;
-    letter-spacing: -0.02em;
-  }
-  .proposed .stat-card .stat-detail {
-    font-size: 12px;
-    color: #86868B;
-    margin-top: 2px;
-  }
+  .phone-inner::-webkit-scrollbar { display: none; }
 
-  /* Timeline events — lighter weight */
-  .proposed .event {
-    margin: 0 16px 8px;
-    padding: 14px 16px;
-    background: white;
-    border-radius: 16px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-  }
-  .proposed .event .bar {
-    width: 3px;
-    height: 40px;
-    border-radius: 2px;
-  }
-  .proposed .event .ev-icon {
-    width: 40px;
-    height: 40px;
+  /* ====== DESKTOP FRAME ====== */
+  .desktop {
+    width: 900px;
+    height: 640px;
+    background: #FAFAFA;
     border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-  }
-  .proposed .event .ev-content { flex: 1; }
-  .proposed .event .ev-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1D1D1F;
-  }
-  .proposed .event .ev-detail {
-    font-size: 13px;
-    color: #86868B;
-    margin-top: 1px;
-  }
-  .proposed .event .ev-time {
-    font-size: 12px;
-    color: #AEAEB2;
-    font-weight: 500;
-  }
-
-  /* Quick log — floating pill */
-  .proposed .quicklog {
-    position: sticky;
-    bottom: 0;
-    padding: 8px 16px 28px;
-    display: flex;
-    justify-content: center;
-  }
-  .proposed .quicklog-pill {
-    display: flex;
-    gap: 0;
-    background: white;
-    border-radius: 999px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
     overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
   }
-  .proposed .quicklog-pill .ql-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 10px 24px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #1D1D1F;
-    border-right: 1px solid rgba(0,0,0,0.06);
+  .desktop-inner {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
   }
-  .proposed .quicklog-pill .ql-btn:last-child { border-right: none; }
-  .proposed .quicklog-pill .ql-btn .btn-icon { font-size: 18px; }
+  .desktop-inner::-webkit-scrollbar { display: none; }
 
-  /* Skeleton placeholder */
-  .proposed .skeleton {
-    background: linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 16px;
-  }
-  @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-
-  /* Insight card */
-  .proposed .insight-card {
-    margin: 0 16px;
-    padding: 20px;
-    background: linear-gradient(135deg, #F8F4FF 0%, #FFF8F0 100%);
-    border-radius: 20px;
-    border: 1px solid rgba(0,0,0,0.04);
-  }
-  .proposed .insight-card .insight-cat {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #B57BEC;
-    margin-bottom: 8px;
-  }
-  .proposed .insight-card .insight-text {
-    font-size: 15px;
-    line-height: 1.5;
-    color: #1D1D1F;
-  }
-  .proposed .insight-card .insight-more {
-    display: inline-block;
-    margin-top: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #007AFF;
-  }
-
-  /* Annotations */
-  .annotation {
-    position: absolute;
-    font-size: 11px;
-    font-weight: 600;
-    color: #FF3B30;
-    background: rgba(255,59,48,0.08);
-    padding: 2px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-
-  /* Comparison header */
-  .comparison-header {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .comparison-header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1D1D1F;
-  }
-  .comparison-header p {
-    font-size: 15px;
-    color: #86868B;
-    margin-top: 4px;
-  }
-
-  .column { display: flex; flex-direction: column; align-items: center; }
-
-  /* Callout boxes below wireframes */
+  /* ====== CALLOUT ANNOTATIONS ====== */
   .callouts {
-    width: 100%;
-    max-width: 860px;
+    max-width: 900px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    padding: 20px 0;
+    gap: 12px;
+    padding: 0 0 32px;
   }
   .callout {
-    padding: 16px 20px;
+    padding: 14px 18px;
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-  .callout .callout-num {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
+  .callout .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
     border-radius: 999px;
     background: #007AFF;
     color: white;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    text-align: center;
-    line-height: 24px;
     margin-right: 8px;
+    flex-shrink: 0;
   }
-  .callout .callout-title {
+  .callout .num.green { background: #34C759; }
+  .callout .num.purple { background: #8B5CF6; }
+  .callout .num.orange { background: #FF9500; }
+  .callout .title {
     display: inline;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    color: #1D1D1F;
   }
-  .callout .callout-desc {
+  .callout .desc {
     font-size: 13px;
     color: #86868B;
-    margin-top: 6px;
-    line-height: 1.4;
+    margin-top: 4px;
+    line-height: 1.45;
   }
 
-  /* ====== VARIATION B — Cards-as-actions, no clock, no bottom bar ====== */
-  .varb .header-minimal {
+  /* ============================================================
+     SHARED COMPONENT STYLES (Design Thesis Compliant)
+     ============================================================ */
+
+  /* --- Header (full-width, not constrained to content column) --- */
+  .r-header {
     position: sticky;
     top: 0;
     z-index: 10;
@@ -596,7 +169,7 @@
     padding: 10px 16px;
     height: 48px;
   }
-  .varb .header-minimal .weather-pill {
+  .r-header .weather-pill {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -607,23 +180,7 @@
     color: #86868B;
     font-weight: 500;
   }
-  .varb .header-minimal .header-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .varb .header-minimal .icon-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
-    background: rgba(120,120,128,0.06);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: #86868B;
-  }
-  .varb .avatar {
+  .r-header .avatar {
     width: 36px;
     height: 36px;
     border-radius: 999px;
@@ -632,33 +189,44 @@
     align-items: center;
     justify-content: center;
     font-size: 18px;
+    cursor: pointer;
+    transition: transform 0.15s;
   }
 
-  .varb .greeting-hero {
-    padding: 16px 16px 8px;
+  /* --- Content wrapper (centered, max-width) --- */
+  .r-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* --- Greeting Hero --- */
+  .r-greeting {
+    padding: 16px 0 8px;
     text-align: left;
   }
-  .varb .greeting-hero h1 {
-    font-size: 26px;
+  .r-greeting h1 {
+    font-size: 28px;
     font-weight: 700;
     color: #1D1D1F;
     letter-spacing: -0.02em;
   }
-  .varb .greeting-hero .age-line {
+  .r-greeting .age-line {
     font-size: 15px;
     color: #86868B;
     margin-top: 2px;
   }
 
-  .varb .tabs {
+  /* --- Tabs --- */
+  .r-tabs {
     display: flex;
     gap: 4px;
     padding: 4px;
     background: rgba(120,120,128,0.08);
     border-radius: 12px;
-    margin: 8px 16px 16px;
+    margin: 8px 0 16px;
   }
-  .varb .tab {
+  .r-tab {
     flex: 1;
     text-align: center;
     padding: 8px 4px;
@@ -667,159 +235,226 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
+    cursor: pointer;
   }
-  .varb .tab .tab-icon { font-size: 16px; }
-  .varb .tab .tab-label {
+  .r-tab .icon { font-size: 16px; }
+  .r-tab .lbl {
     font-size: 11px;
     font-weight: 600;
     color: #86868B;
   }
-  .varb .tab.active {
+  .r-tab.active {
     background: white;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
-  .varb .tab.active .tab-label {
+  .r-tab.active .lbl {
     color: #1D1D1F;
     font-weight: 700;
   }
 
-  .varb .section {
+  /* --- Section Pattern (Title + Arrow) --- */
+  .r-section {
     margin-bottom: 24px;
   }
-  .varb .section-header {
+  .r-section-hdr {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 16px 10px;
+    padding-bottom: 10px;
   }
-  .varb .section-title {
+  .r-section-title {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     color: #1D1D1F;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
-  .varb .section-link {
+  .r-section-link {
     font-size: 13px;
     font-weight: 600;
     color: #007AFF;
+    cursor: pointer;
   }
 
-  /* Tappable action cards — the cards ARE the buttons */
-  .varb .action-cards {
+  /* --- Action Cards (Quick Log) --- */
+  .r-action-cards {
     display: flex;
     gap: 10px;
-    padding: 0 16px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
   }
-  .varb .action-cards::-webkit-scrollbar { display: none; }
-  .varb .action-card {
-    scroll-snap-align: start;
-    min-width: 110px;
+  .r-action-card {
     flex: 1;
     background: white;
     border-radius: 20px;
-    padding: 16px 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 16px 12px;
     cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
     position: relative;
     overflow: hidden;
+    transition: transform 0.15s;
   }
-  .varb .action-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
-  }
-  .varb .action-card:active {
-    transform: scale(0.97);
-  }
-  .varb .action-card .card-accent {
+  .r-action-card:active { transform: scale(0.97); }
+  .r-action-card .accent {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
+    top: 0; left: 0; right: 0;
+    height: 4px;
   }
-  .varb .action-card .card-icon {
-    font-size: 28px;
-    margin-bottom: 10px;
-  }
-  .varb .action-card .card-label {
+  .r-action-card .card-icon { font-size: 24px; margin-bottom: 8px; }
+  .r-action-card .card-label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: #86868B;
     text-transform: uppercase;
     letter-spacing: 0.02em;
   }
-  .varb .action-card .card-value {
-    font-size: 22px;
+  .r-action-card .card-value {
+    font-size: 16px;
     font-weight: 700;
     margin-top: 2px;
-    letter-spacing: -0.02em;
   }
-  .varb .action-card .card-detail {
-    font-size: 12px;
+  .r-action-card .card-detail {
+    font-size: 13px;
     color: #86868B;
     margin-top: 2px;
   }
-  .varb .action-card .card-action {
+  .r-action-card .card-btn {
     display: inline-block;
     margin-top: 10px;
     font-size: 12px;
     font-weight: 700;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 999px;
     color: white;
   }
 
-  /* Insight card for varb */
-  .varb .insight-card {
-    margin: 0 16px;
+  /* --- Insight Carousel --- */
+  .r-insight {
     padding: 18px;
     background: linear-gradient(135deg, #F8F4FF 0%, #FFF8F0 100%);
     border-radius: 20px;
     border: 1px solid rgba(0,0,0,0.04);
+    position: relative;
   }
-  .varb .insight-card .insight-cat {
+  .r-insight .cat {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #B57BEC;
+    color: #8B5CF6;
     margin-bottom: 6px;
   }
-  .varb .insight-card .insight-text {
+  .r-insight .text {
     font-size: 14px;
     line-height: 1.5;
     color: #1D1D1F;
   }
-  .varb .insight-card .insight-more {
+  .r-insight .more {
     display: inline-block;
     margin-top: 10px;
     font-size: 13px;
     font-weight: 600;
     color: #007AFF;
+    cursor: pointer;
+  }
+  .r-carousel-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .r-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #D1D1D6;
+  }
+  .r-dot.active {
+    background: #8B5CF6;
+    transform: scale(1.3);
   }
 
-  /* Timeline events for varb */
-  .varb .event {
-    margin: 0 16px 6px;
+  /* --- Stats (Progress Rings) --- */
+  .r-stats-row {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+  }
+  .r-stat-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .r-ring-svg { width: 72px; height: 72px; }
+  .r-ring-center {
+    position: relative;
+    width: 72px;
+    height: 72px;
+  }
+  .r-ring-center svg {
+    position: absolute;
+    top: 0; left: 0;
+  }
+  .r-ring-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .r-ring-value {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .r-ring-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #86868B;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .r-normal-card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-top: 12px;
+  }
+  .r-normal-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #86868B;
+    margin-bottom: 10px;
+  }
+  .r-normal-items {
+    display: flex;
+    justify-content: space-around;
+  }
+  .r-normal-item { text-align: center; }
+  .r-normal-range {
+    font-size: 16px;
+    font-weight: 700;
+    display: block;
+  }
+  .r-normal-label {
+    font-size: 11px;
+    color: #86868B;
+    margin-top: 2px;
+  }
+
+  /* --- Timeline Events --- */
+  .r-event {
+    margin-bottom: 6px;
     padding: 12px 14px;
     background: white;
     border-radius: 14px;
     display: flex;
     gap: 10px;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   }
-  .varb .event .bar {
+  .r-event .bar {
     width: 3px;
     height: 36px;
     border-radius: 2px;
+    flex-shrink: 0;
   }
-  .varb .event .ev-icon {
+  .r-event .ev-icon {
     width: 36px;
     height: 36px;
     border-radius: 10px;
@@ -827,511 +462,1409 @@
     align-items: center;
     justify-content: center;
     font-size: 16px;
+    flex-shrink: 0;
   }
-  .varb .event .ev-content { flex: 1; }
-  .varb .event .ev-title {
+  .r-event .ev-content { flex: 1; min-width: 0; }
+  .r-event .ev-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1D1D1F;
   }
-  .varb .event .ev-detail {
+  .r-event .ev-detail {
     font-size: 12px;
     color: #86868B;
     margin-top: 1px;
   }
-  .varb .event .ev-time {
+  .r-event .ev-time {
     font-size: 12px;
     color: #AEAEB2;
     font-weight: 500;
+    flex-shrink: 0;
   }
 
-  .callout.green .callout-num { background: #34C759; }
+  /* --- Floating Ask Rosie Pill --- */
+  .r-ask-pill {
+    position: sticky;
+    bottom: 28px;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    padding: 0 16px;
+    pointer-events: none;
+  }
+  .r-ask-pill-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: white;
+    border-radius: 999px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+    cursor: pointer;
+    pointer-events: all;
+    transition: transform 0.2s, box-shadow 0.2s;
+    max-width: 340px;
+    width: 100%;
+  }
+  .r-ask-pill-inner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  .r-ask-pill-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #8B5CF6, #B57BEC);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    color: white;
+  }
+  .r-ask-pill-text {
+    font-size: 15px;
+    color: #86868B;
+    flex: 1;
+  }
+  .r-ask-pill-kbd {
+    font-size: 11px;
+    color: #C4C4C4;
+    padding: 2px 8px;
+    background: rgba(120,120,128,0.06);
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  /* ============================================================
+     THIS WEEK TAB — Design Thesis Compliant
+     ============================================================ */
+
+  .tw-week-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #F0EBFF, #E8F0FF);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #8B5CF6;
+    margin-bottom: 16px;
+  }
+
+  .tw-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .tw-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tw-card-subtitle {
+    font-size: 13px;
+    color: #86868B;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .tw-list {
+    list-style: none;
+    padding: 0;
+  }
+  .tw-list li {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1D1D1F;
+    padding: 6px 0;
+    display: flex;
+    gap: 8px;
+  }
+  .tw-list li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #D1D1D6;
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+  .tw-list li.purple::before { background: #8B5CF6; }
+  .tw-list li.green::before { background: #34C759; }
+  .tw-list li.orange::before { background: #FF9500; }
+
+  .tw-progress-track {
+    height: 6px;
+    background: rgba(120,120,128,0.08);
+    border-radius: 3px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  .tw-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #8B5CF6, #B57BEC);
+  }
+
+  .tw-quickwin {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 14px;
+    background: rgba(120,120,128,0.04);
+    border-radius: 14px;
+  }
+  .tw-quickwin-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+  }
+  .tw-quickwin-content { flex: 1; }
+  .tw-quickwin-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .tw-quickwin-detail {
+    font-size: 12px;
+    color: #86868B;
+    margin-top: 2px;
+  }
+
+  .tw-wellness {
+    background: linear-gradient(135deg, #F0FFF4 0%, #F0FFF8 100%);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(52,199,89,0.1);
+  }
+
+  .tw-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .tw-info-item {
+    background: rgba(120,120,128,0.04);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .tw-info-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .tw-info-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+
+  /* ============================================================
+     QUICK LOG MODAL
+     ============================================================ */
+
+  .ql-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .ql-sheet {
+    width: 100%;
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 8px 20px 40px;
+    max-height: 85%;
+    overflow-y: auto;
+  }
+  .ql-handle {
+    width: 40px;
+    height: 5px;
+    background: #D1D1D6;
+    border-radius: 3px;
+    margin: 0 auto 16px;
+  }
+  .ql-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .ql-header-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .ql-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: rgba(120,120,128,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #86868B;
+    cursor: pointer;
+  }
+
+  .ql-type-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .ql-pill {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    border-radius: 14px;
+    background: rgba(120,120,128,0.06);
+    font-size: 13px;
+    font-weight: 600;
+    color: #86868B;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ql-pill.active {
+    background: #FFF3E0;
+    color: #FF9500;
+    font-weight: 700;
+  }
+  .ql-pill .pill-icon {
+    display: block;
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .ql-mode-toggle {
+    display: flex;
+    background: rgba(120,120,128,0.08);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 20px;
+  }
+  .ql-mode-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #86868B;
+    cursor: pointer;
+  }
+  .ql-mode-btn.active {
+    background: white;
+    color: #1D1D1F;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .ql-time-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .ql-time-field {
+    flex: 1;
+  }
+  .ql-time-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+  .ql-time-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(120,120,128,0.06);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    text-align: center;
+    font-family: inherit;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+  .ql-time-input:focus {
+    outline: none;
+    border-color: #007AFF;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,122,255,0.12);
+    background: white;
+  }
+
+  .ql-duration-display {
+    text-align: center;
+    padding: 16px;
+    background: rgba(255,149,0,0.06);
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .ql-duration-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #FF9500;
+  }
+  .ql-duration-label {
+    font-size: 12px;
+    color: #86868B;
+    margin-top: 2px;
+  }
+
+  .ql-note {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(120,120,128,0.06);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 15px;
+    color: #1D1D1F;
+    font-family: inherit;
+    resize: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .ql-note:focus {
+    outline: none;
+    border-color: #007AFF;
+    transform: translateY(-1px);
+    background: white;
+  }
+  .ql-note::placeholder { color: #C4C4C4; }
+
+  .ql-save-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-size: 17px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .ql-save-btn:active { transform: scale(0.98); }
+
+  /* ============================================================
+     DESKTOP HEADER — Full-width positioning
+     ============================================================ */
+
+  .desktop .r-header {
+    padding: 12px 32px;
+    height: 56px;
+  }
+  .desktop .r-content {
+    padding: 0 24px;
+  }
+
 </style>
 </head>
 <body>
 
-<div class="comparison-header">
-  <h1>Rosie Layout — Current vs Proposed</h1>
-  <p>Inspired by Airbnb's layout patterns: compact header, section rhythm, horizontal carousels, lighter typography</p>
-  <p style="font-size:13px;color:#AEAEB2;margin-top:2px;">3 variations: Current | Proposed A (compact) | Proposed B (cards-as-actions, no clock, no bottom bar)</p>
+<!-- ============================================================
+     PAGE HEADER
+     ============================================================ -->
+<div class="page-header">
+  <h1>Rosie — Design Refresh Wireframes</h1>
+  <p>Applying the Design Thesis across all screens: Home, This Week, Quick Log, and Desktop layout.<br>
+  All changes follow Airbnb-inspired patterns: whitespace-driven hierarchy, consistent section rhythm, calm motion.</p>
 </div>
 
-<!-- CURRENT -->
-<div class="column">
-  <div class="label">Current Layout</div>
-  <div class="phone current">
-    <div class="phone-inner">
-      <div class="header">
-        <div class="weather">&#9729; 35&deg; Cloudy</div>
-        <div class="clock">3:52 PM</div>
-        <div class="date">Monday, February 23</div>
-        <div class="greeting-bar">
-          <div class="greeting-title">Good afternoon</div>
-          <div class="greeting-sub">Here's how Rosie's day is going</div>
-        </div>
-        <div class="age-badge">Day 95 &middot; Week 14 &middot; 3 months, 3 days old</div>
-        <div class="tabs">
-          <div class="tab active">Timeline</div>
-          <div class="tab">Insights</div>
-          <div class="tab">This Week</div>
-          <div class="tab">Ask Rosie</div>
-        </div>
-      </div>
-
-      <div class="summary-cards">
-        <div class="summary-card">
-          <div class="accent" style="background: linear-gradient(90deg, #FF9500, #FFB340);"></div>
-          <div class="icon">&#127868;</div>
-          <div class="label-sm">Last Feed</div>
-          <div class="value" style="color: #FF9500;">1h 24m ago</div>
-          <div class="detail">Breast</div>
-        </div>
-        <div class="summary-card">
-          <div class="accent" style="background: linear-gradient(90deg, #B57BEC, #D4A5F5);"></div>
-          <div class="icon">&#128164;</div>
-          <div class="label-sm">Last Sleep</div>
-          <div class="value" style="color: #B57BEC;">47m ago</div>
-          <div class="detail">Nap, 1h 6m</div>
-        </div>
-        <div class="summary-card">
-          <div class="accent" style="background: linear-gradient(90deg, #6DD86D, #8FE88F);"></div>
-          <div class="icon">&#128221;</div>
-          <div class="label-sm">Last Diaper</div>
-          <div class="value" style="color: #6DD86D;">1h 30m ago</div>
-          <div class="detail">Wet</div>
-        </div>
-      </div>
-
-      <div class="day-nav">
-        <div class="chevron">&lsaquo;</div>
-        <span>Today</span>
-        <div class="chevron">&rsaquo;</div>
-      </div>
-
-      <div class="event">
-        <div class="bar" style="background: linear-gradient(180deg, #B57BEC, #D4A5F5);"></div>
-        <div class="ev-icon" style="background: #FAF5FF;">&#128164;</div>
-        <div>
-          <div class="ev-time">2:34 PM &nbsp;<span style="font-weight:500;color:#86868B;">Nap</span></div>
-          <div class="ev-detail">2:34 PM → 3:40 PM &middot; 1h 6m &middot; Quality: good</div>
-        </div>
-      </div>
-      <div class="event">
-        <div class="bar" style="background: linear-gradient(180deg, #FF9500, #FFB340);"></div>
-        <div class="ev-icon" style="background: #FFF8F0;">&#127868;</div>
-        <div>
-          <div class="ev-time">1:57 PM &nbsp;<span style="font-weight:500;color:#86868B;">Breastfeed</span></div>
-          <div class="ev-detail">1:57 PM → 2:12 PM &middot; 15min &middot; right side</div>
-        </div>
-      </div>
-      <div class="event">
-        <div class="bar" style="background: linear-gradient(180deg, #6DD86D, #8FE88F);"></div>
-        <div class="ev-icon" style="background: #EEFBEE;">&#128221;</div>
-        <div>
-          <div class="ev-time">1:52 PM &nbsp;<span style="font-weight:500;color:#86868B;">Wet diaper</span></div>
-          <div class="ev-detail"></div>
-        </div>
-      </div>
-      <div class="event">
-        <div class="bar" style="background: linear-gradient(180deg, #B57BEC, #D4A5F5);"></div>
-        <div class="ev-icon" style="background: #FAF5FF;">&#128164;</div>
-        <div>
-          <div class="ev-time">12:48 PM &nbsp;<span style="font-weight:500;color:#86868B;">Nap</span></div>
-          <div class="ev-detail">12:48 PM → 1:32 PM &middot; 44m &middot; Quality: poor</div>
-        </div>
-      </div>
-
-      <div class="quicklog">
-        <div class="quicklog-btn"><span class="btn-icon">&#127868;</span> Feed</div>
-        <div class="quicklog-btn"><span class="btn-icon">&#128164;</span> Sleep</div>
-        <div class="quicklog-btn"><span class="btn-icon">&#128221;</span> Diaper</div>
-      </div>
-    </div>
-  </div>
+<!-- ============================================================
+     ROW 1: HOME TAB — Current vs Updated
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>1. Home Tab — Floating "Ask Rosie" Pill</h2>
+  <p>Chat prompt moves from tab bar to a floating bottom pill. Always accessible, thumb-friendly, content-first.</p>
 </div>
 
-<!-- PROPOSED -->
-<div class="column">
-  <div class="label">Proposed Layout</div>
-  <div class="phone proposed">
-    <div class="phone-inner">
+<div class="wireframe-row">
 
-      <!-- Compact header (Airbnb: 56px, not 300px) -->
-      <div class="header-compact">
-        <div class="header-left">
-          <div class="mini-clock">3:52 PM</div>
-          <div class="mini-weather">&#9729; 35&deg;</div>
-        </div>
-        <div class="header-right">
-          <div class="age-pill">Week 14</div>
+  <!-- CURRENT HOME -->
+  <div class="column">
+    <div class="label">Current Home</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="r-header">
+          <div class="weather-pill">&#9729; 30&deg; &middot; Mon</div>
           <div class="avatar">&#128118;</div>
         </div>
-      </div>
+        <div class="r-content">
+          <div class="r-greeting">
+            <h1>Hope you're getting rest, Lauren</h1>
+            <div class="age-line">Rosie &middot; Week 14 &middot; 3 months old</div>
+          </div>
+          <div class="r-tabs">
+            <div class="r-tab active"><span class="icon">&#127968;</span><span class="lbl">Home</span></div>
+            <div class="r-tab"><span class="icon">&#128197;</span><span class="lbl">Timeline</span></div>
+            <div class="r-tab"><span class="icon">&#127793;</span><span class="lbl">This Week</span></div>
+            <div class="r-tab" style="position:relative;"><span class="icon">&#128172;</span><span class="lbl">Ask Rosie</span><span style="position:absolute;top:-2px;right:4px;width:8px;height:8px;border-radius:999px;background:#FF3B30;"></span></div>
+          </div>
 
-      <!-- Greeting — left-aligned hero (Airbnb section title style) -->
-      <div class="greeting-hero">
-        <h1>Good afternoon</h1>
-        <p>Rosie is 3 months, 3 days old</p>
-      </div>
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Quick Log</div></div>
+            <div class="r-action-cards">
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#FF9500,#FFB340);"></div>
+                <div class="card-icon">&#127868;</div>
+                <div class="card-label">Feed</div>
+                <div class="card-value" style="color:#FF9500;">1h 24m</div>
+                <div class="card-detail">Breast, right</div>
+                <div class="card-btn" style="background:#FF9500;">+ Feed</div>
+              </div>
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#B57BEC,#D4A5F5);"></div>
+                <div class="card-icon">&#128164;</div>
+                <div class="card-label">Sleep</div>
+                <div class="card-value" style="color:#B57BEC;">47m</div>
+                <div class="card-detail">Nap, 1h 6m</div>
+                <div class="card-btn" style="background:#B57BEC;">+ Sleep</div>
+              </div>
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#30D158,#7EE88B);"></div>
+                <div class="card-icon">&#128221;</div>
+                <div class="card-label">Diaper</div>
+                <div class="card-value" style="color:#30D158;">1h 30m</div>
+                <div class="card-detail">Wet</div>
+                <div class="card-btn" style="background:#30D158;">+ Diaper</div>
+              </div>
+            </div>
+          </div>
 
-      <!-- Tabs with icons -->
-      <div class="tabs">
-        <div class="tab active">
-          <span class="tab-icon">&#128197;</span>
-          <span class="tab-label">Timeline</span>
-        </div>
-        <div class="tab">
-          <span class="tab-icon">&#128200;</span>
-          <span class="tab-label">Insights</span>
-        </div>
-        <div class="tab">
-          <span class="tab-icon">&#127793;</span>
-          <span class="tab-label">This Week</span>
-        </div>
-        <div class="tab">
-          <span class="tab-icon">&#128172;</span>
-          <span class="tab-label">Ask Rosie</span>
-        </div>
-      </div>
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">This Week</div>
+              <div class="r-section-link">More &rarr;</div>
+            </div>
+            <div class="r-insight">
+              <div class="cat">&#129504; Week 14 &middot; Leap 4</div>
+              <div class="text">Leap 4 — Events: Rosie is starting to understand sequences and may fuss more during this mental growth spurt.</div>
+              <div class="more">Read more &rarr;</div>
+            </div>
+            <div class="r-carousel-dots">
+              <div class="r-dot active"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+            </div>
+          </div>
 
-      <!-- Section 1: At a Glance — horizontal scroll (Airbnb carousel) -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">At a Glance</div>
-          <div class="section-link">See all &rarr;</div>
-        </div>
-        <div class="h-scroll">
-          <div class="stat-card">
-            <div class="stat-icon">&#127868;</div>
-            <div class="stat-label">Last Feed</div>
-            <div class="stat-value" style="color: #FF9500;">1h 24m</div>
-            <div class="stat-detail">Breast, right side</div>
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Today's Stats</div></div>
+            <div class="r-stats-row">
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#FF9500" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="52" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#FF9500;">5</div><div class="r-ring-label">Feeds</div></div>
+                </div>
+              </div>
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#B57BEC" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="91" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#B57BEC;">7h</div><div class="r-ring-label">Sleep</div></div>
+                </div>
+              </div>
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#30D158" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="26" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#30D158;">6</div><div class="r-ring-label">Diapers</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="r-normal-card">
+              <div class="r-normal-title">What's normal at 14 weeks</div>
+              <div class="r-normal-items">
+                <div class="r-normal-item"><span class="r-normal-range" style="color:#FF9500;">7-8</span><span class="r-normal-label">Feeds/day</span></div>
+                <div class="r-normal-item"><span class="r-normal-range" style="color:#B57BEC;">14-16h</span><span class="r-normal-label">Sleep/day</span></div>
+                <div class="r-normal-item"><span class="r-normal-range" style="color:#30D158;">6-8</span><span class="r-normal-label">Diapers/day</span></div>
+              </div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon">&#128164;</div>
-            <div class="stat-label">Last Sleep</div>
-            <div class="stat-value" style="color: #B57BEC;">47m</div>
-            <div class="stat-detail">Nap, 1h 6m</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">&#128221;</div>
-            <div class="stat-label">Last Diaper</div>
-            <div class="stat-value" style="color: #6DD86D;">1h 30m</div>
-            <div class="stat-detail">Wet</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">&#128202;</div>
-            <div class="stat-label">Today</div>
-            <div class="stat-value" style="color: #007AFF;">5 / 3 / 7</div>
-            <div class="stat-detail">Feeds / Naps / Diapers</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Section 2: Insight card -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">This Week</div>
-          <div class="section-link">More &rarr;</div>
-        </div>
-        <div class="insight-card">
-          <div class="insight-cat">&#127793; Week 14 &middot; Development</div>
-          <div class="insight-text">Rosie might be discovering her hands right about now. Don't be surprised if she stares at them like they're the most fascinating thing in the world.</div>
-          <div class="insight-more">Read more &rarr;</div>
-        </div>
-      </div>
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">Today</div>
+              <div class="r-section-link">All &rarr;</div>
+            </div>
+            <div class="r-event"><div class="bar" style="background:#B57BEC;"></div><div class="ev-icon" style="background:#FAF5FF;">&#128164;</div><div class="ev-content"><div class="ev-title">Nap &middot; 1h 6m</div><div class="ev-detail">Quality: good</div></div><div class="ev-time">2:34 PM</div></div>
+            <div class="r-event"><div class="bar" style="background:#FF9500;"></div><div class="ev-icon" style="background:#FFF8F0;">&#127868;</div><div class="ev-content"><div class="ev-title">Breastfeed &middot; 15min</div><div class="ev-detail">Right side</div></div><div class="ev-time">1:57 PM</div></div>
+            <div class="r-event"><div class="bar" style="background:#30D158;"></div><div class="ev-icon" style="background:#EEFBEE;">&#128221;</div><div class="ev-content"><div class="ev-title">Wet diaper</div><div class="ev-detail"></div></div><div class="ev-time">1:52 PM</div></div>
+          </div>
 
-      <!-- Section 3: Timeline — lighter weight events -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Today</div>
-          <div class="section-link">Full timeline &rarr;</div>
+          <div style="height: 80px;"></div>
         </div>
 
-        <div class="event">
-          <div class="bar" style="background: #B57BEC;"></div>
-          <div class="ev-icon" style="background: #FAF5FF;">&#128164;</div>
-          <div class="ev-content">
-            <div class="ev-title">Nap &middot; 1h 6m</div>
-            <div class="ev-detail">Quality: good</div>
-          </div>
-          <div class="ev-time">2:34 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #FF9500;"></div>
-          <div class="ev-icon" style="background: #FFF8F0;">&#127868;</div>
-          <div class="ev-content">
-            <div class="ev-title">Breastfeed &middot; 15min</div>
-            <div class="ev-detail">Right side</div>
-          </div>
-          <div class="ev-time">1:57 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #6DD86D;"></div>
-          <div class="ev-icon" style="background: #EEFBEE;">&#128221;</div>
-          <div class="ev-content">
-            <div class="ev-title">Wet diaper</div>
-            <div class="ev-detail"></div>
-          </div>
-          <div class="ev-time">1:52 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #B57BEC;"></div>
-          <div class="ev-icon" style="background: #FAF5FF;">&#128164;</div>
-          <div class="ev-content">
-            <div class="ev-title">Nap &middot; 44m</div>
-            <div class="ev-detail">Quality: poor</div>
-          </div>
-          <div class="ev-time">12:48 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #6DD86D;"></div>
-          <div class="ev-icon" style="background: #EEFBEE;">&#128221;</div>
-          <div class="ev-content">
-            <div class="ev-title">Dirty diaper</div>
-            <div class="ev-detail"></div>
-          </div>
-          <div class="ev-time">12:08 PM</div>
-        </div>
-      </div>
-
-      <!-- Floating quick log pill -->
-      <div class="quicklog">
-        <div class="quicklog-pill">
-          <div class="ql-btn"><span class="btn-icon">&#127868;</span> Feed</div>
-          <div class="ql-btn"><span class="btn-icon">&#128164;</span> Sleep</div>
-          <div class="ql-btn"><span class="btn-icon">&#128221;</span> Diaper</div>
-        </div>
+        <!-- "Ask Rosie" is a tab — takes up tab bar space -->
       </div>
     </div>
   </div>
-</div>
 
-<!-- VARIATION B — Cards-as-actions, no clock, no bottom bar -->
-<div class="column">
-  <div class="label">Proposed B — Cards as Actions</div>
-  <div class="phone varb">
-    <div class="phone-inner">
-
-      <!-- Minimal header — no clock, just weather + avatar -->
-      <div class="header-minimal">
-        <div class="weather-pill">&#9729; 35&deg; &middot; Monday</div>
-        <div class="header-actions">
+  <!-- UPDATED HOME — With Floating Ask Rosie Pill -->
+  <div class="column">
+    <div class="label new">Updated Home — Floating Chat Pill</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="r-header">
+          <div class="weather-pill">&#9729; 30&deg; &middot; Mon</div>
           <div class="avatar">&#128118;</div>
         </div>
-      </div>
+        <div class="r-content">
+          <div class="r-greeting">
+            <h1>Hope you're getting rest, Lauren</h1>
+            <div class="age-line">Rosie &middot; Week 14 &middot; 3 months old</div>
+          </div>
 
-      <!-- Greeting hero — clean, no clock redundancy -->
-      <div class="greeting-hero">
-        <h1>Hey there</h1>
-        <div class="age-line">Rosie &middot; Week 14 &middot; 3 months old</div>
-      </div>
+          <!-- CHANGE: 3 tabs only — Ask Rosie removed from tab bar -->
+          <div class="r-tabs">
+            <div class="r-tab active"><span class="icon">&#127968;</span><span class="lbl">Home</span></div>
+            <div class="r-tab"><span class="icon">&#128197;</span><span class="lbl">Timeline</span></div>
+            <div class="r-tab"><span class="icon">&#127793;</span><span class="lbl">This Week</span></div>
+          </div>
 
-      <!-- Tabs with icons -->
-      <div class="tabs">
-        <div class="tab active">
-          <span class="tab-icon">&#128197;</span>
-          <span class="tab-label">Timeline</span>
-        </div>
-        <div class="tab">
-          <span class="tab-icon">&#128200;</span>
-          <span class="tab-label">Insights</span>
-        </div>
-        <div class="tab">
-          <span class="tab-icon">&#127793;</span>
-          <span class="tab-label">This Week</span>
-        </div>
-        <div class="tab">
-          <span class="tab-icon">&#128172;</span>
-          <span class="tab-label">Ask Rosie</span>
-        </div>
-      </div>
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Quick Log</div></div>
+            <div class="r-action-cards">
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#FF9500,#FFB340);"></div>
+                <div class="card-icon">&#127868;</div>
+                <div class="card-label">Feed</div>
+                <div class="card-value" style="color:#FF9500;">1h 24m</div>
+                <div class="card-detail">Breast, right</div>
+                <div class="card-btn" style="background:#FF9500;">+ Feed</div>
+              </div>
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#B57BEC,#D4A5F5);"></div>
+                <div class="card-icon">&#128164;</div>
+                <div class="card-label">Sleep</div>
+                <div class="card-value" style="color:#B57BEC;">47m</div>
+                <div class="card-detail">Nap, 1h 6m</div>
+                <div class="card-btn" style="background:#B57BEC;">+ Sleep</div>
+              </div>
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#30D158,#7EE88B);"></div>
+                <div class="card-icon">&#128221;</div>
+                <div class="card-label">Diaper</div>
+                <div class="card-value" style="color:#30D158;">1h 30m</div>
+                <div class="card-detail">Wet</div>
+                <div class="card-btn" style="background:#30D158;">+ Diaper</div>
+              </div>
+            </div>
+          </div>
 
-      <!-- Action cards — tapping logs a new event (Airbnb: card IS the action) -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Quick Log</div>
-        </div>
-        <div class="action-cards">
-          <div class="action-card">
-            <div class="card-accent" style="background: linear-gradient(90deg, #FF9500, #FFB340);"></div>
-            <div class="card-icon">&#127868;</div>
-            <div class="card-label">Last Feed</div>
-            <div class="card-value" style="color: #FF9500;">1h 24m</div>
-            <div class="card-detail">Breast, right</div>
-            <div class="card-action" style="background: #FF9500;">+ Feed</div>
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">This Week</div>
+              <div class="r-section-link">More &rarr;</div>
+            </div>
+            <div class="r-insight">
+              <div class="cat">&#129504; Week 14 &middot; Leap 4</div>
+              <div class="text">Leap 4 — Events: Rosie is starting to understand sequences and may fuss more during this mental growth spurt.</div>
+              <div class="more">Read more &rarr;</div>
+            </div>
+            <div class="r-carousel-dots">
+              <div class="r-dot active"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+            </div>
           </div>
-          <div class="action-card">
-            <div class="card-accent" style="background: linear-gradient(90deg, #B57BEC, #D4A5F5);"></div>
-            <div class="card-icon">&#128164;</div>
-            <div class="card-label">Last Sleep</div>
-            <div class="card-value" style="color: #B57BEC;">47m</div>
-            <div class="card-detail">Nap, 1h 6m</div>
-            <div class="card-action" style="background: #B57BEC;">+ Sleep</div>
-          </div>
-          <div class="action-card">
-            <div class="card-accent" style="background: linear-gradient(90deg, #6DD86D, #8FE88F);"></div>
-            <div class="card-icon">&#128221;</div>
-            <div class="card-label">Last Diaper</div>
-            <div class="card-value" style="color: #6DD86D;">1h 30m</div>
-            <div class="card-detail">Wet</div>
-            <div class="card-action" style="background: #34C759;">+ Diaper</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Insight card -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">This Week</div>
-          <div class="section-link">More &rarr;</div>
-        </div>
-        <div class="insight-card">
-          <div class="insight-cat">&#127793; Week 14 &middot; Development</div>
-          <div class="insight-text">Rosie might be discovering her hands right about now. Don't be surprised if she stares at them like they're the most fascinating thing in the world.</div>
-          <div class="insight-more">Read more &rarr;</div>
-        </div>
-      </div>
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Today's Stats</div></div>
+            <div class="r-stats-row">
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#FF9500" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="52" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#FF9500;">5</div><div class="r-ring-label">Feeds</div></div>
+                </div>
+              </div>
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#B57BEC" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="91" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#B57BEC;">7h</div><div class="r-ring-label">Sleep</div></div>
+                </div>
+              </div>
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#30D158" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="26" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#30D158;">6</div><div class="r-ring-label">Diapers</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="r-normal-card">
+              <div class="r-normal-title">What's normal at 14 weeks</div>
+              <div class="r-normal-items">
+                <div class="r-normal-item"><span class="r-normal-range" style="color:#FF9500;">7-8</span><span class="r-normal-label">Feeds/day</span></div>
+                <div class="r-normal-item"><span class="r-normal-range" style="color:#B57BEC;">14-16h</span><span class="r-normal-label">Sleep/day</span></div>
+                <div class="r-normal-item"><span class="r-normal-range" style="color:#30D158;">6-8</span><span class="r-normal-label">Diapers/day</span></div>
+              </div>
+            </div>
+          </div>
 
-      <!-- Timeline — compact events, more visible -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Today</div>
-          <div class="section-link">All &rarr;</div>
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">Today</div>
+              <div class="r-section-link">All &rarr;</div>
+            </div>
+            <div class="r-event"><div class="bar" style="background:#B57BEC;"></div><div class="ev-icon" style="background:#FAF5FF;">&#128164;</div><div class="ev-content"><div class="ev-title">Nap &middot; 1h 6m</div><div class="ev-detail">Quality: good</div></div><div class="ev-time">2:34 PM</div></div>
+            <div class="r-event"><div class="bar" style="background:#FF9500;"></div><div class="ev-icon" style="background:#FFF8F0;">&#127868;</div><div class="ev-content"><div class="ev-title">Breastfeed &middot; 15min</div><div class="ev-detail">Right side</div></div><div class="ev-time">1:57 PM</div></div>
+            <div class="r-event"><div class="bar" style="background:#30D158;"></div><div class="ev-icon" style="background:#EEFBEE;">&#128221;</div><div class="ev-content"><div class="ev-title">Wet diaper</div><div class="ev-detail"></div></div><div class="ev-time">1:52 PM</div></div>
+          </div>
+
+          <div style="height: 80px;"></div>
         </div>
 
-        <div class="event">
-          <div class="bar" style="background: #B57BEC;"></div>
-          <div class="ev-icon" style="background: #FAF5FF;">&#128164;</div>
-          <div class="ev-content">
-            <div class="ev-title">Nap &middot; 1h 6m</div>
-            <div class="ev-detail">Quality: good</div>
+        <!-- CHANGE: Floating Ask Rosie pill at bottom -->
+        <div class="r-ask-pill">
+          <div class="r-ask-pill-inner">
+            <div class="r-ask-pill-icon">&#10024;</div>
+            <div class="r-ask-pill-text">Ask Rosie anything...</div>
           </div>
-          <div class="ev-time">2:34 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #FF9500;"></div>
-          <div class="ev-icon" style="background: #FFF8F0;">&#127868;</div>
-          <div class="ev-content">
-            <div class="ev-title">Breastfeed &middot; 15min</div>
-            <div class="ev-detail">Right side</div>
-          </div>
-          <div class="ev-time">1:57 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #6DD86D;"></div>
-          <div class="ev-icon" style="background: #EEFBEE;">&#128221;</div>
-          <div class="ev-content">
-            <div class="ev-title">Wet diaper</div>
-            <div class="ev-detail"></div>
-          </div>
-          <div class="ev-time">1:52 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #B57BEC;"></div>
-          <div class="ev-icon" style="background: #FAF5FF;">&#128164;</div>
-          <div class="ev-content">
-            <div class="ev-title">Nap &middot; 44m</div>
-            <div class="ev-detail">Quality: poor</div>
-          </div>
-          <div class="ev-time">12:48 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #6DD86D;"></div>
-          <div class="ev-icon" style="background: #EEFBEE;">&#128221;</div>
-          <div class="ev-content">
-            <div class="ev-title">Dirty diaper</div>
-            <div class="ev-detail"></div>
-          </div>
-          <div class="ev-time">12:08 PM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #FF9500;"></div>
-          <div class="ev-icon" style="background: #FFF8F0;">&#127868;</div>
-          <div class="ev-content">
-            <div class="ev-title">Breastfeed &middot; 12min</div>
-            <div class="ev-detail">Left side</div>
-          </div>
-          <div class="ev-time">11:51 AM</div>
-        </div>
-        <div class="event">
-          <div class="bar" style="background: #6DD86D;"></div>
-          <div class="ev-icon" style="background: #EEFBEE;">&#128221;</div>
-          <div class="ev-content">
-            <div class="ev-title">Wet diaper</div>
-            <div class="ev-detail"></div>
-          </div>
-          <div class="ev-time">11:30 AM</div>
         </div>
       </div>
-
-      <!-- NO bottom bar — the action cards replace it -->
-
     </div>
+  </div>
+
+</div>
+
+<div class="callouts">
+  <div class="callout">
+    <span class="num green">1</span>
+    <span class="title">Floating Chat Pill</span>
+    <div class="desc">Chat moves from a tab to a floating pill at the bottom. Always visible, always accessible regardless of which tab is active. Thumb-friendly for one-handed use.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">2</span>
+    <span class="title">3-Tab Layout</span>
+    <div class="desc">Removing Ask Rosie from the tab bar gives each tab more room. Home, Timeline, This Week — all content tabs. Chat is a universal overlay, not a content tab.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">3</span>
+    <span class="title">Airbnb Search Bar Pattern</span>
+    <div class="desc">Like Airbnb's search pill, the chat prompt is the primary CTA. It floats over content without displacing it. Tapping opens fullscreen chat overlay (same animation).</div>
+  </div>
+  <div class="callout">
+    <span class="num green">4</span>
+    <span class="title">Contextual Prompt</span>
+    <div class="desc">The pill text can be contextual: "Ask about Week 14...", "Ask about Rosie's sleep...", adapting to the current tab and data context.</div>
   </div>
 </div>
 
-<!-- Callout boxes -->
-<div class="callouts" style="max-width: 1300px;">
+
+<!-- ============================================================
+     ROW 2: THIS WEEK TAB — Design Thesis Applied
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>2. This Week Tab — Design Thesis Cleanup</h2>
+  <p>Every section aligned to the design thesis: 18px/700 titles, 24px section spacing, no card borders/shadows, whitespace separation.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- THIS WEEK — UPDATED -->
+  <div class="column">
+    <div class="label new">This Week — Refreshed</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="r-header">
+          <div class="weather-pill">&#9729; 30&deg; &middot; Mon</div>
+          <div class="avatar">&#128118;</div>
+        </div>
+        <div class="r-content">
+          <div class="r-greeting">
+            <h1>Hope you're getting rest, Lauren</h1>
+            <div class="age-line">Rosie &middot; Week 14 &middot; 3 months old</div>
+          </div>
+          <div class="r-tabs">
+            <div class="r-tab"><span class="icon">&#127968;</span><span class="lbl">Home</span></div>
+            <div class="r-tab"><span class="icon">&#128197;</span><span class="lbl">Timeline</span></div>
+            <div class="r-tab active"><span class="icon">&#127793;</span><span class="lbl">This Week</span></div>
+          </div>
+
+          <!-- Week badge -->
+          <div class="tw-week-badge">&#127793; Week 14 &middot; Leap 4 in progress</div>
+
+          <!-- Leap Card -->
+          <div class="r-section">
+            <div class="tw-card">
+              <div class="tw-card-title">&#129504; Leap 4 — Events</div>
+              <div class="tw-card-subtitle">Rosie is learning to understand how events unfold. Things that seemed random now start to have patterns.</div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:#86868B;margin-bottom:4px;">
+                <span>Week 14 of 19</span>
+                <span>74%</span>
+              </div>
+              <div class="tw-progress-track"><div class="tw-progress-fill" style="width:74%;"></div></div>
+
+              <div style="margin-top:16px;">
+                <div style="font-size:13px;font-weight:700;color:#86868B;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:8px;">Signs You Might Notice</div>
+                <ul class="tw-list">
+                  <li class="purple">Clingier than usual, wants to be held</li>
+                  <li class="purple">Fussier around mealtimes</li>
+                  <li class="purple">Sleep may be disrupted</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Parent Wellness -->
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">For You</div>
+            </div>
+            <div class="tw-wellness">
+              <div class="tw-card-title">&#128154; Not Just Baby</div>
+              <div style="font-size:14px;line-height:1.5;color:#1D1D1F;margin-bottom:12px;">It's okay to feel overwhelmed right now. Leap periods are hard on parents too.</div>
+              <div style="padding:12px;background:rgba(52,199,89,0.08);border-radius:12px;font-size:14px;color:#1D1D1F;">
+                <strong>One thing today:</strong> Take 5 minutes for yourself. Even a quiet cup of coffee counts.
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Wins -->
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Quick Wins</div></div>
+            <div class="tw-quickwin">
+              <div class="tw-quickwin-icon">&#127912;</div>
+              <div class="tw-quickwin-content">
+                <div class="tw-quickwin-title">High-contrast cards</div>
+                <div class="tw-quickwin-detail">5 minutes &middot; Supports visual development</div>
+              </div>
+            </div>
+            <div class="tw-quickwin">
+              <div class="tw-quickwin-icon">&#127925;</div>
+              <div class="tw-quickwin-content">
+                <div class="tw-quickwin-title">Sing a simple song</div>
+                <div class="tw-quickwin-detail">3 minutes &middot; Language & bonding</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sleep & Feeding Info -->
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">What's Typical</div></div>
+            <div class="tw-info-grid">
+              <div class="tw-info-item">
+                <div class="tw-info-label">Total Sleep</div>
+                <div class="tw-info-value">14-16 hours</div>
+              </div>
+              <div class="tw-info-item">
+                <div class="tw-info-label">Naps</div>
+                <div class="tw-info-value">3-4 naps</div>
+              </div>
+              <div class="tw-info-item">
+                <div class="tw-info-label">Wake Window</div>
+                <div class="tw-info-value">1.5-2 hours</div>
+              </div>
+              <div class="tw-info-item">
+                <div class="tw-info-label">Feeds</div>
+                <div class="tw-info-value">7-8 per day</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Milestones -->
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Milestones</div></div>
+            <div class="tw-card">
+              <ul class="tw-list">
+                <li class="green">Discovering hands and bringing them together</li>
+                <li class="green">Tracking objects with eyes more smoothly</li>
+                <li class="green">Starting to laugh and squeal</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Expert Insights Carousel -->
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">Expert Insights</div>
+              <div class="r-section-link">All &rarr;</div>
+            </div>
+            <div class="r-insight" style="background:linear-gradient(135deg, #F0F7FF 0%, #F8F4FF 100%);">
+              <div class="cat" style="color:#007AFF;">&#128218; Sleep Science</div>
+              <div class="text">Around 3-4 months, babies begin developing more adult-like sleep cycles. Brief wakings between cycles are normal and not a sign of regression.</div>
+              <div style="font-size:12px;color:#86868B;margin-top:8px;">— Dr. Sarah Mitchell, Sleep Specialist</div>
+            </div>
+            <div class="r-carousel-dots">
+              <div class="r-dot active" style="background:#007AFF;"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+            </div>
+          </div>
+
+          <div style="height: 80px;"></div>
+        </div>
+
+        <div class="r-ask-pill">
+          <div class="r-ask-pill-inner">
+            <div class="r-ask-pill-icon">&#10024;</div>
+            <div class="r-ask-pill-text">Ask about Leap 4...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THIS WEEK — SCROLLED (showing more sections) -->
+  <div class="column">
+    <div class="label new">This Week — Scrolled Down</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="r-header">
+          <div class="weather-pill">&#9729; 30&deg; &middot; Mon</div>
+          <div class="avatar">&#128118;</div>
+        </div>
+        <div class="r-content">
+
+          <!-- Continuing from Quick Wins -->
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Quick Wins</div></div>
+            <div class="tw-quickwin">
+              <div class="tw-quickwin-icon">&#129309;</div>
+              <div class="tw-quickwin-content">
+                <div class="tw-quickwin-title">Tummy time on your chest</div>
+                <div class="tw-quickwin-detail">5 minutes &middot; Neck strength & bonding</div>
+              </div>
+            </div>
+            <div class="tw-quickwin">
+              <div class="tw-quickwin-icon">&#128220;</div>
+              <div class="tw-quickwin-content">
+                <div class="tw-quickwin-title">Read a board book together</div>
+                <div class="tw-quickwin-detail">5 minutes &middot; Language exposure</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- What's Typical -->
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">What's Typical</div></div>
+            <div class="tw-info-grid">
+              <div class="tw-info-item">
+                <div class="tw-info-label">Total Sleep</div>
+                <div class="tw-info-value">14-16 hours</div>
+              </div>
+              <div class="tw-info-item">
+                <div class="tw-info-label">Naps</div>
+                <div class="tw-info-value">3-4 naps</div>
+              </div>
+              <div class="tw-info-item">
+                <div class="tw-info-label">Wake Window</div>
+                <div class="tw-info-value">1.5-2 hours</div>
+              </div>
+              <div class="tw-info-item">
+                <div class="tw-info-label">Feeds</div>
+                <div class="tw-info-value">7-8 per day</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Common Concerns -->
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Common Concerns</div></div>
+            <div class="tw-card">
+              <ul class="tw-list">
+                <li class="orange">Sleep regression — totally normal at this age</li>
+                <li class="orange">Increased drooling (not always teething)</li>
+                <li class="orange">Wanting to nurse more often during leaps</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- What's Coming Next -->
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Coming Up</div></div>
+            <div class="tw-card">
+              <div class="tw-card-subtitle">In the next few weeks, you can expect:</div>
+              <ul class="tw-list">
+                <li>More consistent sleep patterns emerging</li>
+                <li>Better hand-eye coordination</li>
+                <li>A sunny period after this leap ends</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Leap Browser Link -->
+          <div class="r-section" style="text-align:center;">
+            <div style="padding:16px;background:rgba(139,92,246,0.06);border-radius:16px;cursor:pointer;">
+              <div style="font-size:15px;font-weight:700;color:#8B5CF6;">&#128218; View All 10 Leaps</div>
+              <div style="font-size:13px;color:#86868B;margin-top:4px;">See the full developmental timeline</div>
+            </div>
+          </div>
+
+          <div style="height: 80px;"></div>
+        </div>
+
+        <div class="r-ask-pill">
+          <div class="r-ask-pill-inner">
+            <div class="r-ask-pill-icon">&#10024;</div>
+            <div class="r-ask-pill-text">Ask about sleep regression...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callouts">
   <div class="callout">
-    <span class="callout-num">1</span>
-    <span class="callout-title">Compact Header</span>
-    <div class="callout-desc">300px header → 56px. Clock, weather, and age badge compressed into a single row. Greeting moves below as a left-aligned hero title (Airbnb pattern).</div>
+    <span class="num purple">1</span>
+    <span class="title">Consistent Section Spacing</span>
+    <div class="desc">Every section uses 24px bottom margin (design thesis 2xl token). No more inconsistent gaps between cards and sections.</div>
   </div>
   <div class="callout">
-    <span class="callout-num">2</span>
-    <span class="callout-title">Tab Icons</span>
-    <div class="callout-desc">Text-only tabs gain small icons above labels. Inspired by Airbnb's 3D icon tabs. Adds visual personality without adding clutter.</div>
+    <span class="num purple">2</span>
+    <span class="title">Cards Without Borders</span>
+    <div class="desc">White cards on #FAFAFA background. No box-shadow, no borders. Whitespace creates visual separation (Airbnb pattern).</div>
   </div>
   <div class="callout">
-    <span class="callout-num">3</span>
-    <span class="callout-title">Horizontal Stat Carousel</span>
-    <div class="callout-desc">Summary cards change from a cramped 3-column grid to a horizontally-scrolling carousel with scroll-snap. Each card gets more breathing room. A 4th "Today totals" card appears.</div>
+    <span class="num purple">3</span>
+    <span class="title">Section Title + Arrow Pattern</span>
+    <div class="desc">Every section header uses "Title (left) + Link Arrow (right)" consistently. Typography: 18px/700 per the design thesis.</div>
   </div>
   <div class="callout">
-    <span class="callout-num">4</span>
-    <span class="callout-title">Section Title + Arrow Pattern</span>
-    <div class="callout-desc">Every content section follows Airbnb's pattern: bold 20px title on the left, "See all →" link on the right. Creates consistent visual rhythm between sections.</div>
+    <span class="num purple">4</span>
+    <span class="title">Contextual Chat Pill</span>
+    <div class="desc">The floating pill adapts its placeholder text to the tab: "Ask about Leap 4..." on This Week, "Ask about sleep..." based on recent events.</div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     ROW 3: QUICK LOG MODAL — Redesigned
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>3. Quick Log — Clean Modal Design</h2>
+  <p>Bottom sheet modal with consistent time inputs, design-thesis typography, and polished interaction patterns.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- FEED LOG — Manual Mode -->
+  <div class="column">
+    <div class="label new">Feed Log — Manual Entry</div>
+    <div class="phone">
+      <div class="phone-inner" style="background:#FAFAFA;">
+        <!-- Dimmed background showing app beneath -->
+        <div class="r-header" style="opacity:0.3;">
+          <div class="weather-pill">&#9729; 30&deg; &middot; Mon</div>
+          <div class="avatar">&#128118;</div>
+        </div>
+        <div style="opacity:0.15;padding:0 16px;">
+          <div class="r-greeting"><h1>Hope you're getting rest</h1></div>
+        </div>
+
+        <!-- Modal Sheet -->
+        <div class="ql-modal">
+          <div class="ql-sheet">
+            <div class="ql-handle"></div>
+            <div class="ql-header">
+              <div class="ql-header-title">&#127868; Log Feed</div>
+              <div class="ql-close">&times;</div>
+            </div>
+
+            <!-- Feed Type -->
+            <div class="ql-type-pills">
+              <div class="ql-pill active"><span class="pill-icon">&#129331;</span>Breast</div>
+              <div class="ql-pill"><span class="pill-icon">&#127868;</span>Bottle</div>
+              <div class="ql-pill"><span class="pill-icon">&#129382;</span>Solid</div>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="ql-mode-toggle">
+              <div class="ql-mode-btn">&#9201; Timer</div>
+              <div class="ql-mode-btn active">&#9997;&#65039; Manual</div>
+            </div>
+
+            <!-- Time Inputs — Clean, consistent design -->
+            <div class="ql-time-row">
+              <div class="ql-time-field">
+                <div class="ql-time-label">Start Time</div>
+                <div class="ql-time-input">2:15 PM</div>
+              </div>
+              <div class="ql-time-field">
+                <div class="ql-time-label">End Time</div>
+                <div class="ql-time-input">2:30 PM</div>
+              </div>
+            </div>
+
+            <!-- Duration Display -->
+            <div class="ql-duration-display">
+              <div class="ql-duration-value">15 min</div>
+              <div class="ql-duration-label">Total duration</div>
+            </div>
+
+            <!-- Side selector -->
+            <div class="ql-time-label">Side</div>
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <div style="flex:1;text-align:center;padding:12px;background:#FFF0F3;border:2px solid #FF2D55;border-radius:12px;font-weight:700;font-size:14px;color:#FF2D55;">Left</div>
+              <div style="flex:1;text-align:center;padding:12px;background:rgba(120,120,128,0.06);border:2px solid transparent;border-radius:12px;font-weight:600;font-size:14px;color:#86868B;">Right</div>
+            </div>
+
+            <!-- Note -->
+            <textarea class="ql-note" rows="2" placeholder="Add a note (optional)"></textarea>
+
+            <!-- Save -->
+            <button class="ql-save-btn" style="background:linear-gradient(135deg, #FF9500, #FFB340);">Save Feed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLEEP LOG — Manual Mode -->
+  <div class="column">
+    <div class="label new">Sleep Log — Manual Entry</div>
+    <div class="phone">
+      <div class="phone-inner" style="background:#FAFAFA;">
+        <div class="r-header" style="opacity:0.3;">
+          <div class="weather-pill">&#9729; 30&deg; &middot; Mon</div>
+          <div class="avatar">&#128118;</div>
+        </div>
+        <div style="opacity:0.15;padding:0 16px;">
+          <div class="r-greeting"><h1>Hope you're getting rest</h1></div>
+        </div>
+
+        <div class="ql-modal">
+          <div class="ql-sheet">
+            <div class="ql-handle"></div>
+            <div class="ql-header">
+              <div class="ql-header-title">&#128164; Log Sleep</div>
+              <div class="ql-close">&times;</div>
+            </div>
+
+            <!-- Sleep Type -->
+            <div class="ql-type-pills">
+              <div class="ql-pill active" style="background:#FAF5FF;color:#B57BEC;"><span class="pill-icon">&#9728;&#65039;</span>Nap</div>
+              <div class="ql-pill"><span class="pill-icon">&#127769;</span>Night</div>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="ql-mode-toggle">
+              <div class="ql-mode-btn">&#9201; Timer</div>
+              <div class="ql-mode-btn active">&#9997;&#65039; Manual</div>
+            </div>
+
+            <!-- Time Inputs -->
+            <div class="ql-time-row">
+              <div class="ql-time-field">
+                <div class="ql-time-label">Fell Asleep</div>
+                <div class="ql-time-input">1:45 PM</div>
+              </div>
+              <div class="ql-time-field">
+                <div class="ql-time-label">Woke Up</div>
+                <div class="ql-time-input">3:10 PM</div>
+              </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="ql-duration-display" style="background:rgba(181,123,236,0.06);">
+              <div class="ql-duration-value" style="color:#B57BEC;">1h 25m</div>
+              <div class="ql-duration-label">Total sleep</div>
+            </div>
+
+            <!-- Quality -->
+            <div class="ql-time-label">Quality</div>
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <div style="flex:1;text-align:center;padding:12px;background:rgba(120,120,128,0.06);border:2px solid transparent;border-radius:12px;font-size:13px;font-weight:600;color:#86868B;">&#128564; Poor</div>
+              <div style="flex:1;text-align:center;padding:12px;background:rgba(120,120,128,0.06);border:2px solid transparent;border-radius:12px;font-size:13px;font-weight:600;color:#86868B;">&#128528; OK</div>
+              <div style="flex:1;text-align:center;padding:12px;background:#F0FFF4;border:2px solid #34C759;border-radius:12px;font-size:13px;font-weight:700;color:#34C759;">&#128522; Good</div>
+            </div>
+
+            <textarea class="ql-note" rows="2" placeholder="Add a note (optional)"></textarea>
+
+            <button class="ql-save-btn" style="background:linear-gradient(135deg, #B57BEC, #D4A5FF);">Save Sleep</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAPER LOG -->
+  <div class="column">
+    <div class="label new">Diaper Log</div>
+    <div class="phone">
+      <div class="phone-inner" style="background:#FAFAFA;">
+        <div class="r-header" style="opacity:0.3;">
+          <div class="weather-pill">&#9729; 30&deg; &middot; Mon</div>
+          <div class="avatar">&#128118;</div>
+        </div>
+        <div style="opacity:0.15;padding:0 16px;">
+          <div class="r-greeting"><h1>Hope you're getting rest</h1></div>
+        </div>
+
+        <div class="ql-modal">
+          <div class="ql-sheet" style="max-height:55%;">
+            <div class="ql-handle"></div>
+            <div class="ql-header">
+              <div class="ql-header-title">&#128221; Log Diaper</div>
+              <div class="ql-close">&times;</div>
+            </div>
+
+            <!-- Diaper Type — Big emoji buttons -->
+            <div class="ql-time-label">Type</div>
+            <div style="display:flex;gap:10px;margin-bottom:20px;">
+              <div style="flex:1;text-align:center;padding:20px 8px;background:rgba(120,120,128,0.06);border:2px solid transparent;border-radius:16px;cursor:pointer;">
+                <div style="font-size:32px;margin-bottom:4px;">&#128167;</div>
+                <div style="font-size:13px;font-weight:600;color:#86868B;">Pee</div>
+              </div>
+              <div style="flex:1;text-align:center;padding:20px 8px;background:#F0FFF4;border:2px solid #30D158;border-radius:16px;cursor:pointer;">
+                <div style="font-size:32px;margin-bottom:4px;">&#128169;</div>
+                <div style="font-size:13px;font-weight:700;color:#30D158;">Poop</div>
+              </div>
+              <div style="flex:1;text-align:center;padding:20px 8px;background:rgba(120,120,128,0.06);border:2px solid transparent;border-radius:16px;cursor:pointer;">
+                <div style="font-size:32px;margin-bottom:4px;">&#128167;&#128169;</div>
+                <div style="font-size:13px;font-weight:600;color:#86868B;">Both</div>
+              </div>
+            </div>
+
+            <textarea class="ql-note" rows="2" placeholder="Add a note (optional)"></textarea>
+
+            <button class="ql-save-btn" style="background:linear-gradient(135deg, #30D158, #7EE88B);">Save Diaper</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callouts">
+  <div class="callout">
+    <span class="num orange">1</span>
+    <span class="title">Consistent Time Inputs</span>
+    <div class="desc">Custom styled time fields replace native &lt;input type="time"&gt;. Same border-radius (12px), focus state (blue border + translateY(-1px) lift), and typography across all modals.</div>
   </div>
   <div class="callout">
-    <span class="callout-num">5</span>
-    <span class="callout-title">Integrated Insight Card</span>
-    <div class="callout-desc">A developmental insight from "This Week" appears inline on the main screen — no tab switch needed. Gradient background makes it visually distinct from timeline events.</div>
+    <span class="num orange">2</span>
+    <span class="title">Bottom Sheet Pattern</span>
+    <div class="desc">Modal slides up from bottom as a sheet. Drag handle at top, backdrop blur. Consistent with iOS patterns and our animation thesis (400ms decelerate enter).</div>
   </div>
   <div class="callout">
-    <span class="callout-num">6</span>
-    <span class="callout-title">Lighter Timeline Events</span>
-    <div class="callout-desc">Event cards use lighter typography (15px/600 vs 18px/700), time pushed to the right edge (Airbnb's secondary data placement), and tighter padding. More events visible per screen.</div>
+    <span class="num orange">3</span>
+    <span class="title">Duration Display</span>
+    <div class="desc">Auto-calculated duration shown in a colored card between time inputs and note. Type-specific color coding (orange=feed, purple=sleep, green=diaper).</div>
   </div>
   <div class="callout">
-    <span class="callout-num">7</span>
-    <span class="callout-title">Unified Quick Log Pill</span>
-    <div class="callout-desc"><strong>Proposed A:</strong> Three separate floating buttons merge into a single pill with dividers. Less visual noise, same functionality.</div>
+    <span class="num orange">4</span>
+    <span class="title">Gradient Save Button</span>
+    <div class="desc">Full-width save button with type-specific gradient. Consistent 14px border-radius, 17px/700 text. Active state: scale(0.98) per thesis interactive feedback spec.</div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     ROW 4: DESKTOP LAYOUT — Full-width Header
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>4. Desktop — Full-Width Header</h2>
+  <p>Header spans the full viewport width (like Airbnb). Content remains centered at 600px max-width.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- DESKTOP LAYOUT -->
+  <div class="column" style="width: 100%;">
+    <div class="label new">Desktop — Full-Width Header, Centered Content</div>
+    <div class="desktop">
+      <div class="desktop-inner">
+
+        <!-- Full-width header bar -->
+        <div class="r-header" style="padding: 12px 32px; height: 56px; border-bottom: 1px solid rgba(0,0,0,0.04);">
+          <div class="weather-pill">&#9729; 30&deg; Cloudy &middot; Monday, Feb 23</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="avatar" style="width:40px;height:40px;font-size:20px;">&#128118;</div>
+          </div>
+        </div>
+
+        <!-- Centered content column -->
+        <div style="max-width:600px;margin:0 auto;padding:0 24px;">
+          <div class="r-greeting" style="padding-top:20px;">
+            <h1>Hope you're getting rest, Lauren</h1>
+            <div class="age-line">Rosie &middot; Week 14 &middot; 3 months old</div>
+          </div>
+
+          <div class="r-tabs">
+            <div class="r-tab active"><span class="icon">&#127968;</span><span class="lbl">Home</span></div>
+            <div class="r-tab"><span class="icon">&#128197;</span><span class="lbl">Timeline</span></div>
+            <div class="r-tab"><span class="icon">&#127793;</span><span class="lbl">This Week</span></div>
+          </div>
+
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Quick Log</div></div>
+            <div class="r-action-cards">
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#FF9500,#FFB340);"></div>
+                <div class="card-icon">&#127868;</div>
+                <div class="card-label">Feed</div>
+                <div class="card-value" style="color:#FF9500;">1h 24m</div>
+                <div class="card-detail">Breast, right</div>
+                <div class="card-btn" style="background:#FF9500;">+ Feed</div>
+              </div>
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#B57BEC,#D4A5F5);"></div>
+                <div class="card-icon">&#128164;</div>
+                <div class="card-label">Sleep</div>
+                <div class="card-value" style="color:#B57BEC;">47m</div>
+                <div class="card-detail">Nap, 1h 6m</div>
+                <div class="card-btn" style="background:#B57BEC;">+ Sleep</div>
+              </div>
+              <div class="r-action-card">
+                <div class="accent" style="background:linear-gradient(90deg,#30D158,#7EE88B);"></div>
+                <div class="card-icon">&#128221;</div>
+                <div class="card-label">Diaper</div>
+                <div class="card-value" style="color:#30D158;">1h 30m</div>
+                <div class="card-detail">Wet</div>
+                <div class="card-btn" style="background:#30D158;">+ Diaper</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">This Week</div>
+              <div class="r-section-link">More &rarr;</div>
+            </div>
+            <div class="r-insight">
+              <div class="cat">&#129504; Week 14 &middot; Leap 4</div>
+              <div class="text">Leap 4 — Events: Rosie is starting to understand sequences and may fuss more during this mental growth spurt.</div>
+              <div class="more">Read more &rarr;</div>
+            </div>
+            <div class="r-carousel-dots">
+              <div class="r-dot active"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+            </div>
+          </div>
+
+          <div class="r-section">
+            <div class="r-section-hdr"><div class="r-section-title">Today's Stats</div></div>
+            <div class="r-stats-row">
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#FF9500" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="52" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#FF9500;">5</div><div class="r-ring-label">Feeds</div></div>
+                </div>
+              </div>
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#B57BEC" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="91" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#B57BEC;">7h</div><div class="r-ring-label">Sleep</div></div>
+                </div>
+              </div>
+              <div class="r-stat-ring">
+                <div class="r-ring-center">
+                  <svg width="72" height="72"><circle cx="36" cy="36" r="29" fill="none" stroke="#F0F0F0" stroke-width="7"/><circle cx="36" cy="36" r="29" fill="none" stroke="#30D158" stroke-width="7" stroke-linecap="round" stroke-dasharray="182" stroke-dashoffset="26" transform="rotate(-90 36 36)"/></svg>
+                  <div class="r-ring-text"><div class="r-ring-value" style="color:#30D158;">6</div><div class="r-ring-label">Diapers</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Floating pill — centered within content column on desktop -->
+        <div style="position:sticky;bottom:20px;z-index:20;display:flex;justify-content:center;">
+          <div class="r-ask-pill-inner" style="max-width:400px;">
+            <div class="r-ask-pill-icon">&#10024;</div>
+            <div class="r-ask-pill-text">Ask Rosie anything...</div>
+            <div class="r-ask-pill-kbd">&#8984;K</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callouts">
+  <div class="callout">
+    <span class="num">1</span>
+    <span class="title">Full-Width Header Bar</span>
+    <div class="desc">Header spans the entire viewport width with 32px side padding (Airbnb pattern). Weather far-left, profile avatar far-right. Creates visual breadth on wide screens.</div>
   </div>
   <div class="callout">
-    <span class="callout-num">8</span>
-    <span class="callout-title">Consistent Section Spacing</span>
-    <div class="callout-desc">All sections maintain equal 24px vertical gaps (Airbnb's ~304px section rhythm scaled to our content density). Creates a predictable scanning pattern.</div>
+    <span class="num">2</span>
+    <span class="title">Centered Content Column</span>
+    <div class="desc">Content below header stays at 600px max-width, centered. This gives the reading area focus while the header provides global navigation context.</div>
   </div>
-  <div class="callout green">
-    <span class="callout-num">9</span>
-    <span class="callout-title">No Clock</span>
-    <div class="callout-desc"><strong>Proposed B:</strong> Clock removed entirely — phones already show time in the status bar. Frees up the entire top section for what matters: greeting + baby info.</div>
+  <div class="callout">
+    <span class="num">3</span>
+    <span class="title">Desktop Chat Pill</span>
+    <div class="desc">Floating pill shows keyboard shortcut (&#8984;K) on desktop. Same position as mobile but with wider max-width (400px) and shortcut hint.</div>
   </div>
-  <div class="callout green">
-    <span class="callout-num">10</span>
-    <span class="callout-title">Cards ARE the Actions</span>
-    <div class="callout-desc"><strong>Proposed B:</strong> No floating bottom bar. Each stat card has a "+ Feed" / "+ Sleep" / "+ Diaper" button embedded in it. Like Airbnb — you tap a listing card to book, not a separate button. Status and action unified in one place.</div>
+  <div class="callout">
+    <span class="num">4</span>
+    <span class="title">Subtle Header Border</span>
+    <div class="desc">On desktop, a faint 1px bottom border separates the full-width header from centered content. On mobile, the compact 48px height makes this unnecessary.</div>
   </div>
-  <div class="callout green">
-    <span class="callout-num">11</span>
-    <span class="callout-title">No Bottom Bar = More Timeline</span>
-    <div class="callout-desc"><strong>Proposed B:</strong> Removing the 80px floating bottom bar means 2 more timeline events visible at once. The action cards at the top handle logging. Scroll = pure content.</div>
+</div>
+
+
+<!-- ============================================================
+     DESIGN THESIS REFERENCE
+     ============================================================ -->
+<div class="section-header-page" style="margin-top:16px;">
+  <h2>Design Thesis Reference</h2>
+  <p>Key tokens and patterns applied across all wireframes above.</p>
+</div>
+
+<div class="callouts" style="grid-template-columns:1fr 1fr 1fr;">
+  <div class="callout">
+    <span class="title" style="font-size:13px;">Spacing Grid</span>
+    <div class="desc" style="font-family:monospace;font-size:12px;line-height:1.8;">
+      xs: 4px<br>
+      sm: 8px<br>
+      md: 12px (card gap)<br>
+      lg: 16px (mobile padding)<br>
+      xl: 20px (card padding)<br>
+      2xl: 24px (section gap)<br>
+      3xl: 32px (desktop padding)
+    </div>
   </div>
-  <div class="callout green">
-    <span class="callout-num">12</span>
-    <span class="callout-title">Minimal Header (48px)</span>
-    <div class="callout-desc"><strong>Proposed B:</strong> Header compressed further to just weather pill + avatar. Greeting is the page hero. Total overhead before content: ~140px vs current ~300px.</div>
+  <div class="callout">
+    <span class="title" style="font-size:13px;">Typography</span>
+    <div class="desc" style="font-family:monospace;font-size:12px;line-height:1.8;">
+      Hero: 28px/700<br>
+      Section title: 18px/700<br>
+      Card title: 14-16px/600<br>
+      Body: 14-15px/400-500<br>
+      Secondary: 13px/400<br>
+      Labels: 11px/700 UPPER<br>
+      Stats: 18px/700 colored
+    </div>
+  </div>
+  <div class="callout">
+    <span class="title" style="font-size:13px;">Animation Curves</span>
+    <div class="desc" style="font-family:monospace;font-size:12px;line-height:1.8;">
+      Enter: 400ms decelerate<br>
+      Exit: 300ms accelerate<br>
+      Standard: 200ms ease<br>
+      Spring: 300ms overshoot<br>
+      Stagger: 60ms delay each<br>
+      Reduced motion: none
+    </div>
   </div>
 </div>
 

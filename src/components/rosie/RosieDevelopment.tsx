@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { BabyProfile, DevelopmentalInfo } from './types';
 import { getLeapStatus, LeapStatus, leaps, LeapInfo } from './leapData';
 import {
@@ -170,383 +171,229 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
 
   return (
     <div className="rosie-development">
-      {/* Week Overview Card */}
-      <div className="rosie-card rosie-card-week-overview">
-        <div className="rosie-dev-week-header">
-          <div className="rosie-dev-week">Week {weekNumber}</div>
-          {leapPhaseDisplay.label && (
-            <div
-              className="rosie-leap-badge"
-              style={{ backgroundColor: leapPhaseDisplay.color }}
-            >
-              {leapPhaseDisplay.label}
-            </div>
-          )}
-        </div>
-        <h2 className="rosie-dev-title">What to Know This Week</h2>
-        <p className="rosie-dev-intro">{getWeekIntro()}</p>
+      {/* Week Badge — wireframe: simple inline pill */}
+      <div className="tw-week-badge">
+        🌱 Week {weekNumber}
+        {leapStatus.isInLeap && leapStatus.currentLeap && ` · Leap ${leapStatus.currentLeap.leapNumber} in progress`}
+        {leapStatus.isSunnyPeriod && leapStatus.nextLeap && ` · Leap ${leapStatus.nextLeap.leapNumber} coming soon`}
       </div>
 
-      {/* Leap Card - Show if in leap or approaching one */}
+      {/* Leap Card — wireframe: title, subtitle, progress bar, signs only */}
       {(leapStatus.isInLeap && leapStatus.currentLeap) && (
-        <div className="rosie-card rosie-card-leap">
-          <div className="rosie-leap-header">
-            <div className="rosie-leap-icon">🧠</div>
-            <div className="rosie-leap-title-section">
-              <h3 className="rosie-leap-title">Leap {leapStatus.currentLeap.leapNumber}: {leapStatus.currentLeap.name}</h3>
-              <p className="rosie-leap-subtitle">{leapStatus.currentLeap.subtitle}</p>
-            </div>
-          </div>
-
-          {/* Week range info */}
-          <div className="rosie-leap-week-range">
-            <span className="rosie-leap-week-label">Weeks {leapStatus.currentLeap.startWeek}–{leapStatus.currentLeap.endWeek}</span>
-            <span className="rosie-leap-week-age">({formatWeeksToAge(leapStatus.currentLeap.startWeek)} – {formatWeeksToAge(leapStatus.currentLeap.endWeek)})</span>
-          </div>
-
-          <p className="rosie-leap-description">{leapStatus.currentLeap.description}</p>
-
-          {/* Progress bar */}
-          <div className="rosie-leap-progress-section">
-            <div className="rosie-leap-progress-label">
-              <span>Progress through this leap</span>
+        <div className="tw-section">
+          <div className="tw-card">
+            <div className="tw-card-title">🧠 Leap {leapStatus.currentLeap.leapNumber} — {leapStatus.currentLeap.name}</div>
+            <div className="tw-card-subtitle">{leapStatus.currentLeap.description}</div>
+            <div className="tw-progress-meta">
+              <span>Week {weekNumber} of {leapStatus.currentLeap.endWeek}</span>
               <span>{leapStatus.progressThroughLeap}%</span>
             </div>
-            <div className="rosie-leap-progress-bar">
-              <div
-                className="rosie-leap-progress-fill"
-                style={{ width: `${leapStatus.progressThroughLeap}%` }}
-              />
+            <div className="tw-progress-track">
+              <div className="tw-progress-fill" style={{ width: `${leapStatus.progressThroughLeap}%` }} />
             </div>
-          </div>
-
-          <div className="rosie-leap-section">
-            <h4 className="rosie-leap-section-title">Signs You Might Notice</h4>
-            <ul className="rosie-dev-list">
-              {leapStatus.currentLeap.signsOfLeap.map((sign, i) => (
-                <li key={i}>{sign}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rosie-leap-section">
-            <h4 className="rosie-leap-section-title">How to Help</h4>
-            <ul className="rosie-dev-list">
-              {leapStatus.currentLeap.howToHelp.map((tip, i) => (
-                <li key={i}>{tip}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rosie-leap-section rosie-leap-after">
-            <h4 className="rosie-leap-section-title">New Skills Emerging</h4>
-            <ul className="rosie-dev-list">
-              {leapStatus.currentLeap.newSkillsAfter.map((skill, i) => (
-                <li key={i}>{skill}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Browse all leaps button */}
-          <div className="rosie-leap-browse-section">
-            <button
-              className="rosie-leap-browse-btn"
-              onClick={() => setShowLeapBrowser(true)}
-            >
-              View All 10 Leaps
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Next Leap Preview - Show if in sunny period */}
-      {leapStatus.isSunnyPeriod && leapStatus.nextLeap && leapStatus.daysUntilNextLeap && (
-        <div className="rosie-card rosie-card-next-leap">
-          <div className="rosie-next-leap-header">
-            <span className="rosie-next-leap-icon">☀️</span>
-            <span className="rosie-next-leap-label">Sunny Period</span>
-          </div>
-          <p className="rosie-next-leap-text">
-            Enjoy this calmer time! Next leap (Leap {leapStatus.nextLeap.leapNumber}: {leapStatus.nextLeap.name})
-            starts in about {leapStatus.daysUntilNextLeap} days around week {leapStatus.nextLeap.startWeek}.
-          </p>
-          <button
-            className="rosie-leap-browse-btn rosie-leap-browse-btn-secondary"
-            onClick={() => setShowLeapBrowser(true)}
-          >
-            View All 10 Leaps
-          </button>
-        </div>
-      )}
-
-      {/* Show leap browser even when not in a leap */}
-      {!leapStatus.isInLeap && !leapStatus.isSunnyPeriod && (
-        <div className="rosie-card rosie-card-leap-overview">
-          <div className="rosie-leap-overview-header">
-            <span className="rosie-leap-overview-icon">🧠</span>
-            <div>
-              <h3 className="rosie-leap-overview-title">Wonder Weeks</h3>
-              <p className="rosie-leap-overview-subtitle">Developmental leaps in the first 20 months</p>
-            </div>
-          </div>
-          <p className="rosie-leap-overview-text">
-            Babies go through 10 major mental "leaps" that can cause temporary fussiness followed by new skills.
-          </p>
-          <button
-            className="rosie-leap-browse-btn"
-            onClick={() => setShowLeapBrowser(true)}
-          >
-            Explore All 10 Leaps
-          </button>
-        </div>
-      )}
-
-      {/* For You (Parent) Card */}
-      {wellnessContent && (
-        <div className="rosie-card rosie-card-parent">
-          <div className="rosie-dev-section">
-            <h3 className="rosie-dev-section-title rosie-parent-title">
-              <span>💚</span> For You (Not Just Baby)
-            </h3>
-
-            <div className="rosie-parent-feeling">
-              <h4 className="rosie-parent-subtitle">How you might be feeling</h4>
-              <ul className="rosie-dev-list">
-                {wellnessContent.howYouMightFeel.map((feeling, i) => (
-                  <li key={i}>{feeling}</li>
+            <div className="tw-signs-section">
+              <div className="tw-signs-label">Signs You Might Notice</div>
+              <ul className="tw-list">
+                {leapStatus.currentLeap.signsOfLeap.map((sign, i) => (
+                  <li key={i} className="purple">{sign}</li>
                 ))}
               </ul>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="rosie-permission-slip">
-              <div className="rosie-permission-icon">✨</div>
-              <p className="rosie-permission-text">{wellnessContent.permissionSlip}</p>
+      {/* Sunny Period — show next leap card preview */}
+      {leapStatus.isSunnyPeriod && leapStatus.nextLeap && leapStatus.daysUntilNextLeap && (
+        <div className="tw-section">
+          <div className="tw-card">
+            <div className="tw-card-title">🧠 Leap {leapStatus.nextLeap.leapNumber} — {leapStatus.nextLeap.name}</div>
+            <div className="tw-card-subtitle">{leapStatus.nextLeap.description}</div>
+            <div className="tw-progress-meta">
+              <span>Starts in ~{leapStatus.daysUntilNextLeap} days</span>
+              <span>☀️ Sunny period</span>
             </div>
-
-            <div className="rosie-one-thing">
-              <h4 className="rosie-parent-subtitle">One thing for today</h4>
-              <p className="rosie-one-thing-text">{wellnessContent.oneThingToday}</p>
+            <div className="tw-progress-track">
+              <div className="tw-progress-fill" style={{ width: '0%' }} />
+            </div>
+            <div className="tw-signs-section">
+              <div className="tw-signs-label">Signs You Might Notice</div>
+              <ul className="tw-list">
+                {leapStatus.nextLeap.signsOfLeap.map((sign, i) => (
+                  <li key={i} className="purple">{sign}</li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
       )}
 
-      {/* Today's Quick Wins */}
-      {quickWins.length > 0 && (
-        <div className="rosie-card rosie-card-quickwins">
-          <div className="rosie-dev-section">
-            <h3 className="rosie-dev-section-title">
-              <span>🎯</span> Today's Quick Wins
-            </h3>
-            <p className="rosie-quickwins-intro">Simple activities for {baby.name}'s development (no pressure!)</p>
-            <div className="rosie-quickwins-grid">
-              {quickWins.map((win, i) => (
-                <div key={i} className="rosie-quickwin-item">
-                  <div className="rosie-quickwin-activity">{win.activity}</div>
-                  <div className="rosie-quickwin-meta">
-                    <span className="rosie-quickwin-duration">{win.duration}</span>
-                    <span className="rosie-quickwin-benefit">{win.benefit}</span>
-                  </div>
-                </div>
-              ))}
+      {/* No leap and no sunny period */}
+      {!leapStatus.isInLeap && !leapStatus.isSunnyPeriod && (
+        <div className="tw-section">
+          <div className="tw-card">
+            <div className="tw-card-title">🧠 Wonder Weeks</div>
+            <div className="tw-card-subtitle">
+              Babies go through 10 major mental "leaps" that can cause temporary fussiness followed by new skills.
             </div>
           </div>
         </div>
       )}
 
-      {/* Expert Insights Carousel */}
-      {allInsights.length > 0 && (
-        <div className="rosie-card rosie-card-research">
-          <div className="rosie-dev-section">
-            <h3 className="rosie-dev-section-title rosie-research-title">
-              <span>📚</span> Expert Insights
-              <span className="rosie-stage-badge">{stageName}</span>
-            </h3>
-            <div
-              className="rosie-insights-carousel"
-              ref={carouselRef}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="rosie-insights-carousel-inner">
-                <div className="rosie-insights-topic-badge">
-                  {allInsights[currentInsightIndex].topic}
-                </div>
-                <p className="rosie-research-insight">
-                  {allInsights[currentInsightIndex].insight}
-                </p>
-                <p className="rosie-research-source">
-                  — {allInsights[currentInsightIndex].source}
-                </p>
-              </div>
-
-              {/* Navigation */}
-              <div className="rosie-insights-nav">
-                <button
-                  className="rosie-insights-nav-btn"
-                  onClick={prevInsight}
-                  aria-label="Previous insight"
-                >
-                  ‹
-                </button>
-                <div className="rosie-insights-dots">
-                  {allInsights.map((_, i) => (
-                    <button
-                      key={i}
-                      className={`rosie-insights-dot ${i === currentInsightIndex ? 'active' : ''}`}
-                      onClick={() => setCurrentInsightIndex(i)}
-                      aria-label={`Go to insight ${i + 1}`}
-                    />
-                  ))}
-                </div>
-                <button
-                  className="rosie-insights-nav-btn"
-                  onClick={nextInsight}
-                  aria-label="Next insight"
-                >
-                  ›
-                </button>
-              </div>
-
-              <p className="rosie-insights-hint">Swipe for more tips</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* What's Normal */}
-      <div className="rosie-card">
-        <div className="rosie-dev-section">
-          <h3 className="rosie-dev-section-title">
-            <span>✓</span> What's Normal Right Now
-          </h3>
-          <ul className="rosie-dev-list">
-            {whatToExpect.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Milestones */}
-      {milestones.length > 0 && (
-        <div className="rosie-card">
-          <div className="rosie-dev-section">
-            <h3 className="rosie-dev-section-title">
-              <span>⭐</span> Developmental Milestones
-            </h3>
-            <p className="rosie-milestone-disclaimer">
-              Remember: Milestone ranges are wide. "Late" often catches up completely.
-            </p>
-            <ul className="rosie-dev-list">
-              {milestones.map((item, index) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* Sleep Info */}
-      <div className="rosie-card">
-        <div className="rosie-dev-section">
-          <h3 className="rosie-dev-section-title">
-            <span>💤</span> Sleep at Week {weekNumber}
-          </h3>
-          <div className="rosie-dev-sleep-grid">
-            <div className="rosie-dev-sleep-item">
-              <div className="rosie-dev-sleep-label">Total Sleep</div>
-              <div className="rosie-dev-sleep-value">{sleepInfo.totalSleep}</div>
-            </div>
-            <div className="rosie-dev-sleep-item">
-              <div className="rosie-dev-sleep-label">Night Sleep</div>
-              <div className="rosie-dev-sleep-value">{sleepInfo.nightSleep}</div>
-            </div>
-            <div className="rosie-dev-sleep-item">
-              <div className="rosie-dev-sleep-label">Naps</div>
-              <div className="rosie-dev-sleep-value">{sleepInfo.napCount}</div>
-            </div>
-            <div className="rosie-dev-sleep-item">
-              <div className="rosie-dev-sleep-label">Wake Window</div>
-              <div className="rosie-dev-sleep-value">{sleepInfo.wakeWindow}</div>
-            </div>
-          </div>
-          <div className="rosie-dev-tip">
-            <strong>Remember:</strong> These are averages, not targets. Watch {baby.name} for sleepy cues like yawning, eye rubbing, or fussiness.
-          </div>
-        </div>
-      </div>
-
-      {/* Feeding Info */}
-      <div className="rosie-card">
-        <div className="rosie-dev-section">
-          <h3 className="rosie-dev-section-title">
-            <span>🍼</span> Feeding at Week {weekNumber}
-          </h3>
-          <div className="rosie-dev-sleep-grid">
-            <div className="rosie-dev-sleep-item">
-              <div className="rosie-dev-sleep-label">Frequency</div>
-              <div className="rosie-dev-sleep-value">{feedingInfo.frequency}</div>
-            </div>
-            {feedingInfo.amount && (
-              <div className="rosie-dev-sleep-item">
-                <div className="rosie-dev-sleep-label">Amount</div>
-                <div className="rosie-dev-sleep-value">{feedingInfo.amount}</div>
-              </div>
-            )}
-          </div>
-          {feedingInfo.notes.length > 0 && (
-            <ul className="rosie-dev-list" style={{ marginTop: '12px' }}>
-              {feedingInfo.notes.map((note, index) => (
-                <li key={index}>{note}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      {/* Common Concerns - Reframed */}
-      {commonConcerns.length > 0 && (
-        <div className="rosie-card">
-          <div className="rosie-dev-section">
-            <h3 className="rosie-dev-section-title">
-              <span>💭</span> Things That Seem Worrying (But Usually Aren't)
-            </h3>
-            <ul className="rosie-dev-list">
-              {commonConcerns.map((item, index) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* Coming Up */}
-      {upcomingChanges.length > 0 && (
-        <div className="rosie-card rosie-card-upcoming">
-          <div className="rosie-dev-section">
-            <h3 className="rosie-dev-section-title rosie-dev-upcoming-title">
-              <span>✨</span> What's Coming Up
-            </h3>
-            <ul className="rosie-dev-list rosie-dev-upcoming-list">
-              {upcomingChanges.map((item, index) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* Self-care reminder at bottom */}
+      {/* For You — wireframe: section header + green wellness card */}
       {wellnessContent && (
-        <div className="rosie-self-care-footer">
-          <p>{wellnessContent.selfCareReminder}</p>
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">For You</div>
+          </div>
+          <div className="tw-wellness">
+            <div className="tw-card-title">💚 Not Just Baby</div>
+            <div className="tw-wellness-text">
+              {wellnessContent.permissionSlip}
+            </div>
+            <div className="tw-wellness-onething">
+              <strong>One thing today:</strong> {wellnessContent.oneThingToday}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Leap Browser Modal */}
-      {showLeapBrowser && (
+      {/* Quick Wins — wireframe: section header + stacked icon+text rows */}
+      {quickWins.length > 0 && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">Quick Wins</div>
+          </div>
+          {quickWins.map((win, i) => (
+            <div key={i} className="tw-quickwin">
+              <div className="tw-quickwin-icon">🎯</div>
+              <div className="tw-quickwin-content">
+                <div className="tw-quickwin-title">{win.activity}</div>
+                <div className="tw-quickwin-detail">{win.duration} · {win.benefit}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* What's Typical — wireframe: section header + 2x2 info grid */}
+      <div className="tw-section">
+        <div className="tw-section-hdr">
+          <div className="tw-section-title">What's Typical</div>
+        </div>
+        <div className="tw-info-grid">
+          <div className="tw-info-item">
+            <div className="tw-info-label">Total Sleep</div>
+            <div className="tw-info-value">{sleepInfo.totalSleep}</div>
+          </div>
+          <div className="tw-info-item">
+            <div className="tw-info-label">Naps</div>
+            <div className="tw-info-value">{sleepInfo.napCount}</div>
+          </div>
+          <div className="tw-info-item">
+            <div className="tw-info-label">Wake Window</div>
+            <div className="tw-info-value">{sleepInfo.wakeWindow}</div>
+          </div>
+          <div className="tw-info-item">
+            <div className="tw-info-label">Feeds</div>
+            <div className="tw-info-value">{feedingInfo.frequency}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Milestones — wireframe: section header + list with green dots */}
+      {milestones.length > 0 && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">Milestones</div>
+          </div>
+          <div className="tw-card">
+            <ul className="tw-list">
+              {milestones.map((item, i) => (
+                <li key={i} className="green">{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Expert Insights — wireframe: section header with "All →" + gradient card + dots */}
+      {allInsights.length > 0 && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">Expert Insights</div>
+            <div className="tw-section-link">All →</div>
+          </div>
+          <div
+            className="tw-insight-card"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            ref={carouselRef}
+          >
+            <div className="tw-insight-category">{allInsights[currentInsightIndex].topic}</div>
+            <div className="tw-insight-text">{allInsights[currentInsightIndex].insight}</div>
+            <div className="tw-insight-source">— {allInsights[currentInsightIndex].source}</div>
+          </div>
+          <div className="tw-carousel-dots">
+            {allInsights.map((_, i) => (
+              <button
+                key={i}
+                className={`tw-dot ${i === currentInsightIndex ? 'active' : ''}`}
+                onClick={() => setCurrentInsightIndex(i)}
+                aria-label={`Go to insight ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Common Concerns — wireframe: section header + list with orange dots */}
+      {commonConcerns.length > 0 && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">Common Concerns</div>
+          </div>
+          <div className="tw-card">
+            <ul className="tw-list">
+              {commonConcerns.map((item, i) => (
+                <li key={i} className="orange">{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Coming Up — wireframe: section header + card with subtitle + list */}
+      {upcomingChanges.length > 0 && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">Coming Up</div>
+          </div>
+          <div className="tw-card">
+            <div className="tw-card-subtitle">In the next few weeks, you can expect:</div>
+            <ul className="tw-list">
+              {upcomingChanges.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* View All 10 Leaps — wireframe: centered link button */}
+      <div className="tw-section" style={{ textAlign: 'center' }}>
+        <button
+          className="tw-leaps-link"
+          onClick={() => setShowLeapBrowser(true)}
+        >
+          <div className="tw-leaps-link-title">📚 View All 10 Leaps</div>
+          <div className="tw-leaps-link-subtitle">See the full developmental timeline</div>
+        </button>
+      </div>
+
+      {/* Leap Browser Modal — portal to body to escape transform containing block */}
+      {showLeapBrowser && createPortal(
         <div className="rosie-modal-overlay" onClick={() => { setShowLeapBrowser(false); setSelectedLeap(null); }}>
           <div className="rosie-modal rosie-modal-leap-browser" onClick={e => e.stopPropagation()}>
             <div className="rosie-modal-header">
@@ -719,7 +566,8 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

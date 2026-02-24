@@ -493,7 +493,7 @@ const RosieAIContent: React.FC = () => {
         </p>
       </div>
 
-      {/* Tab Navigation */}
+      {/* Tab Navigation — 3 content tabs (chat is now a floating pill) */}
       <nav className="rosie-tabs">
         <button
           className={`rosie-tab ${activeTab === 'home' && !showChat ? 'active' : ''}`}
@@ -515,18 +515,6 @@ const RosieAIContent: React.FC = () => {
         >
           <span className="rosie-tab-icon">🌱</span>
           <span className="rosie-tab-label">This Week</span>
-        </button>
-        <button
-          className={`rosie-tab ${showChat ? 'active' : ''}`}
-          onClick={() => {
-            if (!showChat) {
-              setPreviousTab(activeTab === 'chat' ? 'home' : activeTab as 'home' | 'timeline' | 'development');
-            }
-            setShowChat(true);
-          }}
-        >
-          <span className="rosie-tab-icon">💬</span>
-          <span className="rosie-tab-label">Ask Rosie</span>
         </button>
       </nav>
 
@@ -559,6 +547,22 @@ const RosieAIContent: React.FC = () => {
           )}
         </div>
       </main>
+
+      {/* Floating "Ask Rosie" pill — always visible at bottom */}
+      {!showChat && (
+        <div className="rosie-ask-pill-container">
+          <button
+            className="rosie-ask-pill"
+            onClick={() => {
+              setPreviousTab(activeTab as 'home' | 'timeline' | 'development');
+              setShowChat(true);
+            }}
+          >
+            <span className="rosie-ask-pill-icon">✨</span>
+            <span className="rosie-ask-pill-text">Ask Rosie anything...</span>
+          </button>
+        </div>
+      )}
 
       {/* Chat overlay — fullscreen takeover, rendered outside main */}
       <RosieChat
