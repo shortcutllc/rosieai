@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosie — Onboarding &amp; Home Redesign Wireframes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: #F0F0F5;
+    padding: 40px 20px;
+    color: #1D1D1F;
+  }
+
+  /* ====== PAGE LAYOUT ====== */
+  .page-header {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 40px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .page-header p {
+    font-size: 15px;
+    color: #86868B;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .wireframe-row {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .section-header-page {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto 24px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .section-header-page h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section-header-page p {
+    font-size: 14px;
+    color: #86868B;
+    margin-top: 4px;
+  }
+
+  .label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #86868B;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .label.new { color: #34C759; }
+  .label.current { color: #FF9500; }
+
+  /* ====== PHONE FRAME ====== */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #FAFAFA;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+  }
+  .phone-inner {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-inner::-webkit-scrollbar { display: none; }
+
+  /* ====== CALLOUT ANNOTATIONS ====== */
+  .callouts {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 0 32px;
+  }
+  .callout {
+    padding: 14px 18px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .callout .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #007AFF;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .callout .num.green { background: #34C759; }
+  .callout .num.purple { background: #8B5CF6; }
+  .callout .num.orange { background: #FF9500; }
+  .callout .title {
+    display: inline;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .callout .desc {
+    font-size: 13px;
+    color: #86868B;
+    margin-top: 4px;
+    line-height: 1.45;
+  }
+
+  /* ============================================================
+     ONBOARDING STYLES
+     ============================================================ */
+
+  /* --- Shared onboarding layout --- */
+  .ob-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+  }
+
+  .ob-spacer { flex: 1; }
+  .ob-spacer-sm { height: 24px; flex-shrink: 0; }
+  .ob-spacer-lg { height: 40px; flex-shrink: 0; }
+
+  /* --- Progress indicator --- */
+  .ob-progress {
+    display: flex;
+    gap: 6px;
+    padding: 16px 24px 0;
+  }
+  .ob-progress-seg {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(120,120,128,0.12);
+  }
+  .ob-progress-seg.active {
+    background: linear-gradient(90deg, #8B5CF6, #B57BEC);
+  }
+  .ob-progress-seg.done {
+    background: #34C759;
+  }
+
+  /* --- Back button --- */
+  .ob-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+    color: #86868B;
+    padding: 16px 0 0;
+    cursor: pointer;
+  }
+
+  /* --- Welcome screen --- */
+  .ob-logo {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #F8F4FF 0%, #FFF8F0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 0 auto;
+  }
+
+  .ob-hero-title {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-align: center;
+    margin-top: 20px;
+    line-height: 1.15;
+  }
+
+  .ob-hero-subtitle {
+    font-size: 16px;
+    color: #86868B;
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* --- Value props --- */
+  .ob-values {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .ob-value {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: white;
+    border-radius: 16px;
+  }
+  .ob-value-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .ob-value-icon.orange { background: #FFF3E0; }
+  .ob-value-icon.purple { background: #F3E8FF; }
+  .ob-value-icon.green  { background: #ECFDF5; }
+  .ob-value-text h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .ob-value-text p {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.4;
+  }
+
+  /* --- Buttons --- */
+  .ob-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px 0 max(24px, 34px);
+  }
+
+  .ob-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  .ob-btn:hover { transform: translateY(-1px); }
+
+  .ob-btn-primary {
+    background: linear-gradient(135deg, #8B5CF6, #B57BEC);
+    color: white;
+    box-shadow: 0 4px 16px rgba(139,92,246,0.3);
+  }
+  .ob-btn-secondary {
+    background: white;
+    color: #1D1D1F;
+    border: 1.5px solid rgba(0,0,0,0.08);
+  }
+  .ob-btn-text {
+    background: none;
+    color: #86868B;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px;
+  }
+
+  /* --- Form fields --- */
+  .ob-field {
+    margin-bottom: 20px;
+  }
+  .ob-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .ob-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    font-size: 16px;
+    background: white;
+    color: #1D1D1F;
+    outline: none;
+    font-family: inherit;
+  }
+  .ob-input:focus {
+    border-color: #8B5CF6;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+  }
+  .ob-input::placeholder {
+    color: #C7C7CC;
+  }
+  .ob-input-hint {
+    font-size: 12px;
+    color: #86868B;
+    margin-top: 6px;
+  }
+
+  /* --- Question title (one question per screen) --- */
+  .ob-question {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .ob-question-sub {
+    font-size: 15px;
+    color: #86868B;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  /* --- Gender / Option pills --- */
+  .ob-options {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .ob-option {
+    flex: 1;
+    padding: 14px;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    transition: all 0.15s;
+  }
+  .ob-option.selected {
+    border-color: #8B5CF6;
+    background: #FAF5FF;
+  }
+  .ob-option-icon {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  .ob-option-label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* --- Reassurance cards --- */
+  .ob-reassurance {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .ob-reassurance-card {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border-radius: 16px;
+    align-items: flex-start;
+  }
+  .ob-reassurance-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .ob-reassurance-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .ob-reassurance-card p {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.4;
+  }
+
+  /* --- Success / Ready state --- */
+  .ob-success {
+    text-align: center;
+  }
+  .ob-success-emoji {
+    font-size: 56px;
+    margin-bottom: 16px;
+  }
+  .ob-success-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .ob-success-subtitle {
+    font-size: 15px;
+    color: #86868B;
+    line-height: 1.5;
+  }
+  .ob-success-card {
+    margin-top: 24px;
+    padding: 20px;
+    background: white;
+    border-radius: 20px;
+    text-align: left;
+  }
+  .ob-success-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+  }
+  .ob-success-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    align-items: center;
+  }
+  .ob-success-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: #ECFDF5;
+    color: #34C759;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* --- Auth form specific --- */
+  .ob-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .ob-divider-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(0,0,0,0.06);
+  }
+  .ob-divider-text {
+    font-size: 12px;
+    color: #86868B;
+    font-weight: 600;
+  }
+
+  .ob-social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: white;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .ob-link {
+    font-size: 14px;
+    color: #8B5CF6;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    padding: 8px 0;
+  }
+
+  .ob-password-hint {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .ob-password-hint.valid { color: #34C759; }
+  .ob-password-hint.invalid { color: #C7C7CC; }
+
+  /* ============================================================
+     HOME TAB STYLES
+     ============================================================ */
+  .r-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #FAFAFA;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    height: 48px;
+  }
+  .r-header .weather-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(120,120,128,0.06);
+    border-radius: 999px;
+    font-size: 13px;
+    color: #86868B;
+    font-weight: 500;
+  }
+  .r-header .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: #FFE5B4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .r-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  .r-greeting {
+    padding: 16px 0 8px;
+    text-align: left;
+  }
+  .r-greeting h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1D1D1F;
+    letter-spacing: -0.02em;
+  }
+  .r-greeting .age-line {
+    font-size: 15px;
+    color: #86868B;
+    margin-top: 2px;
+  }
+
+  .r-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(120,120,128,0.08);
+    border-radius: 12px;
+    margin: 8px 0 16px;
+  }
+  .r-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+  }
+  .r-tab .icon { font-size: 16px; }
+  .r-tab .lbl { font-size: 11px; font-weight: 600; color: #86868B; }
+  .r-tab.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .r-tab.active .lbl { color: #1D1D1F; font-weight: 700; }
+
+  .r-section { margin-bottom: 24px; }
+  .r-section-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+  }
+  .r-section-title { font-size: 18px; font-weight: 700; color: #1D1D1F; letter-spacing: -0.01em; }
+  .r-section-link { font-size: 13px; font-weight: 600; color: #007AFF; cursor: pointer; }
+
+  /* --- Action Cards --- */
+  .r-action-cards { display: flex; gap: 10px; }
+  .r-action-card {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .r-action-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .r-action-card.feed::before { background: linear-gradient(90deg, #FF9500, #FFB340); }
+  .r-action-card.sleep::before { background: linear-gradient(90deg, #B57BEC, #D4A5FF); }
+  .r-action-card.diaper::before { background: linear-gradient(90deg, #34C759, #7EE88B); }
+  .r-action-card-icon { font-size: 22px; margin-bottom: 8px; }
+  .r-action-card-label { font-size: 11px; font-weight: 700; color: #86868B; text-transform: uppercase; letter-spacing: 0.02em; }
+  .r-action-card-value { font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .r-action-card-value.orange { color: #FF9500; }
+  .r-action-card-value.purple { color: #B57BEC; }
+  .r-action-card-value.green { color: #34C759; }
+  .r-action-card-detail { font-size: 12px; color: #86868B; margin-top: 2px; }
+  .r-action-card-btn {
+    display: inline-flex;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    margin-top: 8px;
+  }
+  .r-action-card-btn.orange { background: #FF9500; }
+  .r-action-card-btn.purple { background: #B57BEC; }
+  .r-action-card-btn.green { background: #34C759; }
+
+  /* --- Mini Ring Stats --- */
+  .r-stats-row {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px 0 20px;
+  }
+  .r-stat { text-align: center; }
+  .r-stat-ring {
+    width: 64px;
+    height: 64px;
+    border-radius: 999px;
+    border: 4px solid rgba(120,120,128,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 6px;
+    position: relative;
+  }
+  .r-stat-ring::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    border: 4px solid transparent;
+  }
+  .r-stat-ring.orange::before { border-top-color: #FF9500; border-right-color: #FF9500; }
+  .r-stat-ring.purple::before { border-top-color: #B57BEC; }
+  .r-stat-ring.green::before { border-top-color: #34C759; border-right-color: #34C759; border-bottom-color: #34C759; }
+  .r-stat-value { font-size: 18px; font-weight: 700; }
+  .r-stat-value.orange { color: #FF9500; }
+  .r-stat-value.purple { color: #B57BEC; }
+  .r-stat-value.green { color: #34C759; }
+  .r-stat-label { font-size: 11px; font-weight: 700; color: #86868B; text-transform: uppercase; }
+
+  /* --- Normal Ranges row --- */
+  .r-ranges {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 16px;
+    background: rgba(120,120,128,0.04);
+    border-radius: 14px;
+    margin-top: 4px;
+  }
+  .r-range { text-align: center; }
+  .r-range-value { font-size: 15px; font-weight: 700; }
+  .r-range-value.orange { color: #FF9500; }
+  .r-range-value.purple { color: #B57BEC; }
+  .r-range-value.green { color: #34C759; }
+  .r-range-label { font-size: 11px; color: #86868B; }
+
+  /* --- Today Events --- */
+  .r-event {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .r-event:last-child { border-bottom: none; }
+  .r-event-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .r-event-icon.feed { background: #FFF3E0; }
+  .r-event-icon.sleep { background: #F3E8FF; }
+  .r-event-icon.diaper { background: #ECFDF5; }
+  .r-event-info { flex: 1; }
+  .r-event-title { font-size: 14px; font-weight: 600; }
+  .r-event-detail { font-size: 12px; color: #86868B; }
+  .r-event-time { font-size: 13px; color: #86868B; }
+
+  /* --- Floating Ask Rosie pill --- */
+  .r-ask-pill {
+    position: sticky;
+    bottom: 20px;
+    padding: 0 16px;
+    z-index: 20;
+  }
+  .r-ask-pill-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    background: white;
+    border-radius: 999px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+    max-width: 340px;
+    margin: 0 auto;
+  }
+  .r-ask-pill-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #8B5CF6, #B57BEC);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .r-ask-pill-text {
+    font-size: 15px;
+    color: #86868B;
+    flex: 1;
+  }
+
+  /* --- Insight carousel card --- */
+  .r-insight {
+    padding: 18px;
+    background: linear-gradient(135deg, #F8F4FF 0%, #FFF8F0 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .r-insight .cat {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .r-insight .text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1D1D1F;
+  }
+  .r-carousel-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .r-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #D1D1D6;
+  }
+  .r-dot.active {
+    background: #8B5CF6;
+    transform: scale(1.3);
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PAGE HEADER
+     ============================================================ -->
+<div class="page-header">
+  <h1>Rosie — Onboarding &amp; Home Redesign</h1>
+  <p>Airbnb-inspired onboarding: one question per screen, progressive disclosure, emotional design.<br>
+  Consistent with the Design Thesis applied across all existing screens.</p>
+</div>
+
+<!-- ============================================================
+     1. WELCOME / LANDING SCREEN
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>1. Welcome Screen — First Impression</h2>
+  <p>Emotional, warm landing. Value props shown upfront. One clear CTA. No form fields on first screen.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <div class="column">
+    <div class="label current">Current</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="ob-screen" style="justify-content:center;align-items:center;text-align:center;padding:40px 32px;">
+          <div style="font-size:48px;margin-bottom:8px;">🌱</div>
+          <div style="font-size:28px;font-weight:700;margin-bottom:4px;">Rosie</div>
+          <div style="font-size:16px;color:#86868B;margin-bottom:40px;">Calm technology for chaotic moments</div>
+          <div style="display:flex;flex-direction:column;gap:24px;text-align:left;width:100%;margin-bottom:40px;">
+            <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">🌙</span><span style="font-size:15px;color:#86868B;">Track feeds, sleep, and diapers</span></div>
+            <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">💬</span><span style="font-size:15px;color:#86868B;">Get answers to your questions</span></div>
+            <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">🧠</span><span style="font-size:15px;color:#86868B;">Understand developmental leaps</span></div>
+          </div>
+          <div class="ob-btn ob-btn-primary" style="background:linear-gradient(135deg,#B57BEC,#D4A5FF);margin-bottom:12px;">Create Account</div>
+          <div class="ob-btn ob-btn-secondary">Sign In</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="label new">Proposed</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="ob-screen">
+          <div class="ob-spacer"></div>
+
+          <div class="ob-logo">🌱</div>
+          <div class="ob-hero-title">Your calm companion<br>for the first year</div>
+          <div class="ob-hero-subtitle">Track, learn, and breathe — Rosie is<br>here for you and your baby.</div>
+
+          <div class="ob-values">
+            <div class="ob-value">
+              <div class="ob-value-icon orange">🍼</div>
+              <div class="ob-value-text">
+                <h4>Track without stress</h4>
+                <p>Quick logging for feeds, sleep, and diapers. No perfectionism required.</p>
+              </div>
+            </div>
+            <div class="ob-value">
+              <div class="ob-value-icon purple">🧠</div>
+              <div class="ob-value-text">
+                <h4>Understand every leap</h4>
+                <p>Know why your baby is fussy and when the sunny days return.</p>
+              </div>
+            </div>
+            <div class="ob-value">
+              <div class="ob-value-icon green">💚</div>
+              <div class="ob-value-text">
+                <h4>Support for you too</h4>
+                <p>You're not just a caregiver. Rosie checks in on how you're doing.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="ob-spacer"></div>
+
+          <div class="ob-actions">
+            <div class="ob-btn ob-btn-primary">Get Started</div>
+            <div class="ob-btn ob-btn-secondary">I already have an account</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callouts">
+  <div class="callout">
+    <span class="num green">1</span>
+    <span class="title">Emotional Copy</span>
+    <div class="desc">"Calm companion for the first year" — speaks to the parent's emotional state, not a feature list. Airbnb pattern: sell the feeling, not the tool.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">2</span>
+    <span class="title">Value Props with Icons</span>
+    <div class="desc">Three value props with colored icon backgrounds. Scannable, warm, not overwhelming. Each addresses a parent pain point.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">3</span>
+    <span class="title">Single Primary CTA</span>
+    <div class="desc">"Get Started" is the only purple gradient button. "I already have an account" is secondary. Cognitive load reduced to one decision.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">4</span>
+    <span class="title">No Form on Landing</span>
+    <div class="desc">Airbnb never shows form fields on the first screen. Build emotional connection first, then ask for information progressively.</div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     2. SIGN UP FLOW — PROGRESSIVE
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>2. Sign Up — Email &amp; Password</h2>
+  <p>Clean auth screen. Purple brand accent. Real-time validation. Social login option. One action per screen.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <div class="column">
+    <div class="label new">Create Account</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="ob-progress">
+          <div class="ob-progress-seg active"></div>
+          <div class="ob-progress-seg"></div>
+          <div class="ob-progress-seg"></div>
+          <div class="ob-progress-seg"></div>
+        </div>
+        <div class="ob-screen">
+          <div class="ob-back">← Back</div>
+          <div class="ob-spacer-lg"></div>
+
+          <div class="ob-question">Create your account</div>
+          <div class="ob-question-sub">Quick setup — takes less than a minute.</div>
+
+          <div class="ob-field">
+            <label class="ob-label">Email address</label>
+            <div class="ob-input" style="color:#1D1D1F;">parent@email.com</div>
+          </div>
+
+          <div class="ob-field">
+            <label class="ob-label">Password</label>
+            <div class="ob-input" style="color:#C7C7CC;">••••••••</div>
+            <div class="ob-password-hint valid">✓ 6+ characters</div>
+          </div>
+
+          <div class="ob-divider">
+            <div class="ob-divider-line"></div>
+            <div class="ob-divider-text">OR</div>
+            <div class="ob-divider-line"></div>
+          </div>
+
+          <div class="ob-social-btn">
+            <span>G</span> Continue with Google
+          </div>
+
+          <div class="ob-spacer"></div>
+          <div class="ob-actions">
+            <div class="ob-btn ob-btn-primary">Continue</div>
+            <div class="ob-link">Already have an account? Sign in</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="label new">Sign In</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="ob-screen">
+          <div class="ob-back">← Back</div>
+          <div class="ob-spacer-lg"></div>
+
+          <div class="ob-question">Welcome back</div>
+          <div class="ob-question-sub">Sign in to your account.</div>
+
+          <div class="ob-field">
+            <label class="ob-label">Email address</label>
+            <div class="ob-input" style="color:#C7C7CC;">you@example.com</div>
+          </div>
+
+          <div class="ob-field">
+            <label class="ob-label">Password</label>
+            <div class="ob-input" style="color:#C7C7CC;">Your password</div>
+          </div>
+
+          <div class="ob-divider">
+            <div class="ob-divider-line"></div>
+            <div class="ob-divider-text">OR</div>
+            <div class="ob-divider-line"></div>
+          </div>
+
+          <div class="ob-social-btn">
+            <span>G</span> Continue with Google
+          </div>
+
+          <div class="ob-spacer"></div>
+          <div class="ob-actions">
+            <div class="ob-btn ob-btn-primary">Sign In</div>
+            <div class="ob-link">Don't have an account? Create one</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callouts">
+  <div class="callout">
+    <span class="num purple">1</span>
+    <span class="title">Segmented Progress Bar</span>
+    <div class="desc">4-segment bar at top shows where you are in the flow. Purple = current, green = done. Airbnb's "see the whole journey" pattern reduces abandonment.</div>
+  </div>
+  <div class="callout">
+    <span class="num purple">2</span>
+    <span class="title">Inline Validation</span>
+    <div class="desc">Real-time password feedback (✓ 6+ characters) reduces error friction. Green check = confidence. No red until submission.</div>
+  </div>
+  <div class="callout">
+    <span class="num purple">3</span>
+    <span class="title">Social Login Option</span>
+    <div class="desc">Google auth as one-tap alternative. Airbnb's Autonomy Bias: let users choose the path that feels easiest to them.</div>
+  </div>
+  <div class="callout">
+    <span class="num purple">4</span>
+    <span class="title">Reassuring Copy</span>
+    <div class="desc">"Takes less than a minute" reduces perceived effort. Parents are time-starved. Acknowledge it.</div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     3. BABY SETUP — ONE QUESTION PER SCREEN
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>3. Baby Setup — One Question Per Screen</h2>
+  <p>Airbnb's progressive disclosure: each screen asks exactly one thing. Feels fast and effortless.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <div class="column">
+    <div class="label new">Step 2: Baby's Name</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="ob-progress">
+          <div class="ob-progress-seg done"></div>
+          <div class="ob-progress-seg active"></div>
+          <div class="ob-progress-seg"></div>
+          <div class="ob-progress-seg"></div>
+        </div>
+        <div class="ob-screen">
+          <div class="ob-back">← Back</div>
+          <div class="ob-spacer-lg"></div>
+
+          <div class="ob-question">What's your baby's name?</div>
+          <div class="ob-question-sub">We'll use this to personalize everything.</div>
+
+          <div class="ob-field">
+            <div class="ob-input" style="font-size:20px;font-weight:600;padding:18px 16px;">Rosie</div>
+          </div>
+
+          <div class="ob-spacer"></div>
+          <div class="ob-actions">
+            <div class="ob-btn ob-btn-primary">Continue</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="label new">Step 3: Birthday</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="ob-progress">
+          <div class="ob-progress-seg done"></div>
+          <div class="ob-progress-seg done"></div>
+          <div class="ob-progress-seg active"></div>
+          <div class="ob-progress-seg"></div>
+        </div>
+        <div class="ob-screen">
+          <div class="ob-back">← Back</div>
+          <div class="ob-spacer-lg"></div>
+
+          <div class="ob-question">When was Rosie born?</div>
+          <div class="ob-question-sub">This helps us track milestones and developmental leaps accurately.</div>
+
+          <div class="ob-field">
+            <div class="ob-input" style="padding:18px 16px;">November 16, 2025</div>
+          </div>
+
+          <div class="ob-spacer"></div>
+          <div class="ob-actions">
+            <div class="ob-btn ob-btn-primary">Continue</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="wireframe-row">
+
+  <div class="column">
+    <div class="label new">Step 4: All Set!</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="ob-progress">
+          <div class="ob-progress-seg done"></div>
+          <div class="ob-progress-seg done"></div>
+          <div class="ob-progress-seg done"></div>
+          <div class="ob-progress-seg active"></div>
+        </div>
+        <div class="ob-screen">
+          <div class="ob-spacer"></div>
+
+          <div class="ob-success">
+            <div class="ob-success-emoji">🎉</div>
+            <div class="ob-success-title">You're all set!</div>
+            <div class="ob-success-subtitle">Rosie is ready to help you and Rosie through the first year.</div>
+
+            <div class="ob-success-card">
+              <h4>What you can do</h4>
+              <div class="ob-success-item">
+                <div class="ob-success-check">✓</div>
+                <span>Log feeds, sleep, and diapers with one tap</span>
+              </div>
+              <div class="ob-success-item">
+                <div class="ob-success-check">✓</div>
+                <span>See what's normal at Week 15</span>
+              </div>
+              <div class="ob-success-item">
+                <div class="ob-success-check">✓</div>
+                <span>Ask Rosie anything — she's always here</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ob-spacer"></div>
+          <div class="ob-actions">
+            <div class="ob-btn ob-btn-primary">Start Using Rosie</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callouts">
+  <div class="callout">
+    <span class="num green">1</span>
+    <span class="title">One Question Per Screen</span>
+    <div class="desc">Airbnb's host onboarding uses exactly one input per screen. Feels effortless even though you're providing the same data. Baby name → Birthday → Done.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">2</span>
+    <span class="title">Personalized As You Go</span>
+    <div class="desc">"When was Rosie born?" uses the name from the previous step. Each screen feels more personal. Builds emotional investment.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">3</span>
+    <span class="title">Minimal Required Fields</span>
+    <div class="desc">Only name + birthday are required. Gender and weight are removed from onboarding (can add later in Profile). Reduces drop-off.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">4</span>
+    <span class="title">Celebration at End</span>
+    <div class="desc">Success screen with 🎉 emoji and "What you can do" checklist. Gamification: green checks create dopamine. User arrives at the app feeling accomplished.</div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     4. HOME TAB — REFRESHED
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>4. Home Tab — Consistent with Design Thesis</h2>
+  <p>Same section patterns used across all tabs: 18px/700 titles, 24px spacing, no card borders, whitespace separation.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <div class="column">
+    <div class="label new">Home — Top</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="r-header">
+          <div class="weather-pill">☁ 30° · Tue</div>
+          <div class="avatar">👶</div>
+        </div>
+        <div class="r-content">
+          <div class="r-greeting">
+            <h1>Morning, Lauren</h1>
+            <div class="age-line">Rosie · Week 15 · 3 months old</div>
+          </div>
+          <div class="r-tabs">
+            <div class="r-tab active"><span class="icon">🏠</span><span class="lbl">Home</span></div>
+            <div class="r-tab"><span class="icon">📅</span><span class="lbl">Timeline</span></div>
+            <div class="r-tab"><span class="icon">🌱</span><span class="lbl">This Week</span></div>
+          </div>
+
+          <!-- Quick Log -->
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">Quick Log</div>
+            </div>
+            <div class="r-action-cards">
+              <div class="r-action-card feed">
+                <div class="r-action-card-icon">🍼</div>
+                <div class="r-action-card-label">Last Feed</div>
+                <div class="r-action-card-value orange">1h 1m</div>
+                <div class="r-action-card-detail">Bottle, 4oz</div>
+                <div class="r-action-card-btn orange">+ Feed</div>
+              </div>
+              <div class="r-action-card sleep">
+                <div class="r-action-card-icon">💤</div>
+                <div class="r-action-card-label">Last Sleep</div>
+                <div class="r-action-card-value purple">47m</div>
+                <div class="r-action-card-detail">Nap, 1h 6m</div>
+                <div class="r-action-card-btn purple">+ Sleep</div>
+              </div>
+              <div class="r-action-card diaper">
+                <div class="r-action-card-icon">🧷</div>
+                <div class="r-action-card-label">Last Diaper</div>
+                <div class="r-action-card-value green">1h 30m</div>
+                <div class="r-action-card-detail">Wet</div>
+                <div class="r-action-card-btn green">+ Diaper</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- This Week Carousel -->
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">This Week</div>
+              <div class="r-section-link">More →</div>
+            </div>
+            <div class="r-insight" style="background:linear-gradient(135deg, #FFF8F0 0%, #F8F4FF 100%);">
+              <div class="cat" style="color:#FF9500;">🧠 Week 15 · Quick Win</div>
+              <div class="text">Narrate a diaper change (2 min) — Language exposure</div>
+              <div style="color:#007AFF;font-size:13px;font-weight:600;margin-top:8px;cursor:pointer;">Read more →</div>
+            </div>
+            <div class="r-carousel-dots" style="margin-top:10px;">
+              <div class="r-dot active"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot"></div>
+              <div class="r-dot" style="background:#B57BEC;"></div>
+            </div>
+          </div>
+
+          <!-- Today's Stats -->
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">Today's Stats</div>
+            </div>
+            <div class="r-stats-row">
+              <div class="r-stat">
+                <div class="r-stat-ring orange"><div class="r-stat-value orange">5</div></div>
+                <div class="r-stat-label">Feeds</div>
+              </div>
+              <div class="r-stat">
+                <div class="r-stat-ring purple"><div class="r-stat-value purple">7h</div></div>
+                <div class="r-stat-label">Sleep</div>
+              </div>
+              <div class="r-stat">
+                <div class="r-stat-ring green"><div class="r-stat-value green">6</div></div>
+                <div class="r-stat-label">Diapers</div>
+              </div>
+            </div>
+            <div class="r-ranges">
+              <div class="r-range">
+                <div class="r-range-value orange">7-8</div>
+                <div class="r-range-label">Feeds/day</div>
+              </div>
+              <div class="r-range">
+                <div class="r-range-value purple">14-16h</div>
+                <div class="r-range-label">Sleep/day</div>
+              </div>
+              <div class="r-range">
+                <div class="r-range-value green">6-8</div>
+                <div class="r-range-label">Diapers/day</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Today's Events -->
+          <div class="r-section">
+            <div class="r-section-hdr">
+              <div class="r-section-title">Today</div>
+              <div class="r-section-link">All →</div>
+            </div>
+            <div class="r-event">
+              <div class="r-event-icon sleep">💤</div>
+              <div class="r-event-info">
+                <div class="r-event-title">Nap · 1h 6m</div>
+                <div class="r-event-detail">Quality: good</div>
+              </div>
+              <div class="r-event-time">2:34 PM</div>
+            </div>
+            <div class="r-event">
+              <div class="r-event-icon feed">🍼</div>
+              <div class="r-event-info">
+                <div class="r-event-title">Bottle · 4oz</div>
+              </div>
+              <div class="r-event-time">1:15 PM</div>
+            </div>
+            <div class="r-event">
+              <div class="r-event-icon diaper">🧷</div>
+              <div class="r-event-info">
+                <div class="r-event-title">Wet diaper</div>
+              </div>
+              <div class="r-event-time">12:30 PM</div>
+            </div>
+          </div>
+
+          <div style="height:80px;"></div>
+        </div>
+        <div class="r-ask-pill">
+          <div class="r-ask-pill-inner">
+            <div class="r-ask-pill-icon">✨</div>
+            <div class="r-ask-pill-text">Ask Rosie anything...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="callouts">
+  <div class="callout">
+    <span class="num orange">1</span>
+    <span class="title">Section Header Pattern</span>
+    <div class="desc">Every section uses the same "Title (left) + Link (right)" pattern from This Week. Consistent across all tabs — 18px/700 typography.</div>
+  </div>
+  <div class="callout">
+    <span class="num orange">2</span>
+    <span class="title">Cards Without Borders</span>
+    <div class="desc">White cards on #FAFAFA bg. No box-shadows. No borders. Whitespace creates visual separation — Airbnb's content-first approach.</div>
+  </div>
+  <div class="callout">
+    <span class="num orange">3</span>
+    <span class="title">Today's Stats Rings</span>
+    <div class="desc">Progress rings with "What's normal" range below. Orange/purple/green accent colors match the Quick Log cards. Visual consistency throughout.</div>
+  </div>
+  <div class="callout">
+    <span class="num orange">4</span>
+    <span class="title">Floating Ask Rosie Pill</span>
+    <div class="desc">Always visible at bottom. Contextual text. Matches Airbnb's search bar pattern — the primary CTA that never disappears.</div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     5. DESIGN PRINCIPLES SUMMARY
+     ============================================================ -->
+<div class="section-header-page">
+  <h2>Design Principles — Airbnb-Inspired Onboarding</h2>
+  <p>Key patterns extracted from Airbnb's approach, adapted for Rosie's context.</p>
+</div>
+
+<div class="callouts" style="grid-template-columns:1fr 1fr 1fr;max-width:1100px;">
+  <div class="callout">
+    <span class="num purple">1</span>
+    <span class="title">Progressive Disclosure</span>
+    <div class="desc">One question per screen. Name → Birthday → Done. Never overwhelm a sleep-deprived parent with a wall of form fields.</div>
+  </div>
+  <div class="callout">
+    <span class="num purple">2</span>
+    <span class="title">Emotional-First Copy</span>
+    <div class="desc">Lead with feeling, not features. "Your calm companion" > "Baby tracker app". Parents are buying peace of mind.</div>
+  </div>
+  <div class="callout">
+    <span class="num purple">3</span>
+    <span class="title">Minimal Required Data</span>
+    <div class="desc">Only ask what's needed to start: baby name + birthday. Gender, weight, preferences can be added later in Profile. Reduce drop-off.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">4</span>
+    <span class="title">Personalize Immediately</span>
+    <div class="desc">"When was Rosie born?" — use the baby's name as soon as it's captured. Builds emotional connection with each step.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">5</span>
+    <span class="title">Progress = Motivation</span>
+    <div class="desc">4-segment progress bar shows the full journey upfront. Purple gradient for current, green for done. Users see the finish line.</div>
+  </div>
+  <div class="callout">
+    <span class="num green">6</span>
+    <span class="title">Celebrate Completion</span>
+    <div class="desc">🎉 success screen with green checkmarks. Gamification creates a micro-dopamine hit. User's first impression of the app is accomplishment.</div>
+  </div>
+</div>
+
+
+</body>
+</html>
