@@ -47,5 +47,22 @@
 - Timeline events → `rosie_events` table (Supabase)
 - User settings (location, etc.) → `rosie_profiles.settings` JSONB column
 - Growth measurements → `rosie_growth_measurements` table
-- All data also cached in localStorage (`RosieData` key) for offline/fast access
+- All data also cached in localStorage (`rosie_data` key) for offline/fast access
 - Supabase is source of truth; localStorage is cache
+
+## Scripts
+
+### Seed Data (`scripts/seed-data.mjs`)
+Generates realistic baby tracking data from birth to today. Deletes existing events/growth data first, then re-seeds.
+
+**What it generates:**
+- Timeline events (feeds, sleep, diapers, notes) with age-appropriate patterns that evolve weekly
+- Growth measurements at CDC 50th percentile checkpoints (birth, 2wk, 1mo, 2mo, 3mo, 4mo)
+
+**How to run:**
+1. Get auth tokens from the browser: open the app → DevTools Console → `JSON.parse(localStorage.getItem('sb-lpgamnbjkeigacvwbcwn-auth-token'))`
+2. Or let Claude extract tokens via the browser MCP tools (navigate to rosieai.netlify.app, read localStorage)
+3. Run: `ROSIE_ACCESS_TOKEN=<access_token> ROSIE_REFRESH_TOKEN=<refresh_token> node scripts/seed-data.mjs`
+4. After running, clear `rosie_data` from localStorage in the app (or hard refresh) to see new data
+
+**Config at top of file:** `BIRTH_DATE`, `BABY_NAME` — update these if the baby profile changes.

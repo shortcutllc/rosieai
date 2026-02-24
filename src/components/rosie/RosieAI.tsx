@@ -5,8 +5,8 @@ import { RosieOnboarding } from './RosieOnboarding';
 import { RosieTimeline } from './RosieTimeline';
 import { RosieChat } from './RosieChat';
 import { RosieDevelopment } from './RosieDevelopment';
-import { RosieInsights } from './RosieInsights';
-import { RosieHeader, TimePeriod, getTimePeriod } from './RosieHeader';
+import { RosieHome } from './RosieHome';
+import { RosieHeader, TimePeriod, getTimePeriod, getGreeting } from './RosieHeader';
 import { RosieQuickLog } from './RosieQuickLog';
 import { RosieProfile } from './RosieProfile';
 import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, GrowthMeasurement, UserSettings } from './types';
@@ -44,14 +44,14 @@ const formatDuration = (seconds: number): string => {
 
 // Inner component that uses auth context
 const RosieAIContent: React.FC = () => {
-  const { user, currentBaby, loading: authLoading, signOut } = useRosieAuth();
+  const { user, currentBaby, profile, loading: authLoading, signOut, updateProfile, updateBaby: updateBabyInDb } = useRosieAuth();
   const [data, setData] = useState<RosieData | null>(null);
-  const [activeTab, setActiveTab] = useState<'timeline' | 'insights' | 'development' | 'chat'>('timeline');
+  const [activeTab, setActiveTab] = useState<'home' | 'timeline' | 'development' | 'chat'>('home');
   const [showChat, setShowChat] = useState(false);
-  const [previousTab, setPreviousTab] = useState<'timeline' | 'insights' | 'development'>('timeline');
+  const [previousTab, setPreviousTab] = useState<'home' | 'timeline' | 'development'>('home');
   const [isLoading, setIsLoading] = useState(true);
   const [bannerTimerDisplay, setBannerTimerDisplay] = useState(0);
-  const [showQuickLogModal, setShowQuickLogModal] = useState<'feed' | 'sleep' | null>(null);
+  const [showQuickLogModal, setShowQuickLogModal] = useState<'feed' | 'sleep' | 'diaper' | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(() => getTimePeriod(new Date().getHours()));
   const [showAuth, setShowAuth] = useState(false);
@@ -67,11 +67,19 @@ const RosieAIContent: React.FC = () => {
         // Preserve all locally cached data (userSettings, growthMeasurements, etc.)
         const initialData: RosieData = {
           baby: {
+            // Start with locally cached baby data (avatarImage, avatarType, gender, etc.)
+            ...stored?.baby,
+            // Override with authoritative DB fields
             name: currentBaby.name,
             birthDate: currentBaby.birthDate,
             photoUrl: currentBaby.photoUrl,
             birthWeight: currentBaby.birthWeight,
             weightUnit: currentBaby.weightUnit,
+            // If DB has a photo_url and no local avatarImage, use it
+            ...(currentBaby.photoUrl && !stored?.baby?.avatarImage ? {
+              avatarImage: currentBaby.photoUrl,
+              avatarType: 'image' as const,
+            } : {}),
           },
           timeline: stored?.timeline || [],
           chatHistory: stored?.chatHistory || [],
@@ -281,6 +289,23 @@ const RosieAIContent: React.FC = () => {
 
     saveData(updatedData);
     setData(updatedData);
+
+    // Sync to Supabase (fields that have DB columns)
+    if (currentBaby?.id) {
+      const dbUpdates: Partial<BabyProfile> = {};
+      if (baby.name !== data.baby.name) dbUpdates.name = baby.name;
+      if (baby.birthDate !== data.baby.birthDate) dbUpdates.birthDate = baby.birthDate;
+      // Store avatar image in photo_url column
+      if (baby.avatarType === 'image' && baby.avatarImage) {
+        dbUpdates.photoUrl = baby.avatarImage;
+      } else if (baby.avatarType === 'emoji' && data.baby.avatarType === 'image') {
+        // Switching from image to emoji — clear photo_url
+        dbUpdates.photoUrl = '';
+      }
+      if (Object.keys(dbUpdates).length > 0) {
+        updateBabyInDb(currentBaby.id, dbUpdates);
+      }
+    }
   };
 
   const handleUpdateSettings = async (settings: UserSettings) => {
@@ -366,12 +391,28 @@ const RosieAIContent: React.FC = () => {
     setShowAuth(true);
   };
 
-  // Show loading state
+  // Show skeleton loading state
   if (isLoading || authLoading) {
     return (
       <div className="rosie-container">
-        <div className="rosie-loading">
-          <div className="rosie-loading-spinner" />
+        <div style={{ padding: '16px', maxWidth: 600, margin: '0 auto' }}>
+          {/* Skeleton greeting */}
+          <div className="rosie-skeleton rosie-skeleton-title" style={{ marginTop: 56, marginBottom: 8 }} />
+          <div className="rosie-skeleton rosie-skeleton-text" style={{ width: '35%', marginBottom: 20 }} />
+          {/* Skeleton tabs */}
+          <div className="rosie-skeleton" style={{ height: 44, borderRadius: 12, marginBottom: 20 }} />
+          {/* Skeleton action cards */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            <div className="rosie-skeleton rosie-skeleton-card" style={{ flex: 1 }} />
+            <div className="rosie-skeleton rosie-skeleton-card" style={{ flex: 1 }} />
+            <div className="rosie-skeleton rosie-skeleton-card" style={{ flex: 1 }} />
+          </div>
+          {/* Skeleton insight */}
+          <div className="rosie-skeleton" style={{ height: 90, borderRadius: 16, marginBottom: 20 }} />
+          {/* Skeleton events */}
+          <div className="rosie-skeleton rosie-skeleton-row" />
+          <div className="rosie-skeleton rosie-skeleton-row" />
+          <div className="rosie-skeleton rosie-skeleton-row" />
         </div>
       </div>
     );
@@ -444,60 +485,79 @@ const RosieAIContent: React.FC = () => {
         </div>
       )}
 
+      {/* Greeting Hero */}
+      <div className="rosie-greeting-hero">
+        <h1 className="rosie-greeting-hero-title">{getGreeting(timePeriod, profile?.name)}</h1>
+        <p className="rosie-greeting-hero-age">
+          {data.baby.name} · Week {developmentalInfo.weekNumber} · {developmentalInfo.ageDisplay}
+        </p>
+      </div>
+
       {/* Tab Navigation */}
       <nav className="rosie-tabs">
+        <button
+          className={`rosie-tab ${activeTab === 'home' && !showChat ? 'active' : ''}`}
+          onClick={() => { setActiveTab('home'); setShowChat(false); }}
+        >
+          <span className="rosie-tab-icon">🏠</span>
+          <span className="rosie-tab-label">Home</span>
+        </button>
         <button
           className={`rosie-tab ${activeTab === 'timeline' && !showChat ? 'active' : ''}`}
           onClick={() => { setActiveTab('timeline'); setShowChat(false); }}
         >
-          Timeline
-        </button>
-        <button
-          className={`rosie-tab ${activeTab === 'insights' && !showChat ? 'active' : ''}`}
-          onClick={() => { setActiveTab('insights'); setShowChat(false); }}
-        >
-          Insights
+          <span className="rosie-tab-icon">📅</span>
+          <span className="rosie-tab-label">Timeline</span>
         </button>
         <button
           className={`rosie-tab ${activeTab === 'development' && !showChat ? 'active' : ''}`}
           onClick={() => { setActiveTab('development'); setShowChat(false); }}
         >
-          This Week
+          <span className="rosie-tab-icon">🌱</span>
+          <span className="rosie-tab-label">This Week</span>
         </button>
         <button
           className={`rosie-tab ${showChat ? 'active' : ''}`}
           onClick={() => {
             if (!showChat) {
-              setPreviousTab(activeTab === 'chat' ? 'timeline' : activeTab as 'timeline' | 'insights' | 'development');
+              setPreviousTab(activeTab === 'chat' ? 'home' : activeTab as 'home' | 'timeline' | 'development');
             }
             setShowChat(true);
           }}
         >
-          Ask Rosie
+          <span className="rosie-tab-icon">💬</span>
+          <span className="rosie-tab-label">Ask Rosie</span>
         </button>
       </nav>
 
       {/* Main Content */}
       <main className="rosie-main">
-        {activeTab === 'timeline' && (
-          <RosieTimeline
-            events={data.timeline}
-            baby={data.baby}
-            onDeleteEvent={handleDeleteEvent}
-          />
-        )}
-        {activeTab === 'insights' && (
-          <RosieInsights
-            baby={data.baby}
-            timeline={data.timeline}
-          />
-        )}
-        {activeTab === 'development' && (
-          <RosieDevelopment
-            baby={data.baby}
-            developmentalInfo={developmentalInfo}
-          />
-        )}
+        <div key={activeTab} className="rosie-tab-content">
+          {activeTab === 'home' && (
+            <RosieHome
+              timeline={data.timeline}
+              baby={data.baby}
+              developmentalInfo={developmentalInfo}
+              timePeriod={timePeriod}
+              lastFeedSide={lastFeedSide}
+              onOpenQuickLog={(type) => setShowQuickLogModal(type)}
+              onNavigateTab={(tab) => { setActiveTab(tab); setShowChat(false); }}
+            />
+          )}
+          {activeTab === 'timeline' && (
+            <RosieTimeline
+              events={data.timeline}
+              baby={data.baby}
+              onDeleteEvent={handleDeleteEvent}
+            />
+          )}
+          {activeTab === 'development' && (
+            <RosieDevelopment
+              baby={data.baby}
+              developmentalInfo={developmentalInfo}
+            />
+          )}
+        </div>
       </main>
 
       {/* Chat overlay — fullscreen takeover, rendered outside main */}
@@ -517,19 +577,18 @@ const RosieAIContent: React.FC = () => {
         }}
       />
 
-      {/* Quick Log Buttons - Always visible on timeline/insights tabs, or when modal opened from banner */}
-      {(activeTab === 'timeline' || activeTab === 'insights' || showQuickLogModal) && (
-        <RosieQuickLog
-          onAddEvent={handleAddEvent}
-          activeTimer={data.activeTimer || null}
-          onStartTimer={handleStartTimer}
-          onStopTimer={handleStopTimer}
-          onUpdateTimer={handleUpdateTimer}
-          lastFeedSide={lastFeedSide}
-          openModal={showQuickLogModal}
-          onModalClose={() => setShowQuickLogModal(null)}
-        />
-      )}
+      {/* Quick Log Modals — triggered from action cards, timer banner, or timeline */}
+      <RosieQuickLog
+        onAddEvent={handleAddEvent}
+        activeTimer={data.activeTimer || null}
+        onStartTimer={handleStartTimer}
+        onStopTimer={handleStopTimer}
+        onUpdateTimer={handleUpdateTimer}
+        lastFeedSide={lastFeedSide}
+        openModal={showQuickLogModal}
+        onModalClose={() => setShowQuickLogModal(null)}
+        hideBar={true}
+      />
 
       {/* Profile Modal */}
       {showProfile && (
@@ -537,6 +596,10 @@ const RosieAIContent: React.FC = () => {
           baby={data.baby}
           growthMeasurements={data.growthMeasurements || []}
           userSettings={data.userSettings}
+          parentName={profile?.name}
+          onUpdateParentName={async (name: string) => {
+            await updateProfile(name);
+          }}
           onUpdateBaby={handleUpdateBaby}
           onUpdateSettings={handleUpdateSettings}
           onAddMeasurement={handleAddMeasurement}

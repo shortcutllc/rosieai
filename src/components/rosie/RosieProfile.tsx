@@ -5,6 +5,8 @@ interface RosieProfileProps {
   baby: BabyProfile;
   growthMeasurements: GrowthMeasurement[];
   userSettings?: UserSettings;
+  parentName?: string | null;
+  onUpdateParentName?: (name: string) => Promise<void>;
   onUpdateBaby: (baby: BabyProfile) => void;
   onUpdateSettings: (settings: UserSettings) => void;
   onAddMeasurement: (measurement: Omit<GrowthMeasurement, 'id' | 'timestamp'>) => void;
@@ -21,6 +23,8 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
   baby,
   growthMeasurements,
   userSettings,
+  parentName,
+  onUpdateParentName,
   onUpdateBaby,
   onUpdateSettings,
   onAddMeasurement,
@@ -33,6 +37,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [editLocation, setEditLocation] = useState(userSettings?.location || '');
+  const [editParentName, setEditParentName] = useState(parentName || '');
   const [showAddMeasurement, setShowAddMeasurement] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +64,20 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
       setEditLocation(userSettings.location);
     }
   }, [userSettings?.location]);
+
+  // Format weight from total ounces to "X lb Y oz"
+  const formatWeight = (totalOz: number, unit?: string): string => {
+    if (unit === 'g' || unit === 'kg') {
+      // Metric: just show as-is
+      return `${totalOz} ${unit}`;
+    }
+    // Imperial: convert oz to lb + oz
+    const lbs = Math.floor(totalOz / 16);
+    const oz = Math.round((totalOz % 16) * 10) / 10;
+    if (lbs === 0) return `${oz} oz`;
+    if (oz === 0) return `${lbs} lb`;
+    return `${lbs} lb ${oz} oz`;
+  };
 
   // Calculate age
   const getAgeDisplay = () => {
@@ -312,7 +331,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
                           <div className="rosie-profile-info-card">
                             <div className="rosie-profile-info-label">Current Weight</div>
                             <div className="rosie-profile-info-value">
-                              {latestMeasurement.weight} {baby.weightUnit || 'lb'}
+                              {formatWeight(latestMeasurement.weight, baby.weightUnit)}
                             </div>
                           </div>
                         )}
@@ -580,7 +599,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
                         {measurement.weight && (
                           <span className="rosie-growth-value">
                             <span className="rosie-growth-value-label">Weight:</span>
-                            {measurement.weight} {baby.weightUnit || 'lb'}
+                            {formatWeight(measurement.weight, baby.weightUnit)}
                           </span>
                         )}
                         {measurement.length && (
@@ -615,6 +634,44 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
           {/* Settings Section */}
           {activeSection === 'settings' && (
             <div className="rosie-profile-section">
+              {/* Your Profile Section */}
+              <div className="rosie-settings-group">
+                <h4 className="rosie-settings-group-title">Your Profile</h4>
+                <div className="rosie-settings-item-full">
+                  <div className="rosie-settings-item-info">
+                    <div className="rosie-settings-item-label">Your Name</div>
+                    <div className="rosie-settings-item-desc">
+                      This is how Rosie greets you
+                    </div>
+                  </div>
+                  <div className="rosie-settings-location-input">
+                    <input
+                      type="text"
+                      className="rosie-profile-input"
+                      value={editParentName}
+                      onChange={e => setEditParentName(e.target.value)}
+                      placeholder="e.g., Sarah, Mom, Mama"
+                    />
+                    <button
+                      className="rosie-settings-btn"
+                      onClick={async () => {
+                        if (onUpdateParentName && editParentName.trim()) {
+                          await onUpdateParentName(editParentName.trim());
+                        }
+                      }}
+                      disabled={!editParentName.trim()}
+                    >
+                      Save
+                    </button>
+                  </div>
+                  {parentName && (
+                    <div className="rosie-settings-location-current">
+                      Current: {parentName}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Location/Weather Section */}
               <div className="rosie-settings-group">
                 <h4 className="rosie-settings-group-title">Location & Weather</h4>

@@ -36,6 +36,7 @@ interface RosieAuthContextType {
 
   // Profile methods
   createProfile: (name: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (name: string) => Promise<{ success: boolean; error?: string }>;
   addBaby: (baby: Omit<BabyProfile, 'id'>) => Promise<{ success: boolean; baby?: RosieBabyProfile; error?: string }>;
   updateBaby: (babyId: string, updates: Partial<BabyProfile>) => Promise<{ success: boolean; error?: string }>;
   setCurrentBaby: (babyId: string) => void;
@@ -141,21 +142,33 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     console.log('[RosieAuth] Loading user data for:', userId);
 
     try {
-      // Fetch with 5 second timeout - if it takes longer, continue with null/empty
-      const [userProfile, userBabies] = await Promise.all([
-        withTimeout(fetchProfile(userId), 5000, null),
-        withTimeout(fetchBabies(userId), 5000, [])
+      // Fire off real fetches — they'll update state whenever they resolve
+      const profilePromise = fetchProfile(userId).then(result => {
+        if (result) {
+          console.log('[RosieAuth] Profile fetched, updating state');
+          setProfile(result);
+        }
+        return result;
+      });
+
+      const babiesPromise = fetchBabies(userId).then(result => {
+        if (result.length > 0) {
+          console.log('[RosieAuth] Babies fetched, updating state');
+          setBabies(result);
+          // Set current baby from localStorage or first baby
+          const savedBabyId = localStorage.getItem('rosie_current_baby_id');
+          const savedBaby = result.find(b => b.id === savedBabyId);
+          setCurrentBabyState(savedBaby || result[0] || null);
+        }
+        return result;
+      });
+
+      // Wait up to 5s so we can stop showing the loading spinner,
+      // but the .then() callbacks above will still fire after timeout
+      await Promise.all([
+        withTimeout(profilePromise, 5000, null),
+        withTimeout(babiesPromise, 5000, [])
       ]);
-
-      console.log('[RosieAuth] Data loaded - profile:', !!userProfile, 'babies:', userBabies.length);
-
-      setProfile(userProfile);
-      setBabies(userBabies);
-
-      // Set current baby from localStorage or first baby
-      const savedBabyId = localStorage.getItem('rosie_current_baby_id');
-      const savedBaby = userBabies.find(b => b.id === savedBabyId);
-      setCurrentBabyState(savedBaby || userBabies[0] || null);
 
       // Mark as loaded for this user
       dataLoadedForUser.current = userId;
@@ -425,6 +438,31 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Update user profile (e.g., parent name)
+  const updateProfile = async (name: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    try {
+      const { error: updateError } = await supabase
+        .from('rosie_profiles')
+        .update({ name })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfile(prev => prev
+        ? { ...prev, name }
+        : { id: user.id, email: user.email || '', name, created_at: new Date().toISOString() }
+      );
+      return { success: true };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+      return { success: false, error: errorMessage };
+    }
+  };
+
   // Add a baby
   const addBaby = async (baby: Omit<BabyProfile, 'id'>): Promise<{ success: boolean; baby?: RosieBabyProfile; error?: string }> => {
     if (!user) {
@@ -548,6 +586,7 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         resendConfirmation,
         signOut,
         createProfile,
+        updateProfile,
         addBaby,
         updateBaby,
         setCurrentBaby,

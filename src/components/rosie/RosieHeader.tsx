@@ -12,28 +12,57 @@ export const getTimePeriod = (hour: number): TimePeriod => {
   return 'night';
 };
 
-// Get greeting based on time of day
-const getGreeting = (period: TimePeriod): string => {
-  switch (period) {
-    case 'morning': return 'Good morning';
-    case 'afternoon': return 'Good afternoon';
-    case 'evening': return 'Good evening';
-    case 'night': return 'Good night';
-  }
-};
+// Get greeting based on time of day, with optional parent name personalization
+export const getGreeting = (period: TimePeriod, parentName?: string | null): string => {
+  const name = parentName?.trim();
 
-// Get supportive subtext based on time and context
-const getSupportiveText = (period: TimePeriod, babyName: string): string => {
-  switch (period) {
-    case 'morning':
-      return `Here's how ${babyName}'s day is starting`;
-    case 'afternoon':
-      return `Here's how ${babyName}'s day is going`;
-    case 'evening':
-      return `Winding down with ${babyName}`;
-    case 'night':
-      return `You're doing amazing`;
+  // Without a name, return simple greeting
+  if (!name) {
+    switch (period) {
+      case 'morning': return 'Good morning';
+      case 'afternoon': return 'Good afternoon';
+      case 'evening': return 'Good evening';
+      case 'night': return 'Good night';
+    }
   }
+
+  // Deterministic rotation based on date so greeting stays consistent per day
+  const now = new Date();
+  const dayHash = now.getFullYear() * 1000 + now.getMonth() * 32 + now.getDate();
+
+  const pools: Record<TimePeriod, string[]> = {
+    morning: [
+      `Good morning, ${name}`,
+      `Morning, ${name}`,
+      `Hey ${name}, good morning`,
+      `Rise and shine, ${name}`,
+      `Hope you slept well, ${name}`,
+    ],
+    afternoon: [
+      `Good afternoon, ${name}`,
+      `How's your afternoon, ${name}?`,
+      `Afternoon, ${name}`,
+      `Hey ${name}`,
+      `Hope your day's going well, ${name}`,
+    ],
+    evening: [
+      `Good evening, ${name}`,
+      `Evening, ${name}`,
+      `Hope tonight is easy, ${name}`,
+      `Winding down, ${name}?`,
+      `You're doing great, ${name}`,
+    ],
+    night: [
+      `Hope you're getting rest, ${name}`,
+      `Night, ${name}`,
+      `You're a rockstar, ${name}`,
+      `Hang in there, ${name}`,
+      `Late night? You've got this, ${name}`,
+    ],
+  };
+
+  const pool = pools[period];
+  return pool[dayHash % pool.length];
 };
 
 interface RosieHeaderProps {
@@ -45,8 +74,7 @@ interface RosieHeaderProps {
   onProfileClick?: () => void;
 }
 
-export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, developmentalInfo, userSettings, onTimePeriodChange, onWeatherChange, onProfileClick }) => {
-  const { ageDisplay, weekNumber, ageInDays } = developmentalInfo;
+export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, userSettings, onTimePeriodChange, onWeatherChange, onProfileClick }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(() => getTimePeriod(new Date().getHours()));
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -65,11 +93,15 @@ export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, developmentalInf
       if (!response.ok) {
         throw new Error('Failed to fetch weather');
       }
+      // Verify we got JSON (not an HTML error page from dev server)
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        throw new Error('Weather API unavailable');
+      }
       const data = await response.json();
       setWeather(data);
       onWeatherChange?.(data);
-    } catch (error) {
-      console.error('Error fetching weather:', error);
+    } catch {
       setWeatherError(true);
       onWeatherChange?.(null);
     } finally {
@@ -104,7 +136,7 @@ export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, developmentalInf
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 60000); // Update every minute
+    const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
   }, [timePeriod, onTimePeriodChange]);
 
@@ -113,84 +145,39 @@ export const RosieHeader: React.FC<RosieHeaderProps> = ({ baby, developmentalInf
     onTimePeriodChange?.(timePeriod);
   }, []);
 
-  // Format time (e.g., "1:45 PM")
-  const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  // Format date (e.g., "Monday, January 20")
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  // Format a friendly day display
-  const getDayText = () => {
-    if (ageInDays === 0) return 'Born today';
-    if (ageInDays === 1) return 'Day 1';
-    return `Day ${ageInDays}`;
-  };
-
-  const greeting = getGreeting(timePeriod);
-  const supportiveText = getSupportiveText(timePeriod, baby.name);
+  // Get current day name for the weather pill
+  const dayName = currentTime.toLocaleDateString('en-US', { weekday: 'long' });
 
   return (
-    <header className={`rosie-header ${timePeriod}`}>
-      <div className="rosie-header-content">
-        {/* Profile Button - Top Right */}
-        {onProfileClick && (
-          <button
-            className={`rosie-header-profile-btn ${baby.avatarType === 'image' && baby.avatarImage ? 'has-image' : ''}`}
-            onClick={onProfileClick}
-            aria-label="Open profile"
-          >
-            {baby.avatarType === 'image' && baby.avatarImage ? (
-              <img src={baby.avatarImage} alt={`${baby.name}'s photo`} />
-            ) : (
-              baby.avatarEmoji || '👶'
-            )}
-          </button>
-        )}
-
-        {/* Weather Display - Top Left */}
-        {weather && !weatherError && (
-          <div className="rosie-header-weather">
-            <span className="rosie-weather-icon">{weather.icon}</span>
-            <span className="rosie-weather-temp">{weather.temperature}°</span>
-            <span className="rosie-weather-condition">{weather.condition}</span>
-          </div>
-        )}
-
-        {/* Time & Date - Apple Lock Screen style */}
-        <div className="rosie-header-datetime">
-          <div className="rosie-header-time">{formatTime(currentTime)}</div>
-          <div className="rosie-header-date">{formatDate(currentTime)}</div>
+    <header className={`rosie-header-minimal ${timePeriod}`}>
+      {/* Weather pill — left */}
+      {weather && !weatherError ? (
+        <div className="rosie-header-weather-pill">
+          <span className="rosie-weather-pill-icon">{weather.icon}</span>
+          <span className="rosie-weather-pill-text">
+            {weather.temperature}° · {dayName}
+          </span>
         </div>
-
-        {/* Greeting & Welcome Message */}
-        <div className="rosie-header-welcome">
-          <h1 className="rosie-greeting">{greeting}</h1>
-          <p className="rosie-welcome-text">{supportiveText}</p>
+      ) : (
+        <div className="rosie-header-weather-pill">
+          <span className="rosie-weather-pill-text">{dayName}</span>
         </div>
+      )}
 
-        {/* Baby age info */}
-        <div className="rosie-age">
-          <div className="rosie-age-detail">
-            <span>{getDayText()}</span>
-            <span className="rosie-age-separator" />
-            <span>Week {weekNumber}</span>
-            <span className="rosie-age-separator" />
-            <span>{ageDisplay}</span>
-          </div>
-        </div>
-      </div>
+      {/* Profile avatar — right */}
+      {onProfileClick && (
+        <button
+          className={`rosie-header-avatar ${baby.avatarType === 'image' && baby.avatarImage ? 'has-image' : ''}`}
+          onClick={onProfileClick}
+          aria-label="Open profile"
+        >
+          {baby.avatarType === 'image' && baby.avatarImage ? (
+            <img src={baby.avatarImage} alt={`${baby.name}'s photo`} />
+          ) : (
+            baby.avatarEmoji || '👶'
+          )}
+        </button>
+      )}
     </header>
   );
 };

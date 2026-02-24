@@ -25,6 +25,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   } = useRosieAuth();
 
   const [view, setView] = useState<AuthView>('welcome');
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,6 +38,15 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   const [localError, setLocalError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+
+  // Navigate between auth views with slide animation
+  const navigateTo = (newView: AuthView, direction: 'left' | 'right' = 'left') => {
+    setSlideDirection(direction);
+    setView(newView);
+    clearError();
+  };
+
+  const slideClass = slideDirection === 'left' ? 'slide-left' : slideDirection === 'right' ? 'slide-right' : '';
 
   // Real-time password validation
   const passwordTouched = password.length > 0;
@@ -61,9 +71,9 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     if (user && profile && babies.length > 0) {
       onComplete();
     } else if (user && !profile) {
-      setView('signup-name');
+      navigateTo('signup-name', 'left');
     } else if (user && profile && babies.length === 0) {
-      setView('signup-baby');
+      navigateTo('signup-baby', 'left');
     }
   }, [user, profile, babies, loading, onComplete, view]);
 
@@ -77,7 +87,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     if (!result.success) {
       if (result.emailNotConfirmed) {
         // User hasn't confirmed their email yet — show the confirmation screen
-        setView('confirm-email');
+        navigateTo('confirm-email', 'left');
       } else {
         setLocalError(result.error || 'Failed to sign in');
       }
@@ -111,7 +121,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
       // Sign-up succeeded — show "check your email" screen BEFORE clearing loading.
       // This order matters: setting the view first ensures the useEffect guard
       // (which checks view === 'confirm-email') is already in place.
-      setView('confirm-email');
+      navigateTo('confirm-email', 'left');
       setLocalLoading(false);
     }
   };
@@ -143,7 +153,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     const result = await createProfile(parentName);
 
     if (result.success) {
-      setView('signup-baby');
+      navigateTo('signup-baby', 'left');
     } else {
       setLocalError(result.error || 'Failed to create profile');
     }
@@ -183,7 +193,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   if (view === 'welcome') {
     return (
       <div className="rosie-auth-container">
-        <div className="rosie-auth-card">
+        <div className={`rosie-auth-card ${slideClass}`}>
           <div className="rosie-auth-logo">
             <img src="/rosie-icon.svg" alt="Rosie" className="rosie-auth-logo-img" />
           </div>
@@ -210,13 +220,13 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
           <div className="rosie-auth-actions">
             <button
               className="rosie-auth-btn rosie-auth-btn-primary"
-              onClick={() => setView('signup')}
+              onClick={() => navigateTo('signup', 'left')}
             >
               Create Account
             </button>
             <button
               className="rosie-auth-btn rosie-auth-btn-secondary"
-              onClick={() => setView('signin')}
+              onClick={() => navigateTo('signin', 'left')}
             >
               Sign In
             </button>
@@ -230,10 +240,10 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   if (view === 'signup') {
     return (
       <div className="rosie-auth-container">
-        <div className="rosie-auth-card">
+        <div className={`rosie-auth-card ${slideClass}`}>
           <button
             className="rosie-auth-back"
-            onClick={() => { setView('welcome'); clearError(); setLocalError(null); }}
+            onClick={() => { navigateTo('welcome', 'right'); setLocalError(null); }}
           >
             ← Back
           </button>
@@ -320,7 +330,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
             Already have an account?{' '}
             <button
               className="rosie-auth-link"
-              onClick={() => { setView('signin'); clearError(); setLocalError(null); }}
+              onClick={() => { navigateTo('signin', 'left'); setLocalError(null); }}
             >
               Sign in
             </button>
@@ -334,7 +344,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   if (view === 'confirm-email') {
     return (
       <div className="rosie-auth-container">
-        <div className="rosie-auth-card">
+        <div className={`rosie-auth-card ${slideClass}`}>
           <div className="rosie-auth-confirm">
             <div className="rosie-auth-confirm-icon">✉️</div>
             <h1 className="rosie-auth-title">Check your email</h1>
@@ -364,10 +374,9 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
               <button
                 className="rosie-auth-btn rosie-auth-btn-primary"
                 onClick={() => {
-                  setView('signin');
+                  navigateTo('signin', 'left');
                   setPassword('');
                   setConfirmPassword('');
-                  clearError();
                   setLocalError(null);
                 }}
               >
@@ -388,10 +397,10 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   if (view === 'signin') {
     return (
       <div className="rosie-auth-container">
-        <div className="rosie-auth-card">
+        <div className={`rosie-auth-card ${slideClass}`}>
           <button
             className="rosie-auth-back"
-            onClick={() => { setView('welcome'); clearError(); setLocalError(null); }}
+            onClick={() => { navigateTo('welcome', 'right'); setLocalError(null); }}
           >
             ← Back
           </button>
@@ -446,7 +455,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
             Don't have an account?{' '}
             <button
               className="rosie-auth-link"
-              onClick={() => { setView('signup'); clearError(); setLocalError(null); }}
+              onClick={() => { navigateTo('signup', 'left'); setLocalError(null); }}
             >
               Create one
             </button>
@@ -460,7 +469,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   if (view === 'signup-name') {
     return (
       <div className="rosie-auth-container">
-        <div className="rosie-auth-card">
+        <div className={`rosie-auth-card ${slideClass}`}>
           <div className="rosie-auth-progress">
             <div className="rosie-auth-progress-step active">1</div>
             <div className="rosie-auth-progress-line"></div>
@@ -516,7 +525,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   if (view === 'signup-baby') {
     return (
       <div className="rosie-auth-container">
-        <div className="rosie-auth-card">
+        <div className={`rosie-auth-card ${slideClass}`}>
           <div className="rosie-auth-progress">
             <div className="rosie-auth-progress-step completed">✓</div>
             <div className="rosie-auth-progress-line active"></div>

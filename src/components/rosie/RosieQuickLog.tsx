@@ -9,8 +9,9 @@ interface RosieQuickLogProps {
   onStopTimer: () => void;
   onUpdateTimer: (timer: ActiveTimer) => void;
   lastFeedSide?: 'left' | 'right';
-  openModal?: 'feed' | 'sleep' | null;
+  openModal?: 'feed' | 'sleep' | 'diaper' | null;
   onModalClose?: () => void;
+  hideBar?: boolean;
 }
 
 type ModalType = 'feed' | 'sleep' | 'diaper' | null;
@@ -66,6 +67,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
   lastFeedSide,
   openModal,
   onModalClose,
+  hideBar,
 }) => {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [entryMode, setEntryMode] = useState<EntryMode>('timer');
@@ -776,35 +778,37 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
   return (
     <>
-      {/* Quick Log Bar */}
-      <div className="rosie-quicklog">
-        <div className="rosie-quicklog-content">
-          <button
-            className="rosie-quicklog-btn feed"
-            onClick={() => setActiveModal('feed')}
-            aria-label="Log feed"
-          >
-            <span className="rosie-quicklog-icon">🍼</span>
-            <span className="rosie-quicklog-label">Feed</span>
-          </button>
-          <button
-            className="rosie-quicklog-btn sleep"
-            onClick={() => setActiveModal('sleep')}
-            aria-label="Log sleep"
-          >
-            <span className="rosie-quicklog-icon">💤</span>
-            <span className="rosie-quicklog-label">Sleep</span>
-          </button>
-          <button
-            className="rosie-quicklog-btn diaper"
-            onClick={() => setActiveModal('diaper')}
-            aria-label="Log diaper"
-          >
-            <span className="rosie-quicklog-icon">🧷</span>
-            <span className="rosie-quicklog-label">Diaper</span>
-          </button>
+      {/* Quick Log Bar — hidden when hideBar is true (action cards replace it) */}
+      {!hideBar && (
+        <div className="rosie-quicklog">
+          <div className="rosie-quicklog-content">
+            <button
+              className="rosie-quicklog-btn feed"
+              onClick={() => setActiveModal('feed')}
+              aria-label="Log feed"
+            >
+              <span className="rosie-quicklog-icon">🍼</span>
+              <span className="rosie-quicklog-label">Feed</span>
+            </button>
+            <button
+              className="rosie-quicklog-btn sleep"
+              onClick={() => setActiveModal('sleep')}
+              aria-label="Log sleep"
+            >
+              <span className="rosie-quicklog-icon">💤</span>
+              <span className="rosie-quicklog-label">Sleep</span>
+            </button>
+            <button
+              className="rosie-quicklog-btn diaper"
+              onClick={() => setActiveModal('diaper')}
+              aria-label="Log diaper"
+            >
+              <span className="rosie-quicklog-icon">🧷</span>
+              <span className="rosie-quicklog-label">Diaper</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Feed Modal */}
       {activeModal === 'feed' && (
