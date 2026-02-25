@@ -9961,7 +9961,7 @@
 /* ─── Onboarding: Age Feedback ───────────────────────────── */
 
 .ob-age-feedback {
-  margin-top: -8px;
+  margin-top: 8px;
   margin-bottom: 16px;
   font-size: 13px;
   color: #86868B;

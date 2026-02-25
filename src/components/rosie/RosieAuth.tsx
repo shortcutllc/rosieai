@@ -172,8 +172,8 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   useEffect(() => {
     if (loading) return;
     if (view === 'confirm-email' || view === 'celebration') return;
-    if (view === 'signup-name' && !profile) return;
-    if ((view === 'signup-baby-name' || view === 'signup-baby-birthday' || view === 'signup-early') && babies.length === 0) return;
+    if (view === 'signup-name') return;
+    if (view === 'signup-baby-name' || view === 'signup-baby-birthday' || view === 'signup-early') return;
 
     if (user && profile && babies.length > 0) {
       onComplete();
@@ -703,6 +703,9 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
         <div className={`ob-card ${slideClass}`}>
           {renderProgress(2)}
           <div className="ob-screen">
+            <button className="ob-back" onClick={() => navigateTo('signup-name', 'right')}>
+              ← Back
+            </button>
             <div className="ob-spacer-lg" />
 
             <div className="ob-emoji-anim bounce">👶</div>
@@ -793,7 +796,6 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
                 className="ob-input"
                 max={new Date().toISOString().split('T')[0]}
                 required
-                autoFocus
               />
 
               {birthDate && ageInfo && (

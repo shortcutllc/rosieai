@@ -163,6 +163,34 @@ These are the critical values from `docs/design-thesis.md`. When in doubt, read 
 - All data also cached in localStorage (`rosie_data` key) for offline/fast access
 - Supabase is source of truth; localStorage is cache
 
+## Dev/Test Account
+
+A pre-confirmed dev account exists for autonomous visual testing (onboarding, all tabs, night mode, etc.):
+
+| Field | Value |
+|-------|-------|
+| Email | `rosie-dev@testaccount.dev` |
+| Password | `testtest123` |
+
+**How to sign in on localhost:**
+1. Start the dev server
+2. Clear localStorage keys: `rosie_data`, `sb-lpgamnbjkeigacvwbcwn-auth-token`, `rosie_current_baby_id`
+3. Reload → Welcome screen → "Let's get started" → "Already have an account? Sign in"
+4. Enter the credentials above
+
+**To reset onboarding** (re-test the full flow):
+- Delete the user's profile and baby data from Supabase, clear localStorage, reload
+
+**To create a new pre-confirmed dev account:**
+```bash
+curl -X POST 'https://lpgamnbjkeigacvwbcwn.supabase.co/auth/v1/admin/users' \
+  -H 'Authorization: Bearer <SERVICE_ROLE_KEY>' \
+  -H 'apikey: <SERVICE_ROLE_KEY>' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"<email>","password":"<password>","email_confirm":true}'
+```
+> The service role key is not in the repo — ask the user or check Supabase Dashboard → Settings → API.
+
 ## Scripts
 
 ### Seed Data (`scripts/seed-data.mjs`)
