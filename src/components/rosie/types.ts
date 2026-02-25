@@ -1,4 +1,5 @@
 export interface BabyProfile {
+  id?: string; // Supabase row ID — present after saving to DB
   name: string;
   birthDate: string; // ISO date string
   dueDate?: string; // ISO date string — for adjusted age if born early
