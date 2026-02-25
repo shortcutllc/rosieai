@@ -745,6 +745,131 @@ export function getProactiveAlert(
   return null;
 }
 
+/**
+ * Generate multiple proactive alerts for auto-flipping carousel.
+ * Returns pattern alerts (if any) + all applicable content types.
+ */
+export function getProactiveAlerts(
+  timeline: TimelineEvent[],
+  developmentalInfo: DevelopmentalInfo,
+  babyName: string
+): ProactiveAlertData[] {
+  const alerts: ProactiveAlertData[] = [];
+  const todayEvents = timeline.filter(e => isToday(e.timestamp));
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+  const yesterdayEvents = timeline.filter(e => e.timestamp.startsWith(yesterdayStr));
+
+  // Pattern-based alerts (add if detected, don't early-return)
+  const todayFeeds = todayEvents.filter(e => e.type === 'feed').length;
+  const yesterdayFeeds = yesterdayEvents.filter(e => e.type === 'feed').length;
+
+  if (todayFeeds > 0 && yesterdayFeeds > 0 && todayFeeds >= yesterdayFeeds * 1.5 && todayFeeds >= 4) {
+    alerts.push({
+      title: 'Growth spurt likely',
+      text: `${babyName}'s feeding frequency is up today compared to yesterday. This is common at ${developmentalInfo.weekNumber} weeks and usually lasts 2-3 days.`,
+      icon: '💡',
+      variant: 'purple',
+    });
+  }
+
+  const todayNaps = todayEvents.filter(e => e.type === 'sleep' && e.sleepType === 'nap');
+  if (todayNaps.length >= 2) {
+    const avgNap = todayNaps.reduce((sum, e) => sum + (e.sleepDuration || 0), 0) / todayNaps.length;
+    if (avgNap > 0 && avgNap < 30) {
+      alerts.push({
+        title: 'Short nap day',
+        text: `${babyName}'s naps are averaging ${Math.round(avgNap)} minutes today. Short naps are very normal — most babies don't consolidate naps until 5-6 months.`,
+        icon: '💤',
+        variant: 'blue',
+      });
+    }
+  }
+
+  const leapStatus = getLeapStatus(developmentalInfo.weekNumber);
+  if (leapStatus.isInLeap && leapStatus.currentLeap) {
+    const leap = leapStatus.currentLeap;
+    alerts.push({
+      title: `Leap ${leap.leapNumber}: ${leap.name}`,
+      text: `${babyName} may be fussier than usual right now. This mental leap typically lasts ${leap.endWeek - leap.startWeek} weeks and ends with new skills.`,
+      icon: '🧠',
+      variant: 'purple',
+    });
+  }
+
+  if (todayFeeds >= 6) {
+    alerts.push({
+      title: 'Great feeding day',
+      text: `${todayFeeds} feeds logged today — ${babyName} is eating well. You're doing amazing.`,
+      icon: '⭐',
+      variant: 'green',
+    });
+  }
+
+  // Content pool: add all three types (not just one based on day)
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const weekNumber = developmentalInfo.weekNumber;
+
+  const expertInsightsList = getInsightsForWeek(weekNumber);
+  const wellness = getParentWellnessForWeek(weekNumber);
+  const quickWinsList = getQuickWinsForWeek(weekNumber);
+
+  if (expertInsightsList.length > 0) {
+    const idx = dayOfYear % expertInsightsList.length;
+    const expert = expertInsightsList[idx];
+    alerts.push({
+      title: expert.topic,
+      text: expert.insight,
+      icon: expert.sourceType === 'aap' ? '📋' : expert.sourceType === 'research' ? '📚' : '👩‍⚕️',
+      variant: 'purple',
+      source: expert.source,
+      linkToDiscover: true,
+    });
+  }
+
+  if (wellness) {
+    alerts.push({
+      title: 'For you today',
+      text: wellness.permissionSlip + ' ' + wellness.oneThingToday,
+      icon: '💜',
+      variant: 'purple',
+      linkToDiscover: true,
+    });
+  }
+
+  if (quickWinsList.length > 0) {
+    const idx = dayOfYear % quickWinsList.length;
+    const win = quickWinsList[idx];
+    alerts.push({
+      title: `Quick win · ${win.duration}`,
+      text: `${win.activity} — ${win.benefit}`,
+      icon: '🎯',
+      variant: 'green',
+      linkToDiscover: true,
+    });
+  }
+
+  // If nothing at all, try developmental whatToExpect
+  if (alerts.length === 0 && developmentalInfo.whatToExpect.length > 0) {
+    const dayIndex = (today.getFullYear() * 366 + today.getMonth() * 31 + today.getDate()) % developmentalInfo.whatToExpect.length;
+    const insight = developmentalInfo.whatToExpect[dayIndex]
+      .replace(/\byour baby\b/gi, babyName)
+      .replace(/\bthe baby\b/gi, babyName)
+      .replace(/\bbaby\b/gi, babyName);
+    alerts.push({
+      title: `Week ${weekNumber} development`,
+      text: insight,
+      icon: '🌱',
+      variant: 'purple',
+      linkToDiscover: true,
+    });
+  }
+
+  return alerts;
+}
+
 // ─── Smart Defaults ─────────────────────────────────────────
 
 export interface SmartDefaults {

@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { TimelineEvent, BabyProfile, DevelopmentalInfo, CatchUpData } from './types';
 import { TimePeriod } from './RosieHeader';
-import { getTodayEvents, getTodayStats, getExpectedValues, getSmartPromptData, getProactiveAlert } from './contextEngine';
+import { getTodayEvents, getTodayStats, getExpectedValues, getSmartPromptData, getProactiveAlerts } from './contextEngine';
 import { getTodaysActivities } from './dailyActivities';
 import { getMilestonesForCatchUp, getMilestonesForAge } from './milestoneData';
 import { RosieMilestoneBrowser } from './RosieMilestoneBrowser';
@@ -81,10 +81,62 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
     [timeline, lastFeedSide, baby.name]
   );
 
-  const proactiveAlert = useMemo(
-    () => alertDismissed ? null : getProactiveAlert(timeline, developmentalInfo, baby.name),
+  const proactiveAlerts = useMemo(
+    () => alertDismissed ? [] : getProactiveAlerts(timeline, developmentalInfo, baby.name),
     [timeline, developmentalInfo, baby.name, alertDismissed]
   );
+
+  // Auto-flip carousel state
+  const [alertIndex, setAlertIndex] = useState(0);
+  const [alertDisplayedIndex, setAlertDisplayedIndex] = useState(0);
+  const [alertFading, setAlertFading] = useState(false);
+  const alertPauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [alertPaused, setAlertPaused] = useState(false);
+  const alertTouchStartX = useRef(0);
+  const alertTouchEndX = useRef(0);
+
+  // Reset index when alerts change
+  useEffect(() => {
+    setAlertIndex(0);
+    setAlertDisplayedIndex(0);
+  }, [proactiveAlerts.length]);
+
+  // Two-phase crossfade: when alertIndex changes, fade out → swap → fade in
+  useEffect(() => {
+    if (alertIndex === alertDisplayedIndex) return;
+    setAlertFading(true);
+    const timer = setTimeout(() => {
+      setAlertDisplayedIndex(alertIndex);
+      setAlertFading(false);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [alertIndex, alertDisplayedIndex]);
+
+  // Auto-flip timer
+  useEffect(() => {
+    if (proactiveAlerts.length <= 1 || alertPaused) return;
+    const interval = setInterval(() => {
+      setAlertIndex(prev => (prev + 1) % proactiveAlerts.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [proactiveAlerts.length, alertPaused]);
+
+  // Pause handler: pause for 10s then resume
+  const pauseAutoFlip = useCallback(() => {
+    setAlertPaused(true);
+    if (alertPauseTimerRef.current) clearTimeout(alertPauseTimerRef.current);
+    alertPauseTimerRef.current = setTimeout(() => setAlertPaused(false), 10000);
+  }, []);
+
+  // Cleanup pause timer on unmount
+  useEffect(() => {
+    return () => {
+      if (alertPauseTimerRef.current) clearTimeout(alertPauseTimerRef.current);
+    };
+  }, []);
+
+  const currentAlert = proactiveAlerts[alertDisplayedIndex] || null;
+  const cardVariant = proactiveAlerts[0]?.variant || 'purple';
 
   const babyAgeWeeks = useMemo(() => {
     const birth = new Date(baby.birthDate);
@@ -312,40 +364,67 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
         </section>
       )}
 
-      {/* Proactive Alert — AI insight */}
-      {proactiveAlert && (
+      {/* Proactive Alert — auto-flipping carousel */}
+      {currentAlert && (
         <section className="rosie-home-section">
           <div
-            className={`rosie-proactive-alert ${alertVariantClasses[proactiveAlert.variant] || ''} ${proactiveAlert.linkToDiscover ? 'rosie-proactive-alert--clickable' : ''}`}
-            onClick={proactiveAlert.linkToDiscover ? () => onNavigateTab('discover') : undefined}
-            role={proactiveAlert.linkToDiscover ? 'button' : undefined}
-            tabIndex={proactiveAlert.linkToDiscover ? 0 : undefined}
+            className={`rosie-proactive-alert ${alertVariantClasses[cardVariant] || ''} ${currentAlert.linkToDiscover ? 'rosie-proactive-alert--clickable' : ''}`}
+            onClick={currentAlert.linkToDiscover ? () => onNavigateTab('discover') : undefined}
+            role={currentAlert.linkToDiscover ? 'button' : undefined}
+            tabIndex={currentAlert.linkToDiscover ? 0 : undefined}
+            onTouchStart={(e) => { alertTouchStartX.current = e.touches[0].clientX; }}
+            onTouchMove={(e) => { alertTouchEndX.current = e.touches[0].clientX; }}
+            onTouchEnd={() => {
+              const delta = alertTouchStartX.current - alertTouchEndX.current;
+              if (Math.abs(delta) > 50 && proactiveAlerts.length > 1) {
+                if (delta > 0) {
+                  setAlertIndex(prev => (prev + 1) % proactiveAlerts.length);
+                } else {
+                  setAlertIndex(prev => (prev - 1 + proactiveAlerts.length) % proactiveAlerts.length);
+                }
+                pauseAutoFlip();
+              }
+            }}
           >
-            <div className="rosie-alert-icon">{proactiveAlert.icon}</div>
-            <div className="rosie-alert-content">
-              <div className="rosie-alert-title">{proactiveAlert.title}</div>
-              <div className="rosie-alert-text">{proactiveAlert.text}</div>
-              {proactiveAlert.source && (
-                <div className="rosie-alert-source">{proactiveAlert.source}</div>
-              )}
-              <div className="rosie-alert-actions">
-                {proactiveAlert.linkToDiscover ? (
-                  <button
-                    className="rosie-alert-link"
-                    onClick={(e) => { e.stopPropagation(); onNavigateTab('discover'); }}
-                  >
-                    Explore more →
-                  </button>
-                ) : (
-                  <button
-                    className="rosie-alert-dismiss"
-                    onClick={(e) => { e.stopPropagation(); setAlertDismissed(true); }}
-                  >
-                    Got it
-                  </button>
+            <div className={`rosie-alert-body ${alertFading ? 'rosie-alert-body--fading' : ''}`}>
+              <div className="rosie-alert-icon">{currentAlert.icon}</div>
+              <div className="rosie-alert-content">
+                <div className="rosie-alert-title">{currentAlert.title}</div>
+                <div className="rosie-alert-text">{currentAlert.text}</div>
+                {currentAlert.source && (
+                  <div className="rosie-alert-source">{currentAlert.source}</div>
                 )}
+                <div className="rosie-alert-actions">
+                  {currentAlert.linkToDiscover ? (
+                    <button
+                      className="rosie-alert-link"
+                      onClick={(e) => { e.stopPropagation(); onNavigateTab('discover'); }}
+                    >
+                      Explore more →
+                    </button>
+                  ) : (
+                    <button
+                      className="rosie-alert-dismiss"
+                      onClick={(e) => { e.stopPropagation(); setAlertDismissed(true); }}
+                    >
+                      Got it
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+            {proactiveAlerts.length > 1 && (
+              <div className="rosie-alert-dots">
+                {proactiveAlerts.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`rosie-alert-dot ${i === alertIndex ? 'active' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); setAlertIndex(i); pauseAutoFlip(); }}
+                    aria-label={`View insight ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
