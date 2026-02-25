@@ -1,7 +1,19 @@
 /**
  * Seed script: generates realistic baby tracking data from birth to today,
  * including timeline events and growth measurements.
- * Run with: ROSIE_ACCESS_TOKEN=xxx ROSIE_REFRESH_TOKEN=xxx node scripts/seed-data.mjs
+ *
+ * Auth: Only the refresh token is required. The script exchanges it for a
+ * fresh access token automatically via Supabase's refreshSession().
+ *
+ * How to get the refresh token:
+ *   1. Open the app (rosieai.netlify.app) → DevTools Console
+ *   2. Run: JSON.parse(localStorage.getItem('sb-lpgamnbjkeigacvwbcwn-auth-token')).refresh_token
+ *   3. Copy the short string (e.g. "barjbk6zbg37")
+ *
+ * Run with:
+ *   ROSIE_REFRESH_TOKEN=<refresh_token> node scripts/seed-data.mjs
+ *
+ * (Legacy: ROSIE_ACCESS_TOKEN is also accepted but not required.)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -369,14 +381,34 @@ async function main() {
   console.log('User ID:', USER_ID);
   console.log('Baby ID: (will be looked up)');
 
-  // Restore session from existing token
-  const { data: sessionData, error: authError } = await supabase.auth.setSession({
-    access_token: process.env.ROSIE_ACCESS_TOKEN,
-    refresh_token: process.env.ROSIE_REFRESH_TOKEN,
-  });
+  // Authenticate — refresh token alone is sufficient
+  const refreshToken = process.env.ROSIE_REFRESH_TOKEN;
+  const accessToken = process.env.ROSIE_ACCESS_TOKEN;
+
+  if (!refreshToken) {
+    console.error('Missing ROSIE_REFRESH_TOKEN. Get it from the browser:');
+    console.error('  JSON.parse(localStorage.getItem("sb-lpgamnbjkeigacvwbcwn-auth-token")).refresh_token');
+    process.exit(1);
+  }
+
+  let sessionData, authError;
+
+  if (accessToken) {
+    // Legacy: both tokens provided — use setSession
+    ({ data: sessionData, error: authError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    }));
+  } else {
+    // Preferred: refresh token only — exchange for fresh access token
+    ({ data: sessionData, error: authError } = await supabase.auth.refreshSession({
+      refresh_token: refreshToken,
+    }));
+  }
 
   if (authError || !sessionData.session) {
     console.error('Auth failed:', authError?.message || 'No session');
+    console.error('The refresh token may have expired. Get a fresh one from the browser.');
     process.exit(1);
   }
 

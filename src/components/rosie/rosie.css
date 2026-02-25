@@ -12,8 +12,8 @@
 
   /* Primary - Rich Charcoal with warmth */
   --rosie-text-primary: #1D1D1F;
-  --rosie-text-secondary: #86868B;
-  --rosie-text-tertiary: #AEAEB2;
+  --rosie-text-secondary: #6B6B70;
+  --rosie-text-tertiary: #86868B;
 
   /* Accent Colors - Purposeful & Vibrant */
   --rosie-orange: #FF9500;
@@ -126,8 +126,8 @@
 .rosie-container.night {
   --rosie-bg: #1C1C2E;
   --rosie-text-primary: #F5F5F7;
-  --rosie-text-secondary: #A0A0A8;
-  --rosie-text-tertiary: #6E6E78;
+  --rosie-text-secondary: #A8A8AD;
+  --rosie-text-tertiary: #8E8E93;
   --rosie-bg-card: rgba(255, 255, 255, 0.06);
   background: #1C1C2E;
   color: #F5F5F7;
@@ -725,15 +725,15 @@
 }
 
 .rosie-compact-stat-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--rosie-text-secondary);
   font-weight: 500;
   margin-top: 2px;
 }
 
 .rosie-compact-stat-context {
-  font-size: 11px;
-  color: var(--rosie-text-tertiary, #AEAEB2);
+  font-size: 12px;
+  color: var(--rosie-text-tertiary, #86868B);
   margin-top: 2px;
 }
 
@@ -876,7 +876,7 @@
 
 .rosie-alert-text {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.5;
 }
 
@@ -911,8 +911,8 @@
 }
 
 .rosie-alert-source {
-  font-size: 11px;
-  color: #AEAEB2;
+  font-size: 12px;
+  color: #86868B;
   font-weight: 500;
   margin-top: 4px;
 }
@@ -1033,7 +1033,7 @@
 
 .rosie-plan-header-sub {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   font-weight: 400;
   margin-left: auto;
 }
@@ -1091,19 +1091,19 @@
 
 .rosie-plan-activity.completed {
   text-decoration: line-through;
-  color: #86868B;
+  color: #6B6B70;
 }
 
 .rosie-plan-activity-sub {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   margin-top: 1px;
   line-height: 1.4;
 }
 
 .rosie-plan-duration {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   font-weight: 400;
   flex-shrink: 0;
 }
@@ -1141,13 +1141,13 @@
 .rosie-patterns-stat-unit {
   font-size: 13px;
   font-weight: 400;
-  color: #86868B;
+  color: #6B6B70;
 }
 
 .rosie-patterns-stat-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: #86868B;
+  color: #6B6B70;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin-top: 2px;
@@ -1275,8 +1275,8 @@
 }
 
 .rosie-baseline-range-label {
-  font-size: 11px;
-  color: #86868B;
+  font-size: 12px;
+  color: #6B6B70;
 }
 
 /* ====== CORRELATION ENGINE ====== */
@@ -1331,7 +1331,7 @@
 
 .rosie-correlation-confidence.low {
   background: rgba(134, 134, 139, 0.12);
-  color: #86868B;
+  color: #6B6B70;
 }
 
 .rosie-correlation-text {
@@ -1419,7 +1419,7 @@
 
 .rosie-catchup-header-sub {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   font-weight: 400;
 }
 
@@ -1490,13 +1490,13 @@
 }
 
 .rosie-catchup-label.done-text {
-  color: #86868B;
+  color: #6B6B70;
   text-decoration: line-through;
 }
 
 .rosie-catchup-sub {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   margin-top: 1px;
 }
 
@@ -1559,7 +1559,7 @@
   background: #F2F2F7;
   border: none;
   font-size: 14px;
-  color: #86868B;
+  color: #6B6B70;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1579,7 +1579,7 @@
 
 .rosie-quiz-hint {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   margin-bottom: 16px;
   line-height: 1.4;
 }
@@ -1803,7 +1803,7 @@
 
 .rosie-empty-welcome-sub {
   font-size: 14px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.5;
   margin-bottom: 16px;
 }
@@ -1851,7 +1851,7 @@
 
 .rosie-empty-welcome-hint {
   font-size: 13px;
-  color: #AEAEB2;
+  color: #86868B;
   margin-top: 12px;
 }
 
@@ -1895,7 +1895,7 @@
 }
 
 .rosie-skill-name.done-text {
-  color: #86868B;
+  color: #6B6B70;
   text-decoration: line-through;
 }
 
@@ -1918,7 +1918,7 @@
 
 .rosie-skill-tag.next {
   background: #F2F2F7;
-  color: #86868B;
+  color: #6B6B70;
 }
 
 .rosie-skill-connector {
@@ -1951,11 +1951,17 @@
 }
 
 .rosie-container.night .rosie-alert-text {
-  color: #AEAEB2;
+  color: #A8A8AD;
 }
 
 .rosie-container.night .rosie-alert-dot {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* Smart Prompt (nap/feed alerts) */
+.rosie-container.night .rosie-smart-prompt {
+  background: linear-gradient(135deg, rgba(181, 123, 236, 0.12), rgba(139, 92, 246, 0.08));
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* ===== Night Mode: Daily Plan, Catch-Up, Quiz, Empty State, Skill Tree ===== */
@@ -1990,7 +1996,19 @@
 }
 
 .rosie-container.night .rosie-plan-activity.completed {
-  color: #86868B;
+  color: #8E8E93;
+}
+
+.rosie-container.night .rosie-plan-header-sub {
+  color: #A8A8AD;
+}
+
+.rosie-container.night .rosie-plan-activity-sub {
+  color: #A8A8AD;
+}
+
+.rosie-container.night .rosie-plan-duration {
+  color: #A8A8AD;
 }
 
 /* Patterns Card */
@@ -2004,7 +2022,7 @@
 
 .rosie-container.night .rosie-patterns-stat-label,
 .rosie-container.night .rosie-patterns-stat-unit {
-  color: #98989D;
+  color: #A8A8AD;
 }
 
 .rosie-container.night .rosie-patterns-insights {
@@ -2037,7 +2055,7 @@
 }
 
 .rosie-container.night .rosie-baseline-range-label {
-  color: #98989D;
+  color: #A8A8AD;
 }
 
 /* Correlation Engine */
@@ -2050,7 +2068,7 @@
 }
 
 .rosie-container.night .rosie-correlation-text {
-  color: #AEAEB2;
+  color: #A8A8AD;
 }
 
 .rosie-container.night .rosie-correlation-confidence.high {
@@ -2063,7 +2081,7 @@
 
 .rosie-container.night .rosie-correlation-confidence.low {
   background: rgba(134, 134, 139, 0.2);
-  color: #98989D;
+  color: #A8A8AD;
 }
 
 /* Is This Normal? */
@@ -2076,11 +2094,17 @@
 }
 
 .rosie-container.night .rosie-itn-answer {
-  color: #AEAEB2;
+  color: #A8A8AD;
 }
 
 .rosie-container.night .rosie-itn-ask-link {
   color: #A78BFA;
+}
+
+/* Expert Insights Carousel */
+.rosie-container.night .tw-insight-card {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.1) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Catch-Up Card */
@@ -2116,6 +2140,14 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+.rosie-container.night .rosie-catchup-header-sub {
+  color: #A8A8AD;
+}
+
+.rosie-container.night .rosie-catchup-sub {
+  color: #A8A8AD;
+}
+
 /* Quiz Sheet */
 .rosie-container.night .rosie-quiz-sheet {
   background: #1C1C1E;
@@ -2131,7 +2163,7 @@
 
 .rosie-container.night .rosie-quiz-close {
   background: rgba(255, 255, 255, 0.1);
-  color: #AEAEB2;
+  color: #A8A8AD;
 }
 
 .rosie-container.night .rosie-quiz-close:hover {
@@ -2202,7 +2234,7 @@
 
 .rosie-container.night .rosie-quiz-save:disabled {
   background: rgba(255, 255, 255, 0.08);
-  color: #86868B;
+  color: #8E8E93;
 }
 
 /* Empty State Welcome */
@@ -2216,7 +2248,7 @@
 }
 
 .rosie-container.night .rosie-empty-welcome-sub {
-  color: #AEAEB2;
+  color: #A8A8AD;
 }
 
 .rosie-container.night .rosie-empty-log-option {
@@ -2238,7 +2270,7 @@
 }
 
 .rosie-container.night .rosie-skill-name.done-text {
-  color: #86868B;
+  color: #8E8E93;
 }
 
 .rosie-container.night .rosie-skill-dot.next {
@@ -2256,11 +2288,87 @@
 
 .rosie-container.night .rosie-skill-tag.next {
   background: rgba(255, 255, 255, 0.06);
-  color: #86868B;
+  color: #8E8E93;
 }
 
 .rosie-container.night .rosie-skill-connector {
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* ===== Night Mode: Timeline Event Cards ===== */
+
+.rosie-container.night .rosie-event {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.rosie-container.night .rosie-event-icon.feed {
+  background: linear-gradient(135deg, rgba(255, 149, 0, 0.2), rgba(255, 179, 64, 0.12));
+}
+
+.rosie-container.night .rosie-event-icon.sleep {
+  background: linear-gradient(135deg, rgba(181, 123, 236, 0.2), rgba(212, 165, 255, 0.12));
+}
+
+.rosie-container.night .rosie-event-icon.diaper {
+  background: linear-gradient(135deg, rgba(48, 209, 88, 0.2), rgba(126, 232, 139, 0.12));
+}
+
+.rosie-container.night .rosie-event-icon.note {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(10, 132, 255, 0.12));
+}
+
+/* ===== Night Mode: Discover Tab (This Week) ===== */
+
+.rosie-container.night .tw-card {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.rosie-container.night .tw-card-title {
+  color: #F5F5F7;
+}
+
+.rosie-container.night .tw-week-badge {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(0, 122, 255, 0.15));
+  color: #A78BFA;
+}
+
+.rosie-container.night .tw-signs-label {
+  color: #A8A8AD;
+}
+
+.rosie-container.night .tw-sign {
+  color: #C7C7CC;
+}
+
+.rosie-container.night .tw-progress-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rosie-container.night .tw-progress-text {
+  color: #A8A8AD;
+}
+
+.rosie-container.night .tw-wellness {
+  background: linear-gradient(135deg, rgba(48, 209, 88, 0.1) 0%, rgba(52, 199, 89, 0.06) 100%);
+  border-color: rgba(52, 199, 89, 0.15);
+}
+
+.rosie-container.night .tw-wellness-name {
+  color: #34C759;
+}
+
+.rosie-container.night .tw-wellness-sub {
+  color: #A8A8AD;
+}
+
+.rosie-container.night .tw-dot {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.rosie-container.night .tw-dot.active {
+  background: #A78BFA;
 }
 
 /* ===== Weather-Aware Suggestion ===== */
@@ -2300,13 +2408,13 @@
 
 .rosie-weather-text {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.5;
 }
 
 .rosie-weather-prompt {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.5;
   padding: 14px;
   border: 1px solid #E5E5EA;
@@ -2329,11 +2437,11 @@
 }
 
 .rosie-container.night .rosie-weather-text {
-  color: #AEAEB2;
+  color: #A8A8AD;
 }
 
 .rosie-container.night .rosie-weather-prompt {
-  color: #86868B;
+  color: #8E8E93;
   border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -2368,7 +2476,7 @@
 
 .rosie-first-log-text {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.4;
 }
 
@@ -2383,7 +2491,7 @@
 }
 
 .rosie-container.night .rosie-first-log-text {
-  color: #AEAEB2;
+  color: #A8A8AD;
 }
 
 /* Insight Card (legacy — kept for carousel if needed) */
@@ -4290,7 +4398,7 @@
 
 .tw-card-subtitle {
   font-size: 13px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   margin-bottom: 12px;
   line-height: 1.4;
 }
@@ -4330,7 +4438,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   margin-bottom: 4px;
 }
 
@@ -4356,7 +4464,7 @@
 .tw-signs-label {
   font-size: 13px;
   font-weight: 700;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 8px;
@@ -4419,7 +4527,7 @@
 
 .tw-quickwin-detail {
   font-size: 12px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   margin-top: 2px;
 }
 
@@ -4439,7 +4547,7 @@
 .tw-info-label {
   font-size: 11px;
   font-weight: 700;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 4px;
@@ -4478,7 +4586,7 @@
 
 .tw-insight-source {
   font-size: 12px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   margin-top: 8px;
 }
 
@@ -4530,7 +4638,7 @@
 
 .tw-leaps-link-subtitle {
   font-size: 13px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   margin-top: 4px;
 }
 
@@ -4558,7 +4666,7 @@
 
 .tw-milestones-link-subtitle {
   font-size: 13px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   margin-top: 4px;
 }
 
@@ -4583,7 +4691,7 @@
 }
 .tw-insights-link-subtitle {
   font-size: 13px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   margin-top: 4px;
 }
 
@@ -8208,8 +8316,8 @@
   --rosie-bg-card: #FFFFFF;
   --rosie-bg: #FAFAFA;
   --rosie-text-primary: #1D1D1F;
-  --rosie-text-secondary: #86868B;
-  --rosie-text-tertiary: #AEAEB2;
+  --rosie-text-secondary: #6B6B70;
+  --rosie-text-tertiary: #86868B;
   --rosie-border: rgba(0, 0, 0, 0.06);
   --rosie-fill: rgba(0, 0, 0, 0.05);
   --rosie-fill-secondary: rgba(0, 0, 0, 0.03);
@@ -8637,8 +8745,8 @@
   --rosie-bg-card: #FFFFFF;
   --rosie-bg: #FAFAFA;
   --rosie-text-primary: #1D1D1F;
-  --rosie-text-secondary: #86868B;
-  --rosie-text-tertiary: #AEAEB2;
+  --rosie-text-secondary: #6B6B70;
+  --rosie-text-tertiary: #86868B;
   --rosie-border: rgba(0, 0, 0, 0.06);
   --rosie-fill: rgba(0, 0, 0, 0.05);
   --rosie-fill-secondary: rgba(0, 0, 0, 0.03);
@@ -8926,8 +9034,8 @@
   --rosie-bg-card: #FFFFFF;
   --rosie-bg: #FAFAFA;
   --rosie-text-primary: #1D1D1F;
-  --rosie-text-secondary: #86868B;
-  --rosie-text-tertiary: #AEAEB2;
+  --rosie-text-secondary: #6B6B70;
+  --rosie-text-tertiary: #86868B;
   --rosie-border: rgba(0, 0, 0, 0.06);
   --rosie-fill: rgba(0, 0, 0, 0.05);
   --rosie-fill-secondary: rgba(0, 0, 0, 0.03);
@@ -9210,7 +9318,7 @@
   gap: 4px;
   font-size: 15px;
   font-weight: 500;
-  color: #86868B;
+  color: #6B6B70;
   padding: 16px 0 0;
   cursor: pointer;
   background: none;
@@ -9247,7 +9355,7 @@
 
 .ob-hero-subtitle {
   font-size: 15px;
-  color: #86868B;
+  color: #6B6B70;
   text-align: center;
   margin-top: 8px;
   line-height: 1.5;
@@ -9292,7 +9400,7 @@
 }
 .ob-value-text p {
   font-size: 13px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.4;
 }
 
@@ -9399,7 +9507,7 @@
 }
 .ob-question-sub {
   font-size: 15px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.5;
   margin-bottom: 32px;
 }
@@ -9451,7 +9559,7 @@
   margin-top: 20px;
   text-align: center;
   font-size: 14px;
-  color: #86868B;
+  color: #6B6B70;
 }
 
 /* --- Error display --- */
@@ -9477,7 +9585,7 @@
 
 .ob-confirm-instruction {
   font-size: 14px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.5;
   margin: 0 0 24px;
   max-width: 320px;
@@ -9500,7 +9608,7 @@
 
 .ob-confirm-hint {
   font-size: 12px;
-  color: #86868B;
+  color: #6B6B70;
   text-align: center;
   margin: 0;
   padding-bottom: 16px;
@@ -9523,7 +9631,7 @@
 }
 .ob-success-subtitle {
   font-size: 15px;
-  color: #86868B;
+  color: #6B6B70;
   line-height: 1.5;
 }
 .ob-success-card {
@@ -9536,7 +9644,7 @@
 .ob-success-card h4 {
   font-size: 14px;
   font-weight: 700;
-  color: #86868B;
+  color: #6B6B70;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 12px;
@@ -9856,7 +9964,7 @@
   margin-top: -8px;
   margin-bottom: 16px;
   font-size: 13px;
-  color: #AEAEB2;
+  color: #86868B;
   animation: ob-age-fade 300ms cubic-bezier(0.05, 0.7, 0.1, 1) both;
 }
 
@@ -9953,7 +10061,7 @@
 
 .ob-celebration-card-age {
   font-size: 14px;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
 }
 
 .ob-celebration-card-divider {
@@ -9965,7 +10073,7 @@
 .ob-celebration-card-rosie {
   font-size: 14px;
   line-height: 1.5;
-  color: var(--rosie-text-secondary, #86868B);
+  color: var(--rosie-text-secondary, #6B6B70);
   font-style: italic;
 }
 
@@ -9999,7 +10107,7 @@
 
 .ob-skip {
   font-size: 14px;
-  color: var(--rosie-text-secondary, #8E8E93);
+  color: var(--rosie-text-secondary, #6B6B70);
   background: none;
   border: none;
   cursor: pointer;

@@ -117,7 +117,7 @@ These are the critical values from `docs/design-thesis.md`. When in doubt, read 
 | Stat labels | 11px | 600 |
 
 ### Colors
-- Text primary: `#1D1D1F` — Text secondary: `#86868B` — Text tertiary: `#C4C4C4`
+- Text primary: `#1D1D1F` — Text secondary: `#6B6B70` — Text tertiary: `#86868B`
 - Feed: `#FF9500` — Sleep: `#B57BEC` — Diaper: `#30D158`
 - Accent: `#007AFF` — Purple: `#8B5CF6` — Danger: `#FF3B30`
 
@@ -173,9 +173,10 @@ Generates realistic baby tracking data from birth to today. Deletes existing eve
 - Growth measurements at CDC 50th percentile checkpoints (birth, 2wk, 1mo, 2mo, 3mo, 4mo)
 
 **How to run:**
-1. Get auth tokens from the browser: open the app → DevTools Console → `JSON.parse(localStorage.getItem('sb-lpgamnbjkeigacvwbcwn-auth-token'))`
-2. Or let Claude extract tokens via the browser MCP tools (navigate to rosieai.netlify.app, read localStorage)
-3. Run: `ROSIE_ACCESS_TOKEN=<access_token> ROSIE_REFRESH_TOKEN=<refresh_token> node scripts/seed-data.mjs`
-4. After running, clear `rosie_data` from localStorage in the app (or hard refresh) to see new data
+1. Get the refresh token from the browser: open the app → DevTools Console → `JSON.parse(localStorage.getItem('sb-lpgamnbjkeigacvwbcwn-auth-token')).refresh_token`
+2. Run: `ROSIE_REFRESH_TOKEN=<refresh_token> node scripts/seed-data.mjs`
+3. After running, clear `rosie_data` from localStorage in the app (or hard refresh) to see new data
+
+> Only the refresh token is needed — the script exchanges it for a fresh access token automatically. The refresh token is a short string (e.g. `barjbk6zbg37`), much easier to copy than the full JWT.
 
 **Config at top of file:** `BIRTH_DATE`, `BABY_NAME` — update these if the baby profile changes.

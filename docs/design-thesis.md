@@ -127,8 +127,8 @@ Font stack: `-apple-system, SF Pro Display, system-ui, sans-serif`
 | Background | `#FAFAFA` | Page background |
 | Card | `#FFFFFF` | Card surfaces |
 | Text Primary | `#1D1D1F` | Headlines, body |
-| Text Secondary | `#86868B` | Labels, hints, timestamps |
-| Text Tertiary | `#C4C4C4` | Inactive dots, placeholders |
+| Text Secondary | `#6B6B70` | Labels, hints, timestamps (5.5:1 contrast, WCAG AA) |
+| Text Tertiary | `#86868B` | Timestamps, muted context (3.7:1, large text only) |
 
 ### Type-Specific Colors
 | Type | Primary | Gradient From | Gradient To | Usage |
