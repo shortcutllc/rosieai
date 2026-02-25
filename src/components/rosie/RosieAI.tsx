@@ -602,24 +602,25 @@ const RosieAIContent: React.FC = () => {
         </div>
       </main>
 
-      {/* Floating "Ask Rosie" pill — always visible at bottom with cycling suggestions */}
+      {/* Floating "Ask Rosie" pill — enhanced with dual-purpose label + animated dots */}
       {!showChat && (
         <div className="rosie-ask-pill-container">
           <button
-            className="rosie-ask-pill"
+            className="rosie-ask-pill-v2"
             onClick={() => {
               setPreviousTab(activeTab as 'home' | 'timeline' | 'discover');
               setShowChat(true);
             }}
           >
-            <span className="rosie-ask-pill-icon">✨</span>
-            <div className="rosie-pill-text-wrap">
-              <div className="rosie-pill-suggestions">
-                <span>Ask RosieAI anything...</span>
-                <span>Is {data.baby.name} sleeping enough?</span>
-                <span>Why is {data.baby.name} fussy?</span>
-                <span>Log a quick feed 🍼</span>
-              </div>
+            <div className="rosie-ask-pill-v2-icon">💜</div>
+            <div className="rosie-ask-pill-v2-text">
+              <span className="rosie-ask-pill-v2-title">Chat or log with Rosie</span>
+              <span className="rosie-ask-pill-v2-sub">Ask anything · Quick log feed, sleep, diaper</span>
+            </div>
+            <div className="rosie-ask-pill-v2-dots">
+              <span className="rosie-ask-pill-dot dot-feed" />
+              <span className="rosie-ask-pill-dot dot-sleep" />
+              <span className="rosie-ask-pill-dot dot-diaper" />
             </div>
           </button>
         </div>
@@ -640,7 +641,6 @@ const RosieAIContent: React.FC = () => {
         isOpen={showChat}
         initialMessage={chatInitialMessage}
         parentName={profile?.name ?? undefined}
-        onOpenQuickLog={(type) => setShowQuickLogModal(type)}
         onClose={() => {
           setShowChat(false);
           setActiveTab(previousTab);

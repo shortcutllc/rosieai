@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData } from './types';
+import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData, WizardState, QuickLogEventType, WizardButtonOption } from './types';
 import { formatTime } from './developmentalData';
 import { getChatPrompts, ChatPrompt, generateSessionGreeting } from './reassuranceMessages';
 import { useSpeechRecognition } from './useSpeechRecognition';
+import { getWizardSteps, getNextSteps, wizardAnswersToEvent, getWizardConfirmation, getWizardEventSummary } from './quickLogWizard';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
 const generateUUID = (): string => {
@@ -96,7 +97,6 @@ interface RosieChatProps {
   isOpen: boolean;
   initialMessage?: string;
   parentName?: string;
-  onOpenQuickLog?: (type: 'feed' | 'sleep' | 'diaper') => void;
   onClose: () => void;
 }
 
@@ -114,7 +114,6 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   isOpen,
   initialMessage,
   parentName,
-  onOpenQuickLog,
   onClose,
 }) => {
   const [input, setInput] = useState('');
@@ -134,6 +133,14 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   const [hasEnteredView, setHasEnteredView] = useState(false);
   const [isVisible, setIsVisible] = useState(false); // controls CSS class for animation
   const [shouldRender, setShouldRender] = useState(false); // controls DOM presence
+
+  // Typewriter state for greeting animation
+  const [typewriterText, setTypewriterText] = useState('');
+  const [typewriterDone, setTypewriterDone] = useState(false);
+
+  // Quick log wizard state
+  const [wizardState, setWizardState] = useState<WizardState | null>(null);
+  const [remainingWizardSteps, setRemainingWizardSteps] = useState<import('./types').WizardStep[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -195,6 +202,39 @@ export const RosieChat: React.FC<RosieChatProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isVisible, messages.length]);
+
+  // Typewriter effect for greeting — character by character with punctuation pauses
+  useEffect(() => {
+    if (!hasEnteredView || messages.length > 0) return;
+
+    const text = sessionGreeting.greeting;
+    let i = 0;
+    let cancelled = false;
+    setTypewriterText('');
+    setTypewriterDone(false);
+
+    const tick = () => {
+      if (cancelled || i >= text.length) {
+        if (!cancelled) setTypewriterDone(true);
+        return;
+      }
+      i++;
+      setTypewriterText(text.slice(0, i));
+      const char = text[i - 1];
+      const delay = char === '.' || char === '!' || char === '?' ? 300
+        : char === ',' ? 150
+        : char === '\u2014' || char === '-' ? 200
+        : 40;
+      setTimeout(tick, delay);
+    };
+
+    // Start after heart entrance animation (600ms bounce + small buffer)
+    const startTimer = setTimeout(tick, 800);
+    return () => {
+      cancelled = true;
+      clearTimeout(startTimer);
+    };
+  }, [hasEnteredView, messages.length, sessionGreeting.greeting]);
 
   // Handle initial message from "Is This Normal?" cards — pre-fill input
   const initialMessageHandled = useRef<string | undefined>(undefined);
@@ -441,10 +481,163 @@ Could you tell me more about what you're experiencing?`;
     });
   };
 
+  // Compute "last event" details for the stacked action list
+  const lastEventInfo = useMemo(() => {
+    const formatTimeAgo = (ts: string): string => {
+      const diff = Date.now() - new Date(ts).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ${mins % 60}m ago`;
+      return `${Math.floor(hours / 24)}d ago`;
+    };
+
+    const sortedTimeline = [...timeline].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const lastFeed = sortedTimeline.find(e => e.type === 'feed');
+    const lastSleep = sortedTimeline.find(e => e.type === 'sleep');
+    const lastDiaper = sortedTimeline.find(e => e.type === 'diaper');
+
+    const feedDetail = lastFeed
+      ? `Last: ${formatTimeAgo(lastFeed.timestamp)} — ${
+          lastFeed.feedType === 'bottle' ? `Bottle${lastFeed.feedAmount ? `, ${lastFeed.feedAmount}oz` : ''}`
+          : lastFeed.feedType === 'breast' ? `Breast${lastFeed.feedSide ? `, ${lastFeed.feedSide}` : ''}`
+          : lastFeed.feedType === 'solid' ? 'Solid food' : 'Feed'
+        }`
+      : 'No feeds logged yet';
+
+    const sleepDetail = lastSleep
+      ? `Last: ${formatTimeAgo(lastSleep.timestamp)} — ${
+          lastSleep.sleepType === 'nap' ? 'Nap' : 'Night'
+        }${lastSleep.sleepDuration ? `, ${lastSleep.sleepDuration >= 60 ? Math.floor(lastSleep.sleepDuration / 60) + 'h ' : ''}${lastSleep.sleepDuration % 60}min` : ''}`
+      : 'No sleep logged yet';
+
+    const diaperDetail = lastDiaper
+      ? `Last: ${formatTimeAgo(lastDiaper.timestamp)} — ${
+          lastDiaper.diaperType === 'both' ? 'Wet + dirty'
+          : lastDiaper.diaperType === 'dirty' ? 'Dirty' : 'Wet'
+        }`
+      : 'No diapers logged yet';
+
+    return { feedDetail, sleepDetail, diaperDetail };
+  }, [timeline]);
+
+  // ── Quick Log Wizard — chat-native conversational logging ──
+
+  const startWizard = (eventType: QuickLogEventType) => {
+    const steps = getWizardSteps(eventType);
+    const firstStep = steps[0];
+
+    const newState: WizardState = {
+      eventType,
+      currentStepIndex: 0,
+      answers: {},
+      steps,
+      isComplete: false,
+    };
+    setWizardState(newState);
+    setRemainingWizardSteps([]);
+
+    // Add Rosie's first question as a message with buttons
+    const assistantMsg: ChatMessage = {
+      id: generateUUID(),
+      timestamp: new Date().toISOString(),
+      role: 'assistant',
+      content: firstStep.question,
+      metadata: {
+        isWizardMessage: true,
+        wizardButtons: firstStep.options,
+        wizardStepField: firstStep.field,
+      },
+    };
+
+    onUpdateHistory([...messages, assistantMsg]);
+  };
+
+  const handleWizardButton = (option: WizardButtonOption, stepField: string) => {
+    if (!wizardState) return;
+
+    // 1. Add user's selection as a message
+    const userMsg: ChatMessage = {
+      id: generateUUID(),
+      timestamp: new Date().toISOString(),
+      role: 'user',
+      content: option.label,
+      metadata: { isWizardUserResponse: true },
+    };
+
+    // 2. Update answers
+    const updatedAnswers = { ...wizardState.answers, [stepField]: option.value };
+
+    // 3. Check remaining queued steps first, then get next steps
+    let nextSteps = remainingWizardSteps.length > 0
+      ? remainingWizardSteps
+      : getNextSteps(wizardState.eventType, updatedAnswers, stepField);
+
+    if (nextSteps.length > 0) {
+      const nextStep = nextSteps[0];
+      const remaining = nextSteps.slice(1);
+
+      const assistantMsg: ChatMessage = {
+        id: generateUUID(),
+        timestamp: new Date().toISOString(),
+        role: 'assistant',
+        content: nextStep.question,
+        metadata: {
+          isWizardMessage: true,
+          wizardButtons: nextStep.options,
+          wizardStepField: nextStep.field,
+        },
+      };
+
+      setWizardState({
+        ...wizardState,
+        currentStepIndex: wizardState.currentStepIndex + 1,
+        answers: updatedAnswers,
+      });
+      setRemainingWizardSteps(remaining);
+
+      onUpdateHistory([...messages, userMsg, assistantMsg]);
+    } else {
+      // Wizard complete — create the event
+      const confirmation = getWizardConfirmation(wizardState.eventType, updatedAnswers);
+      const summary = getWizardEventSummary(wizardState.eventType, updatedAnswers);
+      const eventData = wizardAnswersToEvent(wizardState.eventType, updatedAnswers);
+
+      const confirmMsg: ChatMessage = {
+        id: generateUUID(),
+        timestamp: new Date().toISOString(),
+        role: 'assistant',
+        content: confirmation,
+      };
+
+      // Create the timeline event
+      if (onAddEvent) {
+        const eventId = onAddEvent(eventData as Omit<TimelineEvent, 'id' | 'timestamp'>);
+        if (eventId) {
+          setLoggedEvents(prev => [...prev, {
+            messageId: confirmMsg.id,
+            eventId,
+            summary,
+            createdAt: Date.now(),
+          }]);
+        }
+      }
+
+      setWizardState(null);
+      setRemainingWizardSteps([]);
+      onUpdateHistory([...messages, userMsg, confirmMsg]);
+    }
+  };
+
   const handleNewChat = () => {
     onUpdateHistory([]);
     setInput('');
+    setWizardState(null);
+    setRemainingWizardSteps([]);
     setHasEnteredView(false);
+    setTypewriterDone(false);
+    setTypewriterText('');
     setTimeout(() => setHasEnteredView(true), 100);
   };
 
@@ -480,72 +673,75 @@ Could you tell me more about what you're experiencing?`;
       <div className="rosie-chat-body">
         {messages.length === 0 && !isTyping ? (
           <div className="rosie-chat-empty-state">
-            {/* Greeting — personalized for new sessions */}
-            <div className={`rosie-chat-greeting ${hasEnteredView ? 'entered' : ''}`}>
-              <div className="rosie-chat-greeting-avatar">
-                <img src="/rosie-icon.svg" alt="Rosie" className="rosie-chat-greeting-logo" />
-              </div>
-              <div className="rosie-chat-greeting-text">
-                <span className="rosie-chat-greeting-hey">
-                  {sessionGreeting.greeting}
+            {/* Greeting — living heart + typewriter */}
+            <div className={`rosie-chat-greeting-v2 ${hasEnteredView ? 'entered' : ''}`}>
+              <div className="rosie-chat-heart">💜</div>
+              <div className="rosie-chat-greeting-text-v2">
+                <span className="rosie-chat-greeting-typewriter">
+                  {typewriterText}
+                  {!typewriterDone && <span className="rosie-chat-cursor">|</span>}
                 </span>
-                <span className="rosie-chat-greeting-sub">
+                <span className={`rosie-chat-greeting-sub-v2 ${typewriterDone ? 'visible' : ''}`}>
                   {sessionGreeting.subtext}
                 </span>
               </div>
             </div>
 
-            {/* Quick Actions — always shown */}
-            {onOpenQuickLog && (
-              <div className={`rosie-chat-quick-actions ${hasEnteredView ? 'entered' : ''}`}>
-                <button
-                  className="rosie-chat-quick-action"
-                  onClick={() => { onOpenQuickLog('feed'); }}
-                >
-                  <span className="rosie-chat-quick-action-icon">🍼</span>
-                  Quick log
-                </button>
-                <button
-                  className="rosie-chat-quick-action"
-                  onClick={() => handleSuggestionClick(`How's ${baby.name} doing today?`)}
-                >
-                  <span className="rosie-chat-quick-action-icon">📊</span>
-                  How's {baby.name}?
-                </button>
-                <button
-                  className="rosie-chat-quick-action"
-                  onClick={() => handleSuggestionClick(`What should we do with ${baby.name} today?`)}
-                >
-                  <span className="rosie-chat-quick-action-icon">🎯</span>
-                  Activity ideas
-                </button>
-              </div>
-            )}
+            {/* Stacked action list — separate log actions with category colors */}
+            <div className={`rosie-chat-action-list ${hasEnteredView ? 'entered' : ''}`}>
+              <button className="rosie-chat-action-row" onClick={() => startWizard('feed')}>
+                <div className="rosie-chat-action-icon rosie-chat-action-icon-feed">
+                  <span>🍼</span>
+                </div>
+                <div className="rosie-chat-action-content">
+                  <span className="rosie-chat-action-name">Log a feed</span>
+                  <span className="rosie-chat-action-detail">{lastEventInfo.feedDetail}</span>
+                </div>
+                <span className="rosie-chat-action-chevron">›</span>
+              </button>
+              <button className="rosie-chat-action-row" onClick={() => startWizard('sleep')}>
+                <div className="rosie-chat-action-icon rosie-chat-action-icon-sleep">
+                  <span>💤</span>
+                </div>
+                <div className="rosie-chat-action-content">
+                  <span className="rosie-chat-action-name">Log sleep</span>
+                  <span className="rosie-chat-action-detail">{lastEventInfo.sleepDetail}</span>
+                </div>
+                <span className="rosie-chat-action-chevron">›</span>
+              </button>
+              <button className="rosie-chat-action-row" onClick={() => startWizard('diaper')}>
+                <div className="rosie-chat-action-icon rosie-chat-action-icon-diaper">
+                  <span>🧷</span>
+                </div>
+                <div className="rosie-chat-action-content">
+                  <span className="rosie-chat-action-name">Log a diaper</span>
+                  <span className="rosie-chat-action-detail">{lastEventInfo.diaperDetail}</span>
+                </div>
+                <span className="rosie-chat-action-chevron">›</span>
+              </button>
+            </div>
 
-            {/* Suggestions */}
-            <div className="rosie-chat-suggestions">
-              <div className={`rosie-chat-suggestions-header ${hasEnteredView ? 'entered' : ''}`}>
-                Try asking
-              </div>
-              <div className="rosie-chat-suggestions-list">
-                {contextualPrompts.slice(0, 4).map((prompt, index) => (
-                  <button
-                    key={prompt.question}
-                    className={`rosie-chat-suggestion ${hasEnteredView ? 'entered' : ''}`}
-                    style={{ transitionDelay: hasEnteredView ? `${150 + index * 80}ms` : '0ms' }}
-                    onClick={() => handleSuggestionClick(prompt.question)}
-                  >
-                    <span className="rosie-chat-suggestion-icon">
-                      {prompt.trigger === 'sleep_issue' ? '🌙' :
-                       prompt.trigger === 'feeding_question' ? '🍼' :
-                       prompt.trigger === 'developmental' ? '🧠' :
-                       prompt.trigger === 'leap' ? '🌊' : '💬'}
-                    </span>
-                    <span className="rosie-chat-suggestion-text">{prompt.question}</span>
-                    <span className="rosie-chat-suggestion-arrow">›</span>
-                  </button>
-                ))}
-              </div>
+            {/* "Or ask Rosie" divider + ghost text suggestions */}
+            <div className={`rosie-chat-divider ${hasEnteredView ? 'entered' : ''}`}>
+              Or ask Rosie
+            </div>
+            <div className="rosie-chat-ghost-list">
+              {[
+                `How's ${baby.name} sleeping this week?`,
+                `I'm feeling overwhelmed today`,
+                `log 4oz bottle at 4pm`,
+                `What should ${baby.name} be doing this week?`,
+                ...contextualPrompts.slice(0, 1).map(p => p.question),
+              ].slice(0, 5).map((suggestion, index) => (
+                <button
+                  key={suggestion}
+                  className={`rosie-chat-ghost-item ${hasEnteredView ? 'entered' : ''}`}
+                  style={{ transitionDelay: hasEnteredView ? `${300 + index * 60}ms` : '0ms' }}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  &ldquo;{suggestion}&rdquo;
+                </button>
+              ))}
             </div>
           </div>
         ) : (
@@ -554,12 +750,35 @@ Could you tell me more about what you're experiencing?`;
               const eventConfirmations = loggedEvents.filter(e => e.messageId === message.id);
               return (
                 <React.Fragment key={message.id}>
-                  <div className={`rosie-chat-message ${message.role}`}>
+                  <div className={`rosie-chat-message ${message.role}${message.metadata?.isWizardUserResponse ? ' wizard-response' : ''}`}>
                     {renderMessage(message.content)}
                     <div className="rosie-chat-message-time">
                       {formatTime(message.timestamp)}
                     </div>
                   </div>
+                  {/* Wizard action buttons — below assistant message */}
+                  {message.metadata?.wizardButtons && (
+                    <div className="rosie-chat-wizard-buttons">
+                      {message.metadata.wizardButtons.map(opt => {
+                        const isAnswered = wizardState
+                          ? wizardState.answers[message.metadata!.wizardStepField!] !== undefined
+                          : true; // no wizard = all answered (completed)
+                        const isSelected = wizardState
+                          ? wizardState.answers[message.metadata!.wizardStepField!] === opt.value
+                          : false;
+                        return (
+                          <button
+                            key={opt.value}
+                            className={`rosie-chat-wizard-btn${isSelected ? ' selected' : ''}`}
+                            onClick={() => handleWizardButton(opt, message.metadata!.wizardStepField!)}
+                            disabled={isAnswered}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   {eventConfirmations.map(conf => {
                     const canUndo = Date.now() - conf.createdAt < 30000;
                     return (

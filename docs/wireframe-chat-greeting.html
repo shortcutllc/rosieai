@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosie — Chat Greeting Redesign v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: #F0F0F5;
+    padding: 40px 20px;
+    color: #1D1D1F;
+  }
+
+  /* ====== PAGE LAYOUT ====== */
+  .page-header {
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto 32px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .page-header p {
+    font-size: 15px;
+    color: #86868B;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .section-header {
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto 24px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .section-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section-header p {
+    font-size: 14px;
+    color: #86868B;
+    margin-top: 4px;
+  }
+
+  .wireframe-row {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #86868B;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .label.new { color: #34C759; }
+  .label.current { color: #FF9500; }
+  .label.alt { color: #007AFF; }
+
+  /* ====== PHONE FRAME ====== */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #FAFAFA;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+  }
+  .phone-inner {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-inner::-webkit-scrollbar { display: none; }
+
+  /* ====== CALLOUT ANNOTATIONS ====== */
+  .callouts {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 0 0 32px;
+  }
+  .callout {
+    padding: 14px 18px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .callout .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #8B5CF6;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .callout .num.green { background: #34C759; }
+  .callout .num.orange { background: #FF9500; }
+  .callout .title {
+    display: inline;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .callout .desc {
+    font-size: 13px;
+    color: #86868B;
+    margin-top: 4px;
+    line-height: 1.45;
+  }
+
+  /* ====== REPLAY BUTTON ====== */
+  .replay-bar {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .replay-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: #8B5CF6;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .replay-btn:hover { background: #7C3AED; }
+  .replay-btn:active { transform: scale(0.97); }
+
+  /* ====== SHARED CHAT STYLES ====== */
+
+  /* Topbar */
+  .chat-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 12px;
+    background: #FAFAFA;
+    flex-shrink: 0;
+  }
+  .chat-topbar-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #86868B;
+  }
+  .chat-topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1D1D1F;
+  }
+
+  /* Body */
+  .chat-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px;
+    overflow-y: auto;
+  }
+
+  /* Input bar */
+  .chat-input-area {
+    background: #FAFAFA;
+    padding: 12px 16px 24px;
+    flex-shrink: 0;
+  }
+  .chat-input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.04);
+    padding: 4px 4px 4px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  .chat-input {
+    flex: 1;
+    padding: 14px 18px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #AEAEB2;
+  }
+  .chat-send-btn {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(180deg, #D4A5F7 0%, #8B5CF6 100%);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(181, 123, 236, 0.3);
+  }
+  .chat-send-btn svg { display: block; }
+
+  /* Quick actions */
+  .chat-quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .chat-quick-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 8px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 12px;
+    background: rgba(139, 92, 246, 0.06);
+    font-size: 13px;
+    font-weight: 600;
+    color: #8B5CF6;
+  }
+  .chat-quick-action-icon { font-size: 14px; }
+
+  /* Old suggestions (current phone only) */
+  .old-suggestions-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+  .old-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #FFFFFF;
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 16px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .old-suggestion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(120,120,128,0.08);
+    border-radius: 10px;
+  }
+  .old-suggestion-text {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .old-suggestion-arrow {
+    font-size: 22px;
+    font-weight: 300;
+    color: #86868B;
+  }
+
+  /* ====== CURRENT DESIGN ====== */
+  .current-greeting {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding: 0 4px;
+    padding-top: 40px;
+  }
+  .current-greeting-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #F3E8FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(181, 123, 236, 0.2);
+    flex-shrink: 0;
+    font-size: 24px;
+  }
+  .current-greeting-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .current-greeting-hey {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1D1D1F;
+  }
+  .current-greeting-sub {
+    font-size: 15px;
+    font-weight: 500;
+    color: #86868B;
+    line-height: 1.4;
+  }
+
+  /* ====== PROPOSED DESIGN ====== */
+
+  .proposed-greeting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: 48px;
+    margin-bottom: 28px;
+  }
+
+  /* ── Living Heart ── */
+  .proposed-heart {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  /* Entrance bounce */
+  @keyframes heart-bounce {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.15); opacity: 1; }
+    70% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+  }
+
+  /* Living breathing loop — subtle scale + float + glow */
+  @keyframes heart-alive {
+    0%, 100% {
+      transform: scale(1) translateY(0);
+      filter: drop-shadow(0 0 0 rgba(181, 123, 236, 0));
+    }
+    50% {
+      transform: scale(1.04) translateY(-2px);
+      filter: drop-shadow(0 0 12px rgba(181, 123, 236, 0.25));
+    }
+  }
+
+  .proposed-heart.bounce-in {
+    animation: heart-bounce 600ms cubic-bezier(0.05, 0.7, 0.1, 1) both;
+  }
+  .proposed-heart.alive {
+    animation: heart-alive 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Greeting text */
+  .proposed-hey {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1D1D1F;
+    margin-bottom: 8px;
+    min-height: 32px;
+  }
+
+  /* Typewriter cursor */
+  .typewriter-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 0.85em;
+    background: #1D1D1F;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: cursor-blink 1s steps(1) infinite;
+  }
+  @keyframes cursor-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  .typewriter-cursor.done { display: none; }
+
+  /* Subtext */
+  .proposed-sub {
+    font-size: 15px;
+    font-weight: 500;
+    color: #86868B;
+    line-height: 1.5;
+    max-width: 280px;
+    margin: 0 auto 0;
+  }
+
+  /* Reveal animation */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 400ms cubic-bezier(0.05, 0.7, 0.1, 1),
+                transform 400ms cubic-bezier(0.05, 0.7, 0.1, 1);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .stagger-1 { transition-delay: 0ms; }
+  .stagger-2 { transition-delay: 80ms; }
+  .stagger-3 { transition-delay: 160ms; }
+  .stagger-4 { transition-delay: 240ms; }
+
+  /* ====== OPTION A: Compact Pill Suggestions ====== */
+  .pill-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 4px;
+  }
+  .pill-suggestion {
+    display: inline-flex;
+    padding: 9px 14px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.06);
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B6B70;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .pill-suggestion:hover {
+    background: #F3E8FF;
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #8B5CF6;
+  }
+
+  /* ====== OPTION B: Ghost Text Suggestions ====== */
+  .ghost-suggestions {
+    padding: 0 4px;
+  }
+  .ghost-suggestions-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #AEAEB2;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .ghost-suggestion {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 14px;
+    font-weight: 400;
+    color: #86868B;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    line-height: 1.4;
+  }
+  .ghost-suggestion:last-child { border-bottom: none; }
+  .ghost-suggestion:hover { color: #8B5CF6; }
+  .ghost-suggestion::before {
+    content: '"';
+    color: #AEAEB2;
+  }
+  .ghost-suggestion::after {
+    content: '"';
+    color: #AEAEB2;
+  }
+
+  /* ====== ANNOTATION MARKERS ====== */
+  .anno {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #8B5CF6;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+  }
+
+  /* ====== SECTION DIVIDER ====== */
+  .section-divider {
+    max-width: 1200px;
+    margin: 48px auto 32px;
+    padding-top: 48px;
+    border-top: 2px solid rgba(0,0,0,0.08);
+    text-align: center;
+  }
+  .section-divider h2 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .section-divider p {
+    font-size: 15px;
+    color: #86868B;
+    line-height: 1.5;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .label.opt-c { color: #FF9500; }
+  .label.opt-d { color: #8B5CF6; }
+  .label.opt-e { color: #30D158; }
+  .label.opt-f { color: #FF3B30; }
+  .label.opt-g { color: #007AFF; }
+
+  /* ====== OPTION C: Color Action Cards ====== */
+  .log-action-cards {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .log-action-card {
+    flex: 1;
+    background: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .log-action-card:active { transform: scale(0.97); }
+  .log-action-accent {
+    height: 3px;
+  }
+  .log-action-accent.feed { background: linear-gradient(90deg, #FF9500, #FFB84D); }
+  .log-action-accent.sleep { background: linear-gradient(90deg, #B57BEC, #D4A5FF); }
+  .log-action-accent.diaper { background: linear-gradient(90deg, #30D158, #7EE88B); }
+  .log-action-body {
+    padding: 14px 8px 12px;
+  }
+  .log-action-emoji {
+    font-size: 24px;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .log-action-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #86868B;
+    margin-bottom: 8px;
+  }
+  .log-action-btn {
+    display: block;
+    width: calc(100% - 12px);
+    margin: 0 auto;
+    padding: 9px 8px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #FFFFFF;
+    cursor: pointer;
+  }
+  .log-action-btn.feed { background: #FF9500; }
+  .log-action-btn.sleep { background: #B57BEC; }
+  .log-action-btn.diaper { background: #30D158; }
+
+  /* Divider label between log actions and suggestions */
+  .or-ask-divider {
+    font-size: 11px;
+    font-weight: 600;
+    color: #AEAEB2;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: center;
+    margin: 4px 0 12px;
+  }
+
+  /* ====== OPTION D: Icon-Forward Circles ====== */
+  .icon-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .icon-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    cursor: pointer;
+  }
+  .icon-action:active .icon-action-circle { transform: scale(0.93); }
+  .icon-action-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform 0.15s ease;
+  }
+  .icon-action-circle.feed { background: rgba(255, 149, 0, 0.12); }
+  .icon-action-circle.sleep { background: rgba(181, 123, 236, 0.12); }
+  .icon-action-circle.diaper { background: rgba(48, 209, 88, 0.12); }
+  .icon-action-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .icon-action-time {
+    font-size: 11px;
+    font-weight: 400;
+    color: #AEAEB2;
+    margin-top: -4px;
+  }
+
+  /* ====== OPTION E: Stacked Action List ====== */
+  .stacked-actions {
+    display: flex;
+    flex-direction: column;
+    background: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .stacked-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: background 0.1s ease;
+  }
+  .stacked-action:last-child { border-bottom: none; }
+  .stacked-action:active { background: rgba(0,0,0,0.02); }
+  .stacked-action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .stacked-action-icon.feed { background: rgba(255, 149, 0, 0.12); }
+  .stacked-action-icon.sleep { background: rgba(181, 123, 236, 0.12); }
+  .stacked-action-icon.diaper { background: rgba(48, 209, 88, 0.12); }
+  .stacked-action-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stacked-action-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .stacked-action-detail {
+    font-size: 13px;
+    font-weight: 400;
+    color: #86868B;
+  }
+  .stacked-action-chevron {
+    font-size: 20px;
+    font-weight: 300;
+    color: #C7C7CC;
+  }
+
+  /* ====== SECTION 3: Home Screen Shell ====== */
+  .home-shell {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #FAFAFA;
+  }
+  .home-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px 8px;
+  }
+  .home-weather-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.04);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B6B70;
+  }
+  .home-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .home-greeting {
+    padding: 8px 20px 16px;
+  }
+  .home-greeting-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1D1D1F;
+    margin-bottom: 2px;
+  }
+  .home-greeting-sub {
+    font-size: 14px;
+    font-weight: 400;
+    color: #86868B;
+  }
+  .home-placeholder {
+    flex: 1;
+    padding: 0 20px;
+  }
+  .home-placeholder-card {
+    background: rgba(0,0,0,0.03);
+    border-radius: 16px;
+    height: 100px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #C7C7CC;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .home-placeholder-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .home-placeholder-row > div {
+    flex: 1;
+    height: 80px;
+    background: rgba(0,0,0,0.025);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D1D1D6;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* ====== OPTION F: Split FAB ====== */
+  .split-fab {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.04);
+    z-index: 10;
+  }
+  .split-fab-chat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .split-fab-chat-icon {
+    font-size: 16px;
+  }
+  .split-fab-log {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: #FFFFFF;
+    color: #1D1D1F;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .split-fab-plus {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF9500, #30D158);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ====== OPTION G: Enhanced Pill ====== */
+  .enhanced-fab {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 340px;
+    z-index: 10;
+  }
+  .enhanced-fab-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    border-radius: 24px;
+    box-shadow: 0 4px 24px rgba(139, 92, 246, 0.35), 0 0 0 1px rgba(139, 92, 246, 0.1);
+    cursor: pointer;
+  }
+  .enhanced-fab-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .enhanced-fab-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .enhanced-fab-primary {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFFFF;
+  }
+  .enhanced-fab-secondary {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.7);
+  }
+  .enhanced-fab-dots {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .enhanced-fab-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .enhanced-fab-dot.feed { background: #FF9500; }
+  .enhanced-fab-dot.sleep { background: #D4A5FF; }
+  .enhanced-fab-dot.diaper { background: #30D158; }
+
+  /* ====== CURRENT FAB (for reference) ====== */
+  .current-fab {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  .current-fab-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    border-radius: 999px;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .current-fab-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .current-fab-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #FFFFFF;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .proposed-heart.alive,
+    .proposed-heart.bounce-in {
+      animation: none !important;
+    }
+    .reveal { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Chat Greeting Redesign v2</h1>
+    <p>Living heart, mom-first copy, lighter suggestions. Three options to compare.</p>
+  </div>
+
+  <div class="replay-bar">
+    <button class="replay-btn" onclick="replayAll()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v5h5"/><path d="M3.51 11a7 7 0 1 0 .13-8.28L1 4"/></svg>
+      Replay animations
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- ROW 1: Current vs Proposed (pill suggestions) -->
+  <!-- ════════════════════════════════════════════ -->
+
+  <div class="wireframe-row">
+
+    <!-- CURRENT -->
+    <div class="column">
+      <div class="label current">Current</div>
+      <div class="phone">
+        <div class="phone-inner">
+          <div class="chat-topbar">
+            <div class="chat-topbar-btn"><svg width="20" height="20" fill="none" stroke="#86868B" stroke-width="2" stroke-linecap="round"><path d="M15 10H5m0 0l5-5m-5 5l5 5"/></svg></div>
+            <div class="chat-topbar-title"><span>💜</span> <span>Ask RosieAI</span></div>
+            <div class="chat-topbar-btn"><svg width="16" height="16" fill="none" stroke="#86868B" stroke-width="1.5" stroke-linecap="round"><path d="M11.5 2.5a1.5 1.5 0 0 1 2.12 2.12L5 13.25 2 14l.75-3L11.5 2.5z"/></svg></div>
+          </div>
+          <div class="chat-body">
+            <div class="current-greeting">
+              <div class="current-greeting-avatar">💜</div>
+              <div class="current-greeting-text">
+                <span class="current-greeting-hey">Hey Lauren!</span>
+                <span class="current-greeting-sub">Rosie's discovering those tiny hands. What's on your mind?</span>
+              </div>
+            </div>
+            <div class="chat-quick-actions">
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">🍼</span> Quick log</div>
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">📊</span> How's Rosie?</div>
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">🎯</span> Activity ideas</div>
+            </div>
+            <div class="old-suggestions-header">Try asking</div>
+            <div class="old-suggestion"><span class="old-suggestion-icon">🧠</span><span class="old-suggestion-text">Is Rosie going through the 4-month regression?</span><span class="old-suggestion-arrow">›</span></div>
+            <div class="old-suggestion"><span class="old-suggestion-icon">🌙</span><span class="old-suggestion-text">Should Rosie be on a nap schedule yet?</span><span class="old-suggestion-arrow">›</span></div>
+            <div class="old-suggestion"><span class="old-suggestion-icon">💬</span><span class="old-suggestion-text">What's coming up for Rosie this week?</span><span class="old-suggestion-arrow">›</span></div>
+            <div class="old-suggestion"><span class="old-suggestion-icon">🌙</span><span class="old-suggestion-text">How long should Rosie be awake between naps?</span><span class="old-suggestion-arrow">›</span></div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <span class="chat-input">Ask about Rosie...</span>
+              <div class="chat-send-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROPOSED A: Pill Suggestions -->
+    <div class="column">
+      <div class="label new">Option A — Compact Pills</div>
+      <div class="phone" style="position: relative;">
+        <div class="anno" style="top: 92px; right: 148px;">1</div>
+        <div class="anno" style="top: 172px; right: 88px;">2</div>
+        <div class="anno" style="top: 247px; right: 24px;">3</div>
+        <div class="anno" style="top: 330px; right: 24px;">4</div>
+        <div class="anno" style="top: 400px; right: 24px;">5</div>
+
+        <div class="phone-inner">
+          <div class="chat-topbar">
+            <div class="chat-topbar-btn"><svg width="20" height="20" fill="none" stroke="#86868B" stroke-width="2" stroke-linecap="round"><path d="M15 10H5m0 0l5-5m-5 5l5 5"/></svg></div>
+            <div class="chat-topbar-title"><span>💜</span> <span>Ask RosieAI</span></div>
+            <div class="chat-topbar-btn"><svg width="16" height="16" fill="none" stroke="#86868B" stroke-width="1.5" stroke-linecap="round"><path d="M11.5 2.5a1.5 1.5 0 0 1 2.12 2.12L5 13.25 2 14l.75-3L11.5 2.5z"/></svg></div>
+          </div>
+          <div class="chat-body">
+            <div class="proposed-greeting">
+              <div class="proposed-heart" id="heartA">💜</div>
+              <div class="proposed-hey" id="greetA"></div>
+              <div class="proposed-sub reveal" id="subA">You're doing amazing. Seriously. What's on your mind?</div>
+            </div>
+            <div class="chat-quick-actions reveal" id="actionsA">
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">🍼</span> Quick log</div>
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">📊</span> How's Rosie?</div>
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">🎯</span> Activity ideas</div>
+            </div>
+            <div class="pill-suggestions reveal" id="sugA">
+              <div class="pill-suggestion">Rosie's sleep schedule</div>
+              <div class="pill-suggestion">4-month regression?</div>
+              <div class="pill-suggestion">I'm feeling overwhelmed</div>
+              <div class="pill-suggestion">What to expect this week</div>
+              <div class="pill-suggestion">When to start solids</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <span class="chat-input">Ask anything...</span>
+              <div class="chat-send-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROPOSED B: Ghost Text Suggestions -->
+    <div class="column">
+      <div class="label alt">Option B — Ghost Text</div>
+      <div class="phone" style="position: relative;">
+        <div class="phone-inner">
+          <div class="chat-topbar">
+            <div class="chat-topbar-btn"><svg width="20" height="20" fill="none" stroke="#86868B" stroke-width="2" stroke-linecap="round"><path d="M15 10H5m0 0l5-5m-5 5l5 5"/></svg></div>
+            <div class="chat-topbar-title"><span>💜</span> <span>Ask RosieAI</span></div>
+            <div class="chat-topbar-btn"><svg width="16" height="16" fill="none" stroke="#86868B" stroke-width="1.5" stroke-linecap="round"><path d="M11.5 2.5a1.5 1.5 0 0 1 2.12 2.12L5 13.25 2 14l.75-3L11.5 2.5z"/></svg></div>
+          </div>
+          <div class="chat-body">
+            <div class="proposed-greeting">
+              <div class="proposed-heart" id="heartB">💜</div>
+              <div class="proposed-hey" id="greetB"></div>
+              <div class="proposed-sub reveal" id="subB">Whatever brought you here, I'm glad you came.</div>
+            </div>
+            <div class="chat-quick-actions reveal" id="actionsB">
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">🍼</span> Quick log</div>
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">📊</span> How's Rosie?</div>
+              <div class="chat-quick-action"><span class="chat-quick-action-icon">🎯</span> Activity ideas</div>
+            </div>
+            <div class="ghost-suggestions reveal" id="sugB">
+              <div class="ghost-suggestions-label">Or try...</div>
+              <div class="ghost-suggestion">Is Rosie sleeping enough for 3 months?</div>
+              <div class="ghost-suggestion">I'm feeling overwhelmed today</div>
+              <div class="ghost-suggestion">When should I start solids?</div>
+              <div class="ghost-suggestion">What should Rosie be doing this week?</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <span class="chat-input">Ask anything...</span>
+              <div class="chat-send-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Callout Annotations -->
+  <div class="callouts">
+    <div class="callout">
+      <span class="num">1</span>
+      <span class="title">Living Heart</span>
+      <div class="desc">Bounces in on entrance, then settles into a gentle breathing loop — subtle scale (1.0&rarr;1.04), 2px float, and soft purple glow. 4-second cycle. Feels alive, like a calm presence. Not a loading spinner.</div>
+    </div>
+    <div class="callout">
+      <span class="num">2</span>
+      <span class="title">Mom-First Greeting</span>
+      <div class="desc">Typewriter types "Hey Lauren &mdash; how are you?" Focused on the parent, not the baby. The friend who asks about YOU first. Copy rotates daily: "Morning. You made it." / "Still up? I'm right here." / "You did a lot today."</div>
+    </div>
+    <div class="callout">
+      <span class="num">3</span>
+      <span class="title">Validating Subtext</span>
+      <div class="desc">Subtext centers the parent's experience: "You're doing amazing. Seriously." Not baby milestones, not app features. Validation first, then an invitation to talk. Changes by age/weather/time.</div>
+    </div>
+    <div class="callout">
+      <span class="num">4</span>
+      <span class="title">Quick Actions (Unchanged)</span>
+      <div class="desc">Three one-tap shortcuts stay. Quick log, How's baby?, Activity ideas. Functional, always visible, compact. These are actions, not suggestions.</div>
+    </div>
+    <div class="callout">
+      <span class="num green">A</span>
+      <span class="title">Compact Pills</span>
+      <div class="desc">Suggestions as small wrapping pills. No icons, no arrows, no bold. Visually quiet — greeting stays the hero. Short labels that feel like topics, not full questions. 13px, muted color.</div>
+    </div>
+    <div class="callout">
+      <span class="num orange">B</span>
+      <span class="title">Ghost Text</span>
+      <div class="desc">Suggestions as plain text in quotes. Lowest visual weight possible — like whispered conversation starters. No cards, no borders. Feels like reading, not choosing. "Or try..." instead of "TRY ASKING."</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 2: Quick Log — Separate & Prominent                -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+
+  <div class="section-divider">
+    <h2>Quick Log — Separate &amp; Prominent</h2>
+    <p>Logging feeds, diapers, and naps is the #1 user action (10-15x/day). Each gets its own button with instant color recognition. "How's Rosie?" and "Activity ideas" move to the suggestion area — they're chat prompts, not log actions.</p>
+  </div>
+
+  <div class="wireframe-row">
+
+    <!-- OPTION C: Color Action Cards -->
+    <div class="column">
+      <div class="label opt-c">Option C — Color Action Cards</div>
+      <div class="phone" style="position: relative;">
+        <div class="phone-inner">
+          <div class="chat-topbar">
+            <div class="chat-topbar-btn"><svg width="20" height="20" fill="none" stroke="#86868B" stroke-width="2" stroke-linecap="round"><path d="M15 10H5m0 0l5-5m-5 5l5 5"/></svg></div>
+            <div class="chat-topbar-title"><span>💜</span> <span>Ask RosieAI</span></div>
+            <div class="chat-topbar-btn"><svg width="16" height="16" fill="none" stroke="#86868B" stroke-width="1.5" stroke-linecap="round"><path d="M11.5 2.5a1.5 1.5 0 0 1 2.12 2.12L5 13.25 2 14l.75-3L11.5 2.5z"/></svg></div>
+          </div>
+          <div class="chat-body">
+            <div class="proposed-greeting">
+              <div class="proposed-heart" id="heartC">💜</div>
+              <div class="proposed-hey" id="greetC"></div>
+              <div class="proposed-sub reveal" id="subC">You're doing amazing. Seriously. What's on your mind?</div>
+            </div>
+            <div class="log-action-cards reveal" id="actionsC">
+              <div class="log-action-card">
+                <div class="log-action-accent feed"></div>
+                <div class="log-action-body">
+                  <span class="log-action-emoji">🍼</span>
+                  <div class="log-action-label">Feed</div>
+                  <button class="log-action-btn feed">+ Log feed</button>
+                </div>
+              </div>
+              <div class="log-action-card">
+                <div class="log-action-accent sleep"></div>
+                <div class="log-action-body">
+                  <span class="log-action-emoji">😴</span>
+                  <div class="log-action-label">Sleep</div>
+                  <button class="log-action-btn sleep">+ Log sleep</button>
+                </div>
+              </div>
+              <div class="log-action-card">
+                <div class="log-action-accent diaper"></div>
+                <div class="log-action-body">
+                  <span class="log-action-emoji">👶</span>
+                  <div class="log-action-label">Diaper</div>
+                  <button class="log-action-btn diaper">+ Log diaper</button>
+                </div>
+              </div>
+            </div>
+            <div class="or-ask-divider reveal" id="dividerC">Or ask Rosie</div>
+            <div class="pill-suggestions reveal" id="sugC">
+              <div class="pill-suggestion">How's Rosie doing?</div>
+              <div class="pill-suggestion">Activity ideas</div>
+              <div class="pill-suggestion">4-month regression?</div>
+              <div class="pill-suggestion">I'm feeling overwhelmed</div>
+              <div class="pill-suggestion">When to start solids</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <span class="chat-input">Ask anything...</span>
+              <div class="chat-send-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION D: Icon-Forward Circles -->
+    <div class="column">
+      <div class="label opt-d">Option D — Icon Circles</div>
+      <div class="phone" style="position: relative;">
+        <div class="phone-inner">
+          <div class="chat-topbar">
+            <div class="chat-topbar-btn"><svg width="20" height="20" fill="none" stroke="#86868B" stroke-width="2" stroke-linecap="round"><path d="M15 10H5m0 0l5-5m-5 5l5 5"/></svg></div>
+            <div class="chat-topbar-title"><span>💜</span> <span>Ask RosieAI</span></div>
+            <div class="chat-topbar-btn"><svg width="16" height="16" fill="none" stroke="#86868B" stroke-width="1.5" stroke-linecap="round"><path d="M11.5 2.5a1.5 1.5 0 0 1 2.12 2.12L5 13.25 2 14l.75-3L11.5 2.5z"/></svg></div>
+          </div>
+          <div class="chat-body">
+            <div class="proposed-greeting">
+              <div class="proposed-heart" id="heartD">💜</div>
+              <div class="proposed-hey" id="greetD"></div>
+              <div class="proposed-sub reveal" id="subD">You're doing amazing. Seriously. What's on your mind?</div>
+            </div>
+            <div class="icon-actions reveal" id="actionsD">
+              <div class="icon-action">
+                <div class="icon-action-circle feed">🍼</div>
+                <span class="icon-action-label">Log feed</span>
+                <span class="icon-action-time">2h ago</span>
+              </div>
+              <div class="icon-action">
+                <div class="icon-action-circle sleep">😴</div>
+                <span class="icon-action-label">Log sleep</span>
+                <span class="icon-action-time">1h ago</span>
+              </div>
+              <div class="icon-action">
+                <div class="icon-action-circle diaper">👶</div>
+                <span class="icon-action-label">Log diaper</span>
+                <span class="icon-action-time">45m ago</span>
+              </div>
+            </div>
+            <div class="or-ask-divider reveal" id="dividerD">Or ask Rosie</div>
+            <div class="pill-suggestions reveal" id="sugD">
+              <div class="pill-suggestion">How's Rosie doing?</div>
+              <div class="pill-suggestion">Activity ideas</div>
+              <div class="pill-suggestion">4-month regression?</div>
+              <div class="pill-suggestion">I'm feeling overwhelmed</div>
+              <div class="pill-suggestion">When to start solids</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <span class="chat-input">Ask anything...</span>
+              <div class="chat-send-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION E: Stacked Action List -->
+    <div class="column">
+      <div class="label opt-e">Option E — Stacked List</div>
+      <div class="phone" style="position: relative;">
+        <div class="phone-inner">
+          <div class="chat-topbar">
+            <div class="chat-topbar-btn"><svg width="20" height="20" fill="none" stroke="#86868B" stroke-width="2" stroke-linecap="round"><path d="M15 10H5m0 0l5-5m-5 5l5 5"/></svg></div>
+            <div class="chat-topbar-title"><span>💜</span> <span>Ask RosieAI</span></div>
+            <div class="chat-topbar-btn"><svg width="16" height="16" fill="none" stroke="#86868B" stroke-width="1.5" stroke-linecap="round"><path d="M11.5 2.5a1.5 1.5 0 0 1 2.12 2.12L5 13.25 2 14l.75-3L11.5 2.5z"/></svg></div>
+          </div>
+          <div class="chat-body">
+            <div class="proposed-greeting">
+              <div class="proposed-heart" id="heartE">💜</div>
+              <div class="proposed-hey" id="greetE"></div>
+              <div class="proposed-sub reveal" id="subE">Whatever brought you here, I'm glad you came.</div>
+            </div>
+            <div class="stacked-actions reveal" id="actionsE">
+              <div class="stacked-action">
+                <div class="stacked-action-icon feed">🍼</div>
+                <div class="stacked-action-text">
+                  <span class="stacked-action-name">Log a feed</span>
+                  <span class="stacked-action-detail">Last: 2h 21m ago — Bottle, 4oz</span>
+                </div>
+                <span class="stacked-action-chevron">›</span>
+              </div>
+              <div class="stacked-action">
+                <div class="stacked-action-icon sleep">😴</div>
+                <div class="stacked-action-text">
+                  <span class="stacked-action-name">Log sleep</span>
+                  <span class="stacked-action-detail">Last: 1h 8m ago — Nap, 45min</span>
+                </div>
+                <span class="stacked-action-chevron">›</span>
+              </div>
+              <div class="stacked-action">
+                <div class="stacked-action-icon diaper">👶</div>
+                <div class="stacked-action-text">
+                  <span class="stacked-action-name">Log a diaper</span>
+                  <span class="stacked-action-detail">Last: 45m ago — Wet</span>
+                </div>
+                <span class="stacked-action-chevron">›</span>
+              </div>
+            </div>
+            <div class="or-ask-divider reveal" id="dividerE">Or ask Rosie</div>
+            <div class="ghost-suggestions reveal" id="sugE">
+              <div class="ghost-suggestions-label">Try asking...</div>
+              <div class="ghost-suggestion">How's Rosie doing today?</div>
+              <div class="ghost-suggestion">I'm feeling overwhelmed</div>
+              <div class="ghost-suggestion">What should Rosie be doing this week?</div>
+              <div class="ghost-suggestion">Activity ideas for a rainy day</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <span class="chat-input">Ask anything...</span>
+              <div class="chat-send-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Callout Annotations: Quick Log -->
+  <div class="callouts">
+    <div class="callout">
+      <span class="num orange">C</span>
+      <span class="title">Color Action Cards</span>
+      <div class="desc">Mini cards with category color accents. Reuses the home screen visual language — parents already know these cards. Explicit "+ Log feed" buttons feel tappable and directional.</div>
+    </div>
+    <div class="callout">
+      <span class="num">D</span>
+      <span class="title">Icon Circles</span>
+      <div class="desc">iOS-style quick actions. Big 56px tap targets with tinted backgrounds. "Time since last" adds context without pressure — you see "2h ago" and think "oh, time for a feed."</div>
+    </div>
+    <div class="callout">
+      <span class="num green">E</span>
+      <span class="title">Stacked List</span>
+      <div class="desc">Most informational. Shows last event details inline (what, when, how much). Best for parents who want context before tapping. Chevrons signal "tap to open." Takes more vertical space.</div>
+    </div>
+    <div class="callout">
+      <span class="num orange">1</span>
+      <span class="title">Separate Log Actions</span>
+      <div class="desc">Each event type (feed, sleep, diaper) gets its own button with its category color. No more guessing what "Quick log" does. One tap opens the right modal.</div>
+    </div>
+    <div class="callout">
+      <span class="num orange">2</span>
+      <span class="title">Category Colors</span>
+      <div class="desc">Orange = feed, purple = sleep, green = diaper. These colors are used everywhere in the app — timeline, stats, quick log modals. Instant recognition, zero reading required.</div>
+    </div>
+    <div class="callout">
+      <span class="num orange">3</span>
+      <span class="title">Chat Prompts Demoted</span>
+      <div class="desc">"How's Rosie?" and "Activity ideas" move to the suggestion area below with an "Or ask Rosie" divider. They're chat prompts, not logging actions. Logging is primary; chatting is secondary.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 3: Floating Button — Chat + Log Entry Point         -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+
+  <div class="section-divider">
+    <h2>Floating Button — Chat + Log Entry Point</h2>
+    <p>The home screen button needs to clearly communicate both capabilities: chatting with Rosie and quick logging. Currently the cycling text means parents might see "Ask RosieAI anything..." when they want to log, and vice versa.</p>
+  </div>
+
+  <div class="wireframe-row">
+
+    <!-- CURRENT FAB (reference) -->
+    <div class="column">
+      <div class="label current">Current FAB</div>
+      <div class="phone">
+        <div class="home-shell">
+          <div class="home-topbar">
+            <div class="home-weather-pill">☀️ 52° Wed</div>
+            <div class="home-avatar">L</div>
+          </div>
+          <div class="home-greeting">
+            <div class="home-greeting-title">Good afternoon, Lauren</div>
+            <div class="home-greeting-sub">Rosie is 4 months old today</div>
+          </div>
+          <div class="home-placeholder">
+            <div class="home-placeholder-row">
+              <div>Feed</div>
+              <div>Sleep</div>
+              <div>Diaper</div>
+            </div>
+            <div class="home-placeholder-card">Today's Plan</div>
+            <div class="home-placeholder-card">Timeline Events</div>
+            <div class="home-placeholder-card">Expert Insights</div>
+          </div>
+          <div class="current-fab">
+            <div class="current-fab-pill">
+              <div class="current-fab-icon">✨</div>
+              <span class="current-fab-text">Ask RosieAI anything...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION F: Split FAB -->
+    <div class="column">
+      <div class="label opt-f">Option F — Split FAB</div>
+      <div class="phone">
+        <div class="home-shell">
+          <div class="home-topbar">
+            <div class="home-weather-pill">☀️ 52° Wed</div>
+            <div class="home-avatar">L</div>
+          </div>
+          <div class="home-greeting">
+            <div class="home-greeting-title">Good afternoon, Lauren</div>
+            <div class="home-greeting-sub">Rosie is 4 months old today</div>
+          </div>
+          <div class="home-placeholder">
+            <div class="home-placeholder-row">
+              <div>Feed</div>
+              <div>Sleep</div>
+              <div>Diaper</div>
+            </div>
+            <div class="home-placeholder-card">Today's Plan</div>
+            <div class="home-placeholder-card">Timeline Events</div>
+            <div class="home-placeholder-card">Expert Insights</div>
+          </div>
+          <div class="split-fab">
+            <div class="split-fab-chat">
+              <span class="split-fab-chat-icon">💬</span>
+              Ask Rosie
+            </div>
+            <div class="split-fab-log">
+              <div class="split-fab-plus">+</div>
+              Log
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION G: Enhanced Pill -->
+    <div class="column">
+      <div class="label opt-g">Option G — Enhanced Pill</div>
+      <div class="phone">
+        <div class="home-shell">
+          <div class="home-topbar">
+            <div class="home-weather-pill">☀️ 52° Wed</div>
+            <div class="home-avatar">L</div>
+          </div>
+          <div class="home-greeting">
+            <div class="home-greeting-title">Good afternoon, Lauren</div>
+            <div class="home-greeting-sub">Rosie is 4 months old today</div>
+          </div>
+          <div class="home-placeholder">
+            <div class="home-placeholder-row">
+              <div>Feed</div>
+              <div>Sleep</div>
+              <div>Diaper</div>
+            </div>
+            <div class="home-placeholder-card">Today's Plan</div>
+            <div class="home-placeholder-card">Timeline Events</div>
+            <div class="home-placeholder-card">Expert Insights</div>
+          </div>
+          <div class="enhanced-fab">
+            <div class="enhanced-fab-pill">
+              <div class="enhanced-fab-icon">💜</div>
+              <div class="enhanced-fab-text">
+                <span class="enhanced-fab-primary">Chat or log with Rosie</span>
+                <span class="enhanced-fab-secondary">Ask anything · Quick log feed, sleep, diaper</span>
+              </div>
+              <div class="enhanced-fab-dots">
+                <span class="enhanced-fab-dot feed"></span>
+                <span class="enhanced-fab-dot sleep"></span>
+                <span class="enhanced-fab-dot diaper"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Callout Annotations: Floating Button -->
+  <div class="callouts">
+    <div class="callout">
+      <span class="num orange">!</span>
+      <span class="title">Current Problem</span>
+      <div class="desc">The pill cycles between "Ask RosieAI anything..." and "Log a quick feed 🍼" every 3 seconds. Parents can't tell it does both. They might see the chat prompt when they want to log.</div>
+    </div>
+    <div class="callout">
+      <span class="num" style="background:#FF3B30;">F</span>
+      <span class="title">Split FAB</span>
+      <div class="desc">Two distinct tap targets: purple "Ask Rosie" (chat) and white "Log" (quick log). Zero ambiguity. The colorful "+" icon uses a feed-to-diaper gradient hinting at all three event types.</div>
+    </div>
+    <div class="callout">
+      <span class="num" style="background:#007AFF;">G</span>
+      <span class="title">Enhanced Pill</span>
+      <div class="desc">Single button, explicitly dual-purpose. "Chat or log with Rosie" replaces cycling text. Three colored dots (orange, purple, green) hint at log types. The 💜 heart ties it to Rosie's identity.</div>
+    </div>
+  </div>
+
+<script>
+  const CHAR_SPEED = 40;
+  const PUNCTUATION_PAUSE = { ',': 150, '.': 300, '!': 200, '?': 200, '\u2014': 200, '-': 150 };
+
+  function typewrite(el, text, cb) {
+    el.textContent = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'typewriter-cursor';
+    el.appendChild(cursor);
+    let i = 0;
+    function next() {
+      if (i < text.length) {
+        el.insertBefore(document.createTextNode(text[i]), cursor);
+        const pause = PUNCTUATION_PAUSE[text[i]] || CHAR_SPEED;
+        i++;
+        setTimeout(next, pause);
+      } else {
+        cursor.classList.add('done');
+        if (cb) cb();
+      }
+    }
+    next();
+  }
+
+  function animatePhone(heartId, greetId, subId, actionsId, sugId, greetText, extraRevealIds) {
+    const heart = document.getElementById(heartId);
+    const greet = document.getElementById(greetId);
+    const sub = document.getElementById(subId);
+    const actions = document.getElementById(actionsId);
+    const sug = document.getElementById(sugId);
+    const extras = (extraRevealIds || []).map(id => document.getElementById(id)).filter(Boolean);
+
+    // Reset
+    heart.classList.remove('bounce-in', 'alive');
+    greet.textContent = '';
+    sub.classList.remove('visible');
+    actions.classList.remove('visible');
+    sug.classList.remove('visible');
+    extras.forEach(el => el.classList.remove('visible'));
+    void heart.offsetWidth;
+
+    // 1. Heart bounces in
+    heart.classList.add('bounce-in');
+
+    // 2. After bounce, start breathing loop
+    setTimeout(() => {
+      heart.classList.remove('bounce-in');
+      heart.classList.add('alive');
+    }, 700);
+
+    // 3. Typewriter starts
+    setTimeout(() => {
+      typewrite(greet, greetText, () => {
+        setTimeout(() => sub.classList.add('visible'), 100);
+        setTimeout(() => actions.classList.add('visible'), 250);
+        // Divider and suggestions stagger after actions
+        extras.forEach((el, i) => {
+          setTimeout(() => el.classList.add('visible'), 350 + i * 100);
+        });
+        setTimeout(() => sug.classList.add('visible'), 350 + extras.length * 100 + 50);
+      });
+    }, 200);
+  }
+
+  function replayAll() {
+    // Original phones A & B
+    animatePhone('heartA', 'greetA', 'subA', 'actionsA', 'sugA',
+      'Hey Lauren \u2014 how are you?');
+    animatePhone('heartB', 'greetB', 'subB', 'actionsB', 'sugB',
+      'Hey Lauren \u2014 how are you?');
+
+    // Section 2 phones C, D, E
+    animatePhone('heartC', 'greetC', 'subC', 'actionsC', 'sugC',
+      'Hey Lauren \u2014 how are you?', ['dividerC']);
+    animatePhone('heartD', 'greetD', 'subD', 'actionsD', 'sugD',
+      'Hey Lauren \u2014 how are you?', ['dividerD']);
+    animatePhone('heartE', 'greetE', 'subE', 'actionsE', 'sugE',
+      'Hey Lauren \u2014 how are you?', ['dividerE']);
+  }
+
+  window.addEventListener('load', () => setTimeout(replayAll, 500));
+</script>
+
+</body>
+</html>

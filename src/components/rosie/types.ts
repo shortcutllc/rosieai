@@ -112,6 +112,35 @@ export interface ChatMessage {
   timestamp: string;
   role: 'user' | 'assistant';
   content: string;
+  metadata?: ChatMessageMetadata;
+}
+
+export interface ChatMessageMetadata {
+  isWizardMessage?: boolean;
+  wizardButtons?: WizardButtonOption[];
+  wizardStepField?: string;
+  isWizardUserResponse?: boolean;
+}
+
+export interface WizardButtonOption {
+  label: string;
+  value: string;
+}
+
+export type QuickLogEventType = 'feed' | 'sleep' | 'diaper';
+
+export interface WizardStep {
+  question: string;
+  options: WizardButtonOption[];
+  field: string;
+}
+
+export interface WizardState {
+  eventType: QuickLogEventType;
+  currentStepIndex: number;
+  answers: Record<string, string>;
+  steps: WizardStep[];
+  isComplete: boolean;
 }
 
 export interface CaregiverNote {
