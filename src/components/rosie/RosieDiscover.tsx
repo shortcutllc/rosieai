@@ -1,7 +1,10 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { BabyProfile, DevelopmentalInfo } from './types';
+import { BabyProfile, DevelopmentalInfo, WeatherData } from './types';
 import { getLeapStatus, LeapStatus, leaps, LeapInfo } from './leapData';
+import { getMilestonesForAge, MilestoneDefinition } from './milestoneData';
+import { RosieMilestoneBrowser } from './RosieMilestoneBrowser';
+import { RosieInsightsBrowser } from './RosieInsightsBrowser';
 import {
   getParentWellnessForWeek,
   getQuickWinsForWeek,
@@ -12,12 +15,13 @@ import {
   ParentWellnessContent
 } from './expertInsights';
 
-interface RosieDevelopmentProps {
+interface RosieDiscoverProps {
   baby: BabyProfile;
   developmentalInfo: DevelopmentalInfo;
+  weather?: WeatherData | null;
 }
 
-export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, developmentalInfo }) => {
+export const RosieDiscover: React.FC<RosieDiscoverProps> = ({ baby, developmentalInfo, weather }) => {
   const {
     weekNumber,
     ageInWeeks,
@@ -32,6 +36,12 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
   // Leap browser state
   const [showLeapBrowser, setShowLeapBrowser] = useState(false);
   const [selectedLeap, setSelectedLeap] = useState<LeapInfo | null>(null);
+
+  // Milestone browser state
+  const [showMilestoneBrowser, setShowMilestoneBrowser] = useState(false);
+
+  // Insights browser state
+  const [showInsightsBrowser, setShowInsightsBrowser] = useState(false);
 
   // Expert insights carousel state
   const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
@@ -169,6 +179,73 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
 
   const leapPhaseDisplay = getLeapPhaseDisplay();
 
+  // Milestone skill tree data
+  const milestoneTree = useMemo(() => {
+    const { current, upcoming, past } = getMilestonesForAge(ageInWeeks);
+    // Show last 2 completed, all current (emerging), and first 2 upcoming
+    const done = past.slice(-2);
+    const emerging = current.slice(0, 3);
+    const next = upcoming.slice(0, 2);
+    return { done, emerging, next };
+  }, [ageInWeeks]);
+
+  // Weather-aware activity suggestion
+  const weatherSuggestion = useMemo(() => {
+    if (!weather) return null;
+    const condition = weather.condition?.toLowerCase() || '';
+    const temp = weather.temperature;
+
+    if (condition.includes('rain') || condition.includes('storm') || condition.includes('drizzle')) {
+      return {
+        icon: '🌧️',
+        title: 'Indoor day today',
+        text: `Rain expected. Try the mirror play activity from today's plan — great for social development and no gear needed.`,
+        style: 'weather' as const,
+      };
+    }
+    if (condition.includes('snow') || condition.includes('sleet') || condition.includes('ice')) {
+      return {
+        icon: '❄️',
+        title: 'Cozy day inside',
+        text: `Snowy outside. Perfect for tummy time near a window — ${baby.name} will love watching the snow fall.`,
+        style: 'weather' as const,
+      };
+    }
+    if (temp > 90) {
+      return {
+        icon: '🥵',
+        title: 'Too hot for outdoor play',
+        text: `${temp}° today. Stay inside during peak hours. Water play in the bathtub is a great sensory activity.`,
+        style: 'weather' as const,
+      };
+    }
+    if (temp < 32) {
+      return {
+        icon: '🥶',
+        title: 'Bundle up or stay in',
+        text: `${temp}° outside. If you venture out, keep trips short. Indoor dance time is great for gross motor skills.`,
+        style: 'weather' as const,
+      };
+    }
+    if (condition.includes('clear') || condition.includes('sunny') || condition.includes('fair')) {
+      return {
+        icon: '☀️',
+        title: 'Great day for outside time',
+        text: `${temp}° and clear. A short walk or outdoor tummy time would be wonderful for ${baby.name}.`,
+        style: 'weather-good' as const,
+      };
+    }
+    if (condition.includes('cloud') || condition.includes('overcast')) {
+      return {
+        icon: '⛅',
+        title: 'Nice for a stroller walk',
+        text: `${temp}° and cloudy — perfect stroller weather. Fresh air is good for both of you.`,
+        style: 'weather-good' as const,
+      };
+    }
+    return null;
+  }, [weather, baby.name]);
+
   return (
     <div className="rosie-development">
       {/* Week Badge — wireframe: simple inline pill */}
@@ -239,6 +316,94 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
           </div>
         </div>
       )}
+
+      {/* View All 10 Leaps — associated with leap section above */}
+      <div className="tw-section" style={{ textAlign: 'center' }}>
+        <button
+          className="tw-leaps-link"
+          onClick={() => setShowLeapBrowser(true)}
+        >
+          <div className="tw-leaps-link-title">📚 View All 10 Leaps</div>
+          <div className="tw-leaps-link-subtitle">See the full developmental timeline</div>
+        </button>
+      </div>
+
+      {/* Milestone Skill Tree */}
+      {(milestoneTree.done.length > 0 || milestoneTree.emerging.length > 0 || milestoneTree.next.length > 0) && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">Milestones</div>
+          </div>
+          <div className="rosie-skill-tree">
+            {milestoneTree.done.map((ms, i) => (
+              <React.Fragment key={ms.id}>
+                <div className="rosie-skill-row">
+                  <div className="rosie-skill-dot done" />
+                  <div className="rosie-skill-name done-text">{ms.title}</div>
+                  <div className="rosie-skill-tag done">Done</div>
+                </div>
+                {(i < milestoneTree.done.length - 1 || milestoneTree.emerging.length > 0 || milestoneTree.next.length > 0) && (
+                  <div className="rosie-skill-connector" />
+                )}
+              </React.Fragment>
+            ))}
+            {milestoneTree.emerging.map((ms, i) => (
+              <React.Fragment key={ms.id}>
+                <div className="rosie-skill-row">
+                  <div className="rosie-skill-dot emerging" />
+                  <div className="rosie-skill-name">{ms.title}</div>
+                  <div className="rosie-skill-tag emerging">Emerging</div>
+                </div>
+                {(i < milestoneTree.emerging.length - 1 || milestoneTree.next.length > 0) && (
+                  <div className="rosie-skill-connector" />
+                )}
+              </React.Fragment>
+            ))}
+            {milestoneTree.next.map((ms, i) => (
+              <React.Fragment key={ms.id}>
+                <div className="rosie-skill-row">
+                  <div className="rosie-skill-dot next" />
+                  <div className="rosie-skill-name">{ms.title}</div>
+                  <div className="rosie-skill-tag next">Next</div>
+                </div>
+                {i < milestoneTree.next.length - 1 && (
+                  <div className="rosie-skill-connector" />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* View All Milestones — matches leap button style */}
+          <div style={{ textAlign: 'center', marginTop: '12px' }}>
+            <button
+              className="tw-milestones-link"
+              onClick={() => setShowMilestoneBrowser(true)}
+            >
+              <div className="tw-milestones-link-title">🌟 View All Milestones</div>
+              <div className="tw-milestones-link-subtitle">Track and check off developmental milestones</div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Weather-Aware Suggestion */}
+      {weatherSuggestion ? (
+        <div className="tw-section">
+          <div className={`rosie-weather-alert ${weatherSuggestion.style}`}>
+            <div className="rosie-weather-icon">{weatherSuggestion.icon}</div>
+            <div className="rosie-weather-content">
+              <div className="rosie-weather-title">{weatherSuggestion.title}</div>
+              <div className="rosie-weather-text">{weatherSuggestion.text}</div>
+            </div>
+          </div>
+        </div>
+      ) : !weather ? (
+        <div className="tw-section">
+          <div className="rosie-weather-prompt">
+            🌦️ Share your location in settings to get weather-aware activity suggestions
+          </div>
+        </div>
+      ) : null}
 
       {/* For You — wireframe: section header + green wellness card */}
       {wellnessContent && (
@@ -322,7 +487,7 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
         <div className="tw-section">
           <div className="tw-section-hdr">
             <div className="tw-section-title">Expert Insights</div>
-            <div className="tw-section-link">All →</div>
+            <button className="tw-section-link" onClick={() => setShowInsightsBrowser(true)}>All →</button>
           </div>
           <div
             className="tw-insight-card"
@@ -344,6 +509,17 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
                 aria-label={`Go to insight ${i + 1}`}
               />
             ))}
+          </div>
+
+          {/* View All Expert Insights — matches leap/milestone button style */}
+          <div style={{ textAlign: 'center', marginTop: '12px' }}>
+            <button
+              className="tw-insights-link"
+              onClick={() => setShowInsightsBrowser(true)}
+            >
+              <div className="tw-insights-link-title">📊 View All Expert Insights</div>
+              <div className="tw-insights-link-subtitle">Research-backed guidance for every stage</div>
+            </button>
           </div>
         </div>
       )}
@@ -380,17 +556,6 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
           </div>
         </div>
       )}
-
-      {/* View All 10 Leaps — wireframe: centered link button */}
-      <div className="tw-section" style={{ textAlign: 'center' }}>
-        <button
-          className="tw-leaps-link"
-          onClick={() => setShowLeapBrowser(true)}
-        >
-          <div className="tw-leaps-link-title">📚 View All 10 Leaps</div>
-          <div className="tw-leaps-link-subtitle">See the full developmental timeline</div>
-        </button>
-      </div>
 
       {/* Leap Browser Modal — portal to body to escape transform containing block */}
       {showLeapBrowser && createPortal(
@@ -569,8 +734,23 @@ export const RosieDevelopment: React.FC<RosieDevelopmentProps> = ({ baby, develo
         </div>,
         document.body
       )}
+
+      {/* Milestone Browser Modal */}
+      <RosieMilestoneBrowser
+        isOpen={showMilestoneBrowser}
+        onClose={() => setShowMilestoneBrowser(false)}
+        baby={baby}
+        ageInWeeks={ageInWeeks}
+      />
+
+      {/* Expert Insights Browser Modal */}
+      <RosieInsightsBrowser
+        isOpen={showInsightsBrowser}
+        onClose={() => setShowInsightsBrowser(false)}
+        ageInWeeks={ageInWeeks}
+      />
     </div>
   );
 };
 
-export default RosieDevelopment;
+export default RosieDiscover;

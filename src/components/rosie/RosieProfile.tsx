@@ -647,7 +647,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
                   <div className="rosie-settings-item-info">
                     <div className="rosie-settings-item-label">Your Name</div>
                     <div className="rosie-settings-item-desc">
-                      This is how Rosie greets you
+                      This is how RosieAI greets you
                     </div>
                   </div>
                   <div className="rosie-settings-location-input">
@@ -722,7 +722,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
                     <div className="rosie-settings-item-info">
                       <div className="rosie-settings-item-label">Sign Out</div>
                       <div className="rosie-settings-item-desc">
-                        Sign out of your Rosie account
+                        Sign out of your RosieAI account
                       </div>
                     </div>
                     <button
@@ -769,7 +769,7 @@ export const RosieProfile: React.FC<RosieProfileProps> = ({
               <div className="rosie-settings-group">
                 <h4 className="rosie-settings-group-title">About</h4>
                 <div className="rosie-settings-about">
-                  <p><strong>Rosie AI</strong></p>
+                  <p><strong>RosieAI</strong></p>
                   <p className="rosie-settings-about-desc">
                     Calm technology for chaotic moments.
                     Helping parents track and understand their baby's needs.

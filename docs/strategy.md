@@ -158,6 +158,94 @@ More engagement → More data logged → Less effort to log → ...
 
 ---
 
+## Onboarding & Personalization Architecture
+
+### The Core Principle
+
+**Get parents to value in under 60 seconds. Deepen personalization over time.**
+
+The birth date is the single most powerful data point. From it, Rosie derives the baby's exact age in days/weeks/months, developmental stage, expected milestones, typical sleep patterns, feeding norms, and growth expectations. Everything else makes the experience better, but the birth date makes it *work*.
+
+### Onboarding: The Minimum Viable Profile
+
+These are the only questions that block the parent from entering the app. Total time: under 60 seconds.
+
+| # | Field | Why It's Essential |
+|---|-------|--------------------|
+| 1 | **Parent name** | Personalized greeting, conversational tone ("Morning, Sarah!") |
+| 2 | **Baby name** | Used in every insight, prompt, and response |
+| 3 | **Birth date** | THE key input — drives all age-based intelligence |
+| 4 | **Due date** *(if born early)* | Enables adjusted/corrected age for premature babies |
+
+That's it. No feeding method, no birth weight, no health questions at onboarding. Get them into the app.
+
+**Why due date matters:** A baby born 8 weeks early at 6 months chronological is developmentally at 4 months. Every recommendation shifts — milestones, sleep, feeding, growth charts. The AAP recommends using corrected age until 24 months. Wonder Weeks uses ONLY the due date for their developmental leap calculations.
+
+### The Quick Catch-Up Quiz (Non-Blocking)
+
+After onboarding, the home screen shows a "Quick Catch-Up" card. This is NOT blocking — parents can log events, chat with Rosie, and use the app fully without it. Questions adapt to the baby's age (computed from birth date).
+
+**4 topics, ~2 minutes total:**
+
+1. **Feeding** — breast/bottle/combo/pumping, and solids status if 4+ months. This is the #2 branching variable after age — changes supplement guidance, feed frequency expectations, night waking patterns, and smart prompt suggestions.
+
+2. **Sleep** — naps/day, bedtime, night wakings, how baby falls asleep. Sleep is the #1 parent concern. Knowing the baseline lets Rosie detect regressions and give meaningful (not generic) guidance.
+
+3. **Milestones** — age-appropriate checkboxes of what baby's currently doing. Pre-fills the milestone skill tree so the Daily Plan and guidance are immediately relevant.
+
+4. **What's on your mind?** — free text. Goes directly into Claude's system prompt as a parent concern. If a parent types "she won't stop waking up at night," Rosie proactively references this in insights and suggestions. This is gold.
+
+### How Rosie AI Uses This Data: Claude IS the Rules Engine
+
+**We do NOT need to code hundreds of if/then scenarios.**
+
+A pure rules-based system would need **400-700 hand-coded rules** to cover feeding × sleep × milestones × health × age combinations for 0-12 months. Each rule needs expert-reviewed content. Every new variable (reflux, tongue tie, twins) creates a combinatorial explosion.
+
+Claude handles this naturally through structured context injection. Given:
+
+> "Lily is 6 months old, on a combination of bottles and solids, waking 3x at night, parent is concerned about night waking, it's 3am and 28°F outside."
+
+Claude generates a response that's warm, specific to Lily, addresses the night waking concern, acknowledges the 3am timing, and doesn't suggest outdoor activities. No rules needed.
+
+### The Hybrid Architecture
+
+| Layer | What It Does | Examples |
+|-------|-------------|----------|
+| **Client rules** (~20-30 simple rules) | Time-sensitive UI decisions | Wake window timers, feed interval display, night mode trigger (10pm-6am), which log buttons to show by age (add "Solids" at 4+ months) |
+| **Claude (system prompt)** | All guidance, insights, personalization | Chat responses, home insights, daily plan activities, milestone commentary, trend analysis, proactive alerts |
+| **Caching layer** | Cost + latency optimization | Home insight cached per session, weekly guidance cached, chat is real-time |
+
+### Cost Estimate
+
+| Interaction Type | Frequency | Cost/Call | Monthly Cost (per user) |
+|-----------------|-----------|-----------|------------------------|
+| Chat messages | 5-10/day | ~$0.01 | $1.50-3.00 |
+| Home insight | 1/day (cached) | ~$0.01 | $0.30 |
+| Weekly guidance | 1/week | ~$0.02 | $0.08 |
+| **Total** | | | **~$2-4/month/user** |
+
+Sustainable for a $5-8/month subscription. With Anthropic's prompt caching (stable system prompt cached across calls), cost drops further.
+
+### Key Research Findings
+
+**What top baby apps collect at onboarding:**
+- Apps praised for best UX (Baby Tracker by Nighp, Nara Baby) collect the LEAST during onboarding
+- Wonder Weeks needs only a due date — that's their single input
+- Huckleberry collects feeding method only after 3+ days of usage, not at sign-up
+
+**Biggest branching variables in baby guidance (research-backed hierarchy):**
+1. **Age** — almost every recommendation changes by age
+2. **Gestational age / prematurity** — creates a parallel developmental timeline
+3. **Feeding method** — determines supplements, frequency, troubleshooting path
+4. **Birth weight** — especially for low birth weight infants
+5. **Health conditions** — GERD, allergies, tongue tie (collected progressively, not at onboarding)
+6. **Family allergy history** — changes solid food introduction approach
+7. **Parent experience level** — can be inferred from usage patterns, not asked
+
+**The moat:** No baby app currently uses an LLM this deeply for personalization. Most use pre-authored, age-gated content. Rosie synthesizes age + feeding + health + patterns + concerns + weather + time into genuinely personalized guidance. That's the differentiator.
+
+---
+
 ## Competitive Landscape
 
 ### The Market Map
@@ -211,31 +299,34 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 - [x] AI chat with baby context (Ask Rosie)
 - [x] This Week developmental content
 - [x] Onboarding redesign (progressive disclosure)
-- [ ] **Contextual Home surface** (PLAN.md — replace default tab with intelligent view)
-- [ ] **Smart defaults** (pre-fill quick log based on patterns after 1 week of data)
-- [ ] **Conversational logging** (type natural language in chat → structured event)
-- [ ] **Voice input** (browser speech-to-text for hands-free logging)
+- [x] **Contextual Home surface** — intelligent home tab with smart prompt, proactive alerts, compact stats, daily plan, catch-up quiz
+- [x] **Smart defaults** (pre-fill quick log based on patterns after 1 week of data)
+- [x] **Conversational logging** (type natural language in chat → structured event)
+- [x] **Voice input** (browser speech-to-text for hands-free logging)
+- [x] **Wireframe alignment** — home feed, Discover tab, onboarding flow, and modal components matched to wireframe designs (section order, spacing, gradients, card sizes, typography, night mode)
 - [ ] **Caregiver sharing** (invite partner/grandparent, real-time sync, handoff briefings)
 - [ ] **Pediatrician export** (formatted PDF: growth charts, feeding averages, sleep patterns, milestones)
 
 ### Phase 2: Intelligence (Months 3-6)
 *Turn data into proactive, personalized insights*
 
-- [ ] **Anticipatory Guidance Engine** (tell parents what's coming before they Google it)
+- [x] **Anticipatory Guidance Engine** — Wonder Weeks leap predictions (current/upcoming/sunny periods with progress %), "Coming Up" section in Discover, leap browser with all 10 leaps detail views, expert insights per age stage (`leapData.ts`, `expertInsights.ts`)
 - [ ] **Cross-variable correlation engine** (nightly analysis: feed patterns vs sleep, growth spurts, developmental leaps)
-- [ ] **Personalized baselines** (Oliver's typical intervals vs population averages)
-- [ ] **Daily activity plan** (3 developmental activities matched to baby's current stage and tracked data)
+- [ ] **Personalized baselines** (Oliver's typical intervals vs population averages — smart defaults exist via `getSmartDefaults()` but no baseline visualization/alerts)
+- [x] **Daily activity plan** — 3 age-appropriate activities per day with checkable items, deterministic daily rotation (`dailyActivities.ts`)
 - [ ] **"Is This Normal?" reassurance** (context-aware answers using baby's specific age, weight, history)
-- [ ] **Pattern alerts** (proactive notifications: growth spurt detection, sleep regression prediction, feeding efficiency trends)
+- [x] **Pattern alerts** — proactive alert engine detecting cluster feeding, short naps, developmental leaps (`contextEngine.ts → getProactiveAlert()`)
 - [ ] **Weekly summary** ("This week: Oliver fed 42 times, slept 98 hours, and started reaching for objects")
-- [ ] **Parent wellness detection** (burnout signals from usage patterns, gentle check-ins)
+- [x] **Parent wellness detection** — "For You" wellness card in Discover tab with permission slip + "one thing today" (`expertInsights.ts`)
+- [x] **Expert Insights system** — 48 research-backed insights across 8 age stages, carousel on Home + Discover, full browser modal with collapsible groups (`expertInsights.ts`, `RosieInsightsBrowser.tsx`)
+- [x] **Milestone browser with persistence** — full milestone browser modal with Supabase storage, check-off functionality, age-grouped display, progress tracking (`RosieMilestoneBrowser.tsx`, `supabaseMilestones.ts`)
 
 ### Phase 3: Location Intelligence (Months 6-9)
 *Make Rosie location-aware and activity-aware*
 
-- [ ] **Weather-aware daily briefing** (indoor/outdoor suggestions based on conditions)
+- [x] **Weather-aware daily briefing** — weather-aware activity suggestion in Discover tab (indoor/outdoor, condition-specific, with placeholder when no location)
 - [ ] **Cabin fever detection** (stuck inside for 2+ days → proactive intervention)
-- [ ] **Hyperlocal activity discovery** (age-appropriate classes, events within 1-5 miles)
+- [ ] **Hyperlocal activity discovery** (age-appropriate classes, events within 1-5 miles — requires external API)
 - [ ] **Daily planning with location context** (morning plan: weather + activity + developmental focus)
 - [ ] **Seasonal awareness** (winter indoor alternatives, summer outdoor safety, rainy day backups)
 - [ ] **Walking vs driving radius** (quick walk < 1mi, quick drive < 5mi)
@@ -248,7 +339,7 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 - [ ] **Developmental readiness signals** (precursor skill tracking → "Oliver is close to sitting independently")
 - [ ] **Sleep regression prediction** (developmental stage + historical pattern → "expect disruption in ~2 weeks")
 - [ ] **Feeding optimization** (supply patterns, cluster feeding prediction, efficiency trends)
-- [ ] **Milestone skill tree** (visual: completed → emerging → next expected skills)
+- [x] **Milestone skill tree** — visual tree in Discover tab: done (green) → emerging (yellow) → next (gray) with connectors (`milestoneData.ts → getMilestonesForAge()`)
 - [ ] **"Baby Data Wrapped"** (monthly milestone summaries with shareable cards — virality engine)
 
 ### Phase 5: Native App (Months 12-18)
@@ -272,6 +363,98 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 - [ ] Video milestone assessment (upload clip → AI identifies motor milestones)
 - [ ] Multi-language support
 - [ ] Cultural adaptation (non-Western caregiving, diverse family structures)
+
+### Next Up
+
+Current priorities — the remaining unchecked Phase 1 + Phase 2 items:
+
+**Phase 1 (remaining):**
+1. **Caregiver sharing** — Invite partner/grandparent with real-time sync and handoff briefings. Data structure exists (`CaregiverNote` in types.ts) but no sharing UI or multi-user access.
+2. **Pediatrician export** — Formatted PDF with growth charts, feeding averages, sleep patterns, milestones.
+
+**Phase 2 (remaining):**
+3. **Cross-variable correlation engine** — Nightly analysis connecting feed patterns vs sleep, growth spurts, developmental leaps.
+4. **Personalized baselines** — Visual baseline display + deviation alerts. Foundation exists via `getSmartDefaults()` but needs UI.
+5. **"Is This Normal?" reassurance** — Dedicated feature for context-aware answers using baby's specific data.
+6. **Weekly summary** — Automated "This week" digest with stats, milestones, and trends.
+
+#### Recently Completed
+- ~~Wireframe alignment~~ — Home feed, Discover tab, onboarding flow matched to wireframe specs across multiple sessions (section order, spacing, typography, gradients, card sizes, night mode)
+- ~~Anticipatory Guidance Engine~~ — Wonder Weeks leap browser (all 10 leaps with detail views), leap predictions, "Coming Up" section, expert insights per age stage
+- ~~Expert Insights system~~ — 48 research-backed insights across 8 stages, carousel on Home + Discover, browser modal with collapsible groups
+- ~~Milestone browser~~ — Full browser modal with Supabase persistence, check-off functionality, age-grouped display
+- ~~Brand rename~~ — All "Rosie" references updated to "RosieAI" throughout the app
+- ~~Design thesis alignment~~ — CSS audit done, `--rosie-radius-card: 20px` token added
+- ~~Smart defaults~~ — `getSmartDefaults()` in `contextEngine.ts`, applied in `RosieQuickLog.tsx` after 7+ days of data
+- ~~Conversational logging~~ — Claude `tool_use` in `chat.ts`, inline confirmation card with 30s undo in `RosieChat.tsx`
+- ~~Voice input~~ — `useSpeechRecognition.ts` hook, mic button in chat input (iMessage-style toggle)
+
+---
+
+## Home Tab Redesign — Implementation Details
+
+The contextual home surface was implemented in 5 phases. Each phase left a working, shippable app. Wireframe reference: `docs/wireframe-home-redesign.html`.
+
+### Phase 1: Tab Bar + Compact Stats + Mini Quick Log ✅
+Replaced the visual structure of the home tab — new tab icons, compact stat cards instead of rings, inline log buttons.
+
+**What was built:**
+- Tab bar: 🏠 Home | 📅 Timeline | 🧭 Discover (emoji + text, purple gradient active state)
+- Compact stats: 3 white cards in a row (value + label + "of ~X typical") replacing SVG rings
+- Mini quick log: row of 3 bordered buttons (Feed 🍼, Sleep 😴, Diaper 🧷)
+- `contextEngine.ts` — `getSmartPromptData()`, `getExpectedValues()`, `getTodayEvents()`, `getTodayStats()`
+
+### Phase 2: Smart Prompt + Proactive Alert + Lighter Timeline ✅
+Added AI-powered contextual suggestion card and insight alerts. Made today's events lighter.
+
+**What was built:**
+- Smart prompt: orange gradient card — "Start Feed — Right Side" with contextual detail
+- Proactive alert: purple/orange/green cards for growth spurts, sleep regressions, developmental leaps
+- `contextEngine.ts` — `getProactiveAlert(timeline, babyAge, developmentalInfo)` detecting cluster feeding, short naps, leaps
+- Lightweight timeline events with 3px accent bar + icon
+
+### Phase 3: Daily Plan Card ✅
+Added activity plan card showing 3 age-appropriate daily activities with checkable items.
+
+**What was built:**
+- "3 activities for [Baby] · Week X" card with purple gradient header
+- 3 checkable activity items from `dailyActivities.ts → getTodaysActivities()`
+- Deterministic daily rotation (same activities all day, different tomorrow) with category diversity
+- Checkbox toggle with green check + strikethrough (local state)
+
+### Phase 4: Quick Catch-Up Quiz ✅
+Added post-onboarding progressive data collection on the home feed.
+
+**What was built:**
+- Catch-up card with purple gradient header + progress bar
+- 4 topics: Feeding, Sleep, Milestones, Concerns — each with colored dot status
+- Bottom-sheet quiz modals for each topic
+- Data persists to `rosie_babies.catch_up_data` JSONB via `updateCatchUpData()`
+- Card auto-hides when all 4 topics complete
+
+### Phase 5: Discover Tab + Empty State + Floating Pill ✅
+Rebuilt Discover tab, added first-time empty state, polished floating pill.
+
+**What was built:**
+- `RosieDiscover.tsx` (renamed from RosieDevelopment.tsx) — milestone skill tree, weather-aware suggestion, "For You" wellness, Quick Wins
+- Skill tree: done (green) → emerging (yellow) → next (gray) with connectors
+- Weather-aware suggestion card (condition-specific indoor/outdoor tips, location placeholder)
+- Empty state welcome card for first-time users (💜 + 3 log buttons + hint text)
+- First-log celebration micro-moment (🎉 "First feed logged!")
+- Floating pill: purple gradient bg with white text, cycling 4 suggestions (12s CSS animation)
+- Comprehensive night mode CSS for all new components
+
+### Key Files
+| File | Role |
+|------|------|
+| `RosieHome.tsx` | Home tab: smart prompt, alerts, stats, log buttons, today events, daily plan, catch-up quiz, empty state, first-log celebration |
+| `RosieDiscover.tsx` | Discover tab: leap cards, milestone skill tree, weather suggestion, wellness, quick wins, "what's typical" |
+| `RosieAI.tsx` | Orchestrator: tab routing, data loading, floating pill with cycling suggestions |
+| `contextEngine.ts` | Smart prompt scoring, proactive alert detection, today stats/events |
+| `dailyActivities.ts` | Age-appropriate activities with deterministic daily rotation |
+| `milestoneData.ts` | Milestone definitions, `getMilestonesForAge()`, `getMilestonesForCatchUp()` |
+| `expertInsights.ts` | Weekly expert insights, parent wellness content, quick wins |
+| `rosie.css` | All styles including night mode for every new component |
 
 ---
 

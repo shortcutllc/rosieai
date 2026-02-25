@@ -2,12 +2,36 @@ import { Handler } from '@netlify/functions';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Types from the frontend
+interface CatchUpData {
+  feedingMethod?: 'breast' | 'bottle' | 'both' | 'pumping';
+  solidFoods?: boolean;
+  sleepBaseline?: {
+    napsPerDay?: number;
+    bedtime?: string;
+    nightWakings?: number;
+    sleepMethod?: 'contact' | 'crib' | 'cosleep' | 'bassinet';
+  };
+  milestonesChecked?: string[];
+  concerns?: string[];
+  parentConcernText?: string;
+  completedTopics?: string[];
+  completedAt?: string;
+}
+
+interface MilestoneRecord {
+  milestoneId: string;
+  status: 'done' | 'emerging' | 'next';
+  notedAt?: string;
+}
+
 interface BabyProfile {
   name: string;
   birthDate: string;
+  dueDate?: string;
   gender?: 'boy' | 'girl' | 'other';
   birthWeight?: number; // in oz
   weightUnit?: string;
+  catchUpData?: CatchUpData;
 }
 
 interface GrowthMeasurement {
@@ -86,6 +110,8 @@ interface ChatRequest {
   chatHistory: ChatMessage[];
   growthMeasurements?: GrowthMeasurement[];
   weather?: WeatherData;
+  milestoneRecords?: MilestoneRecord[];
+  parentName?: string;
 }
 
 // Helper to format duration
@@ -237,13 +263,111 @@ const buildWeatherContext = (weather?: WeatherData): string => {
   return lines.join('\n');
 };
 
+// Build catch-up quiz context
+const buildCatchUpContext = (catchUpData?: CatchUpData): string => {
+  if (!catchUpData) return '';
+
+  const lines: string[] = ['## What the Parent Has Told You'];
+
+  if (catchUpData.feedingMethod) {
+    const methodLabels: Record<string, string> = {
+      breast: 'breastfeeding',
+      bottle: 'bottle feeding (formula)',
+      both: 'combination of breast and bottle',
+      pumping: 'pumping/expressed milk',
+    };
+    lines.push(`- **Feeding:** ${methodLabels[catchUpData.feedingMethod] || catchUpData.feedingMethod}`);
+    if (catchUpData.solidFoods) {
+      lines.push(`- **Solid foods:** Started`);
+    }
+  }
+
+  if (catchUpData.sleepBaseline) {
+    const sleep = catchUpData.sleepBaseline;
+    const parts: string[] = [];
+    if (sleep.napsPerDay !== undefined) parts.push(`${sleep.napsPerDay} naps/day`);
+    if (sleep.bedtime) parts.push(`bedtime around ${sleep.bedtime}`);
+    if (sleep.nightWakings !== undefined) parts.push(`${sleep.nightWakings} night waking${sleep.nightWakings !== 1 ? 's' : ''}`);
+    if (sleep.sleepMethod) {
+      const methodLabels: Record<string, string> = {
+        contact: 'contact napping',
+        crib: 'crib/bassinet sleep',
+        cosleep: 'co-sleeping',
+        bassinet: 'bassinet sleep',
+      };
+      parts.push(methodLabels[sleep.sleepMethod] || sleep.sleepMethod);
+    }
+    if (parts.length > 0) {
+      lines.push(`- **Sleep:** ${parts.join(', ')}`);
+    }
+  }
+
+  if (catchUpData.concerns && catchUpData.concerns.length > 0) {
+    lines.push(`- **Parent's concerns:** ${catchUpData.concerns.join(', ')}`);
+  }
+  if (catchUpData.parentConcernText) {
+    lines.push(`- **In their words:** "${catchUpData.parentConcernText}"`);
+  }
+
+  return lines.length > 1 ? lines.join('\n') : '';
+};
+
+// Build milestone progress context
+const buildMilestoneContext = (milestoneRecords?: MilestoneRecord[]): string => {
+  if (!milestoneRecords || milestoneRecords.length === 0) return '';
+
+  const done = milestoneRecords.filter(m => m.status === 'done');
+  const emerging = milestoneRecords.filter(m => m.status === 'emerging');
+
+  const lines: string[] = ['## Milestone Progress'];
+
+  if (done.length > 0) {
+    // Show readable milestone IDs (convert snake_case to words)
+    const readableIds = done.map(m =>
+      m.milestoneId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    );
+    lines.push(`- **Completed (${done.length}):** ${readableIds.slice(0, 8).join(', ')}${done.length > 8 ? '...' : ''}`);
+  }
+
+  if (emerging.length > 0) {
+    const readableIds = emerging.map(m =>
+      m.milestoneId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    );
+    lines.push(`- **Emerging (${emerging.length}):** ${readableIds.join(', ')}`);
+  }
+
+  return lines.join('\n');
+};
+
+// Calculate adjusted age display for premature babies
+const getAdjustedAgeContext = (baby: BabyProfile): string => {
+  if (!baby.dueDate) return '';
+
+  const birth = new Date(baby.birthDate);
+  const due = new Date(baby.dueDate);
+  const earlyMs = due.getTime() - birth.getTime();
+  const earlyDays = Math.floor(earlyMs / (1000 * 60 * 60 * 24));
+
+  // Only relevant if born more than 3 weeks early
+  if (earlyDays <= 21) return '';
+
+  const weeksEarly = Math.floor(earlyDays / 7);
+  const now = new Date();
+  const adjustedDays = Math.max(0, Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24)) - earlyDays);
+  const adjustedWeeks = Math.floor(adjustedDays / 7);
+
+  return `\n**IMPORTANT — ${baby.name} was born ${weeksEarly} weeks early.** Adjusted age is ${adjustedWeeks} weeks. Use adjusted age for developmental expectations, milestones, and feeding/sleep guidance. This is critical — don't hold a preemie to full-term timelines.`;
+};
+
 // Build the system prompt with all context
-const buildSystemPrompt = (baby: BabyProfile, developmentalInfo: DevelopmentalInfo, timeline: TimelineEvent[], growthMeasurements?: GrowthMeasurement[], weather?: WeatherData): string => {
+const buildSystemPrompt = (baby: BabyProfile, developmentalInfo: DevelopmentalInfo, timeline: TimelineEvent[], growthMeasurements?: GrowthMeasurement[], weather?: WeatherData, milestoneRecords?: MilestoneRecord[], parentName?: string): string => {
   const { ageDisplay, weekNumber, sleepInfo, feedingInfo, whatToExpect, milestones, commonConcerns, upcomingChanges } = developmentalInfo;
 
-  return `You are Rosie — a calm, experienced friend who happens to know a lot about babies. You're the person a new parent texts at 2am when they're worried and exhausted. You've been through this. You get it.
+  const parentRef = parentName ? `${parentName} (${baby.name}'s parent)` : `${baby.name}'s parent`;
 
-You're talking to ${baby.name}'s parent. ${baby.name} is ${ageDisplay} old (week ${weekNumber}, born ${new Date(baby.birthDate).toLocaleDateString()}${baby.gender ? `, ${baby.gender}` : ''}).
+  return `You are RosieAI — a calm, experienced friend who happens to know a lot about babies. You're the person a new parent texts at 2am when they're worried and exhausted. You've been through this. You get it.
+
+You're talking to ${parentRef}. ${baby.name} is ${ageDisplay} old (week ${weekNumber}, born ${new Date(baby.birthDate).toLocaleDateString()}${baby.gender ? `, ${baby.gender}` : ''}).${getAdjustedAgeContext(baby)}
 
 WHAT YOU KNOW ABOUT ${baby.name.toUpperCase()} RIGHT NOW:
 
@@ -264,10 +388,14 @@ ${buildRecentEventsContext(timeline)}
 
 ${buildWeatherContext(weather)}
 
+${buildCatchUpContext(baby.catchUpData)}
+
+${buildMilestoneContext(milestoneRecords)}
+
 HOW TO TALK:
 - Sound like a real person, not a chatbot. Short sentences. Contractions. Casual but not sloppy.
 - Start with empathy or acknowledgment when the parent sounds stressed or unsure — don't jump straight to advice.
-- Use ${baby.name}'s name naturally, like a friend would. Not in every sentence.
+- Use ${baby.name}'s name naturally, like a friend would. Not in every sentence.${parentName ? `\n- You can call the parent "${parentName}" occasionally — like a friend would. Don't overdo it.` : ''}
 - Reference their actual logged data conversationally: "Looks like ${baby.name} last ate about 2 hours ago" not "I see from the logs that..."
 - Be direct and honest. If something sounds concerning, say "I'd call the pediatrician about that" plainly.
 - It's ok to say "That's really normal" or "Yeah, this part is hard." Validation is often more useful than advice.
@@ -281,7 +409,67 @@ HOW TO FORMAT RESPONSES:
 - Don't end every message asking if they want to know more. It's ok to just answer the question.
 - Write like you're texting — not like you're writing a blog post or medical pamphlet.
 - Vary your response openings. Don't always start with the baby's name or "Great question."
-- No emojis unless they use them first.`;
+- No emojis unless they use them first.
+
+LOGGING EVENTS:
+When a parent tells you about a feed, sleep, or diaper change they just did or are doing, use the log_event tool to record it. Don't ask "would you like me to log that?" — just log it. After logging, confirm naturally what you recorded: "Got it — logged a 15-minute feed on the left side." If details are missing, make reasonable assumptions based on their patterns and the time of day. Examples of things to log: "just fed on the left, 15 min", "she napped for 40 minutes", "dirty diaper", "bottle at 2pm, 4oz". Examples of things NOT to log: "he's been fussy today", "when should I introduce solids?", general questions or concerns.`;
+};
+
+// Tool definition for event logging via conversation
+const LOG_EVENT_TOOL: Anthropic.Tool = {
+  name: 'log_event',
+  description: 'Log a baby care event (feed, sleep, or diaper change) to the timeline when the parent describes an activity they did or are doing. Only call this when the parent clearly describes a loggable event — not for questions, concerns, or general conversation.',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      type: {
+        type: 'string',
+        enum: ['feed', 'sleep', 'diaper'],
+        description: 'The type of event to log',
+      },
+      feedType: {
+        type: 'string',
+        enum: ['breast', 'bottle', 'solid'],
+        description: 'Type of feed. Only for feed events. Default to breast if not specified.',
+      },
+      feedSide: {
+        type: 'string',
+        enum: ['left', 'right', 'both'],
+        description: 'Breast side. Only for breastfeeds.',
+      },
+      feedAmount: {
+        type: 'number',
+        description: 'Bottle amount in oz. Only for bottle feeds.',
+      },
+      feedDuration: {
+        type: 'number',
+        description: 'Feed duration in minutes.',
+      },
+      sleepType: {
+        type: 'string',
+        enum: ['nap', 'night'],
+        description: 'Type of sleep. Default to nap during day hours, night during evening/night.',
+      },
+      sleepDuration: {
+        type: 'number',
+        description: 'Sleep duration in minutes.',
+      },
+      diaperType: {
+        type: 'string',
+        enum: ['wet', 'dirty', 'both'],
+        description: 'Diaper type.',
+      },
+      note: {
+        type: 'string',
+        description: 'Optional note about the event.',
+      },
+      eventTime: {
+        type: 'string',
+        description: 'When the event occurred, in HH:MM 24-hour format (e.g., "14:00" for 2pm). If not specified, assume now.',
+      },
+    },
+    required: ['type'],
+  },
 };
 
 const handler: Handler = async (event) => {
@@ -315,7 +503,7 @@ const handler: Handler = async (event) => {
       };
     }
 
-    const { message, baby, timeline, developmentalInfo, chatHistory, growthMeasurements, weather } = JSON.parse(event.body || '{}') as ChatRequest;
+    const { message, baby, timeline, developmentalInfo, chatHistory, growthMeasurements, weather, milestoneRecords, parentName } = JSON.parse(event.body || '{}') as ChatRequest;
 
     if (!message || !baby || !developmentalInfo) {
       return {
@@ -345,16 +533,75 @@ const handler: Handler = async (event) => {
       content: message,
     });
 
+    const systemPrompt = buildSystemPrompt(baby, developmentalInfo, timeline, growthMeasurements, weather, milestoneRecords, parentName);
+
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      system: buildSystemPrompt(baby, developmentalInfo, timeline, growthMeasurements, weather),
+      system: systemPrompt,
       messages,
+      tools: [LOG_EVENT_TOOL],
     });
 
-    const assistantMessage = response.content[0].type === 'text'
-      ? response.content[0].text
-      : 'I apologize, but I was unable to generate a response.';
+    // Check if Claude wants to use the log_event tool
+    const toolUseBlock = response.content.find(
+      (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
+    );
+
+    // Also check for multiple tool uses (e.g., "fed and changed a diaper")
+    const allToolUses = response.content.filter(
+      (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
+    );
+
+    if (toolUseBlock && allToolUses.length > 0) {
+      // Claude wants to log event(s) — process tool use and get conversational response
+      const events: Record<string, unknown>[] = [];
+
+      // Build tool results for all tool uses
+      const toolResults: Anthropic.ToolResultBlockParam[] = allToolUses.map(tu => {
+        const input = tu.input as Record<string, unknown>;
+        events.push(input);
+        return {
+          type: 'tool_result' as const,
+          tool_use_id: tu.id,
+          content: `Event logged successfully: ${input.type}${input.feedType ? ` (${input.feedType})` : ''}${input.feedSide ? `, ${input.feedSide} side` : ''}${input.feedDuration ? `, ${input.feedDuration}min` : ''}${input.feedAmount ? `, ${input.feedAmount}oz` : ''}${input.sleepType ? ` (${input.sleepType})` : ''}${input.sleepDuration ? `, ${input.sleepDuration}min` : ''}${input.diaperType ? ` (${input.diaperType})` : ''}`,
+        };
+      });
+
+      // Second call: get conversational response after tool use
+      const followUp = await anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [
+          ...messages,
+          { role: 'assistant' as const, content: response.content },
+          { role: 'user' as const, content: toolResults },
+        ],
+        tools: [LOG_EVENT_TOOL],
+      });
+
+      const assistantMessage = followUp.content.find(
+        (block): block is Anthropic.TextBlock => block.type === 'text'
+      )?.text || 'Logged!';
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          message: assistantMessage,
+          events: events,
+        }),
+      };
+    }
+
+    // No tool use — regular conversational response
+    const assistantMessage = response.content.find(
+      (block): block is Anthropic.TextBlock => block.type === 'text'
+    )?.text || 'I apologize, but I was unable to generate a response.';
 
     return {
       statusCode: 200,

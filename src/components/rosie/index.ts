@@ -3,7 +3,7 @@ export { RosieOnboarding } from './RosieOnboarding';
 export { RosieHeader } from './RosieHeader';
 export { RosieTimeline } from './RosieTimeline';
 export { RosieQuickLog } from './RosieQuickLog';
-export { RosieDevelopment } from './RosieDevelopment';
+export { RosieDiscover } from './RosieDiscover';
 export { RosieChat } from './RosieChat';
 export * from './types';
 export * from './storage';

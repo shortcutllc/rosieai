@@ -1,8 +1,9 @@
 /**
  * contextEngine.ts — Pure functions for the Home surface
  *
- * Computes action card data, insight selection, and today's events
- * for RosieHome.tsx. No React dependencies — just data in, data out.
+ * Computes action card data, insight selection, today's events,
+ * and adjusted age calculations for RosieHome.tsx.
+ * No React dependencies — just data in, data out.
  */
 
 import { TimelineEvent, DevelopmentalInfo } from './types';
@@ -481,4 +482,472 @@ export function getExpectedValues(birthDateString: string): { feeds: number; sle
   if (ageInDays < 60) return { feeds: 8, sleepMinutes: 900, diapers: 8 };
   if (ageInDays < 120) return { feeds: 7, sleepMinutes: 840, diapers: 7 };
   return { feeds: 6, sleepMinutes: 780, diapers: 6 };
+}
+
+// ─── Smart Prompt ────────────────────────────────────────────
+
+export interface SmartPromptData {
+  type: 'feed' | 'sleep' | 'diaper';
+  title: string;
+  subtitle: string;
+  icon: string;
+  iconColor: string;
+  iconBg: string;
+}
+
+/**
+ * Generate a contextual "smart prompt" suggestion based on timeline patterns.
+ * Shows the most relevant next action (e.g., "Start Feed — Right Side").
+ */
+export function getSmartPromptData(
+  timeline: TimelineEvent[],
+  lastFeedSide?: string,
+  babyName?: string
+): SmartPromptData | null {
+  const now = new Date();
+
+  // Find last events of each type
+  const lastFeed = timeline.find(e => e.type === 'feed');
+  const lastSleep = timeline.find(e => e.type === 'sleep');
+  const lastDiaper = timeline.find(e => e.type === 'diaper');
+
+  // Calculate time since each
+  const timeSinceFeed = lastFeed ? (now.getTime() - new Date(lastFeed.timestamp).getTime()) / 60000 : Infinity;
+  const timeSinceSleep = lastSleep ? (now.getTime() - new Date(lastSleep.timestamp).getTime()) / 60000 : Infinity;
+  const timeSinceDiaper = lastDiaper ? (now.getTime() - new Date(lastDiaper.timestamp).getTime()) / 60000 : Infinity;
+
+  // No events at all — suggest first feed
+  if (!lastFeed && !lastSleep && !lastDiaper) {
+    return {
+      type: 'feed',
+      title: 'Log your first feed',
+      subtitle: babyName ? `Track ${babyName}'s feeds, sleep, and diapers` : 'Start tracking to unlock smart insights',
+      icon: '🍼',
+      iconColor: '#FF9500',
+      iconBg: 'linear-gradient(135deg, #FF9500, #FFAB40)',
+    };
+  }
+
+  // Determine which action to suggest
+  // Priority: longest time since last event, weighted by typical frequency
+  const feedScore = timeSinceFeed / 120; // feeds every ~2h for newborns
+  const sleepScore = timeSinceSleep / 180; // ~3h wake windows
+  const diaperScore = timeSinceDiaper / 150; // ~2.5h between changes
+
+  // Suggest feed
+  if (feedScore >= sleepScore && feedScore >= diaperScore) {
+    const feedAgo = lastFeed ? formatTimeAgoShort(lastFeed.timestamp) : '';
+    const side = lastFeedSide || lastFeed?.feedLastSide || lastFeed?.feedSide;
+    const nextSide = side === 'left' ? 'Right' : side === 'right' ? 'Left' : '';
+
+    let title = 'Start Feed';
+    if (nextSide && lastFeed?.feedType === 'breast') {
+      title = `Start Feed — ${nextSide} Side`;
+    }
+
+    const parts: string[] = [];
+    if (feedAgo) parts.push(`Last feed ${feedAgo} ago`);
+    if (side && lastFeed?.feedType === 'breast') {
+      parts.push(`${side.charAt(0).toUpperCase() + side.slice(1)} side was last`);
+    }
+
+    return {
+      type: 'feed',
+      title,
+      subtitle: parts.join(' · ') || 'Time for a feed',
+      icon: '🍼',
+      iconColor: '#FF9500',
+      iconBg: 'linear-gradient(135deg, #FF9500, #FFAB40)',
+    };
+  }
+
+  // Suggest sleep
+  if (sleepScore >= feedScore && sleepScore >= diaperScore) {
+    const sleepAgo = lastSleep ? formatTimeAgoShort(lastSleep.timestamp) : '';
+    return {
+      type: 'sleep',
+      title: 'Time for a nap?',
+      subtitle: sleepAgo ? `Last sleep ended ${sleepAgo} ago` : 'Track a nap or night sleep',
+      icon: '😴',
+      iconColor: '#B57BEC',
+      iconBg: 'linear-gradient(135deg, #B57BEC, #D4A5F5)',
+    };
+  }
+
+  // Suggest diaper
+  const diaperAgo = lastDiaper ? formatTimeAgoShort(lastDiaper.timestamp) : '';
+  return {
+    type: 'diaper',
+    title: 'Diaper check',
+    subtitle: diaperAgo ? `Last change ${diaperAgo} ago` : 'Log a diaper change',
+    icon: '🧷',
+    iconColor: '#34C759',
+    iconBg: 'linear-gradient(135deg, #34C759, #6DD86D)',
+  };
+}
+
+// ─── Proactive Alert ──────────────────────────────────────────
+
+export interface ProactiveAlertData {
+  title: string;
+  text: string;
+  icon: string;
+  variant: 'purple' | 'orange' | 'green' | 'blue';
+  source?: string;
+  linkToDiscover?: boolean;
+}
+
+/**
+ * Generate a proactive insight alert based on patterns or developmental info.
+ * Returns null if there's nothing notable to surface.
+ */
+export function getProactiveAlert(
+  timeline: TimelineEvent[],
+  developmentalInfo: DevelopmentalInfo,
+  babyName: string
+): ProactiveAlertData | null {
+  const todayEvents = timeline.filter(e => isToday(e.timestamp));
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+  const yesterdayEvents = timeline.filter(e => e.timestamp.startsWith(yesterdayStr));
+
+  // Pattern: cluster feeding (more feeds today than yesterday)
+  const todayFeeds = todayEvents.filter(e => e.type === 'feed').length;
+  const yesterdayFeeds = yesterdayEvents.filter(e => e.type === 'feed').length;
+
+  if (todayFeeds > 0 && yesterdayFeeds > 0 && todayFeeds >= yesterdayFeeds * 1.5 && todayFeeds >= 4) {
+    return {
+      title: 'Growth spurt likely',
+      text: `${babyName}'s feeding frequency is up today compared to yesterday. This is common at ${developmentalInfo.weekNumber} weeks and usually lasts 2-3 days.`,
+      icon: '💡',
+      variant: 'purple',
+    };
+  }
+
+  // Pattern: short naps
+  const todayNaps = todayEvents.filter(e => e.type === 'sleep' && e.sleepType === 'nap');
+  if (todayNaps.length >= 2) {
+    const avgNap = todayNaps.reduce((sum, e) => sum + (e.sleepDuration || 0), 0) / todayNaps.length;
+    if (avgNap > 0 && avgNap < 30) {
+      return {
+        title: 'Short nap day',
+        text: `${babyName}'s naps are averaging ${Math.round(avgNap)} minutes today. Short naps are very normal — most babies don't consolidate naps until 5-6 months.`,
+        icon: '💤',
+        variant: 'blue',
+      };
+    }
+  }
+
+  // Developmental insight — leap-based
+  const leapStatus = getLeapStatus(developmentalInfo.weekNumber);
+  if (leapStatus.isInLeap && leapStatus.currentLeap) {
+    const leap = leapStatus.currentLeap;
+    return {
+      title: `Leap ${leap.leapNumber}: ${leap.name}`,
+      text: `${babyName} may be fussier than usual right now. This mental leap typically lasts ${leap.endWeek - leap.startWeek} weeks and ends with new skills.`,
+      icon: '🧠',
+      variant: 'purple',
+    };
+  }
+
+  // Positive reinforcement — good feeding day
+  if (todayFeeds >= 6) {
+    return {
+      title: 'Great feeding day',
+      text: `${todayFeeds} feeds logged today — ${babyName} is eating well. You're doing amazing.`,
+      icon: '⭐',
+      variant: 'green',
+    };
+  }
+
+  // Fallback: cycle through expert insights, wellness, and quick wins
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  const weekNumber = developmentalInfo.weekNumber;
+
+  // Gather available content pools
+  const expertInsightsList = getInsightsForWeek(weekNumber);
+  const wellness = getParentWellnessForWeek(weekNumber);
+  const quickWinsList = getQuickWinsForWeek(weekNumber);
+
+  // Cycle through 3 content types based on day: expert insight → wellness → quick win
+  const contentType = dayOfYear % 3;
+
+  if (contentType === 0 && expertInsightsList.length > 0) {
+    // Expert insight — research-backed guidance
+    const idx = dayOfYear % expertInsightsList.length;
+    const expert = expertInsightsList[idx];
+    return {
+      title: expert.topic,
+      text: expert.insight,
+      icon: expert.sourceType === 'aap' ? '📋' : expert.sourceType === 'research' ? '📚' : '👩‍⚕️',
+      variant: 'purple',
+      source: expert.source,
+      linkToDiscover: true,
+    };
+  }
+
+  if (contentType === 1 && wellness) {
+    // Parent wellness — permission slip
+    return {
+      title: 'For you today',
+      text: wellness.permissionSlip + ' ' + wellness.oneThingToday,
+      icon: '💜',
+      variant: 'purple',
+      linkToDiscover: true,
+    };
+  }
+
+  if (contentType === 2 && quickWinsList.length > 0) {
+    // Quick win — actionable activity
+    const idx = dayOfYear % quickWinsList.length;
+    const win = quickWinsList[idx];
+    return {
+      title: `Quick win · ${win.duration}`,
+      text: `${win.activity} — ${win.benefit}`,
+      icon: '🎯',
+      variant: 'green',
+      linkToDiscover: true,
+    };
+  }
+
+  // Final fallback: any expert insight available
+  if (expertInsightsList.length > 0) {
+    const idx = dayOfYear % expertInsightsList.length;
+    const expert = expertInsightsList[idx];
+    return {
+      title: expert.topic,
+      text: expert.insight,
+      icon: '📚',
+      variant: 'purple',
+      source: expert.source,
+      linkToDiscover: true,
+    };
+  }
+
+  // Last resort: developmental whatToExpect
+  if (developmentalInfo.whatToExpect.length > 0) {
+    const dayIndex = (today.getFullYear() * 366 + today.getMonth() * 31 + today.getDate()) % developmentalInfo.whatToExpect.length;
+    const insight = developmentalInfo.whatToExpect[dayIndex]
+      .replace(/\byour baby\b/gi, babyName)
+      .replace(/\bthe baby\b/gi, babyName)
+      .replace(/\bbaby\b/gi, babyName);
+    return {
+      title: `Week ${weekNumber} development`,
+      text: insight,
+      icon: '🌱',
+      variant: 'purple',
+      linkToDiscover: true,
+    };
+  }
+
+  return null;
+}
+
+// ─── Smart Defaults ─────────────────────────────────────────
+
+export interface SmartDefaults {
+  feed: {
+    feedType: 'breast' | 'bottle' | 'solid';
+    feedSide?: 'left' | 'right';
+    feedAmount?: number;
+    feedDuration?: number;
+    confidence: number;
+  };
+  sleep: {
+    sleepType: 'nap' | 'night';
+    sleepDuration?: number;
+    confidence: number;
+  };
+  diaper: {
+    diaperType: 'wet' | 'dirty' | 'both';
+    confidence: number;
+  };
+  hasEnoughData: boolean;
+}
+
+/**
+ * Compute smart defaults for quick log modals based on the baby's historical patterns.
+ * Only returns `hasEnoughData: true` after 7+ days with 3+ events/day.
+ */
+export function getSmartDefaults(
+  timeline: TimelineEvent[],
+  lastFeedSide?: string
+): SmartDefaults {
+  // Data sufficiency: count distinct days with 3+ events
+  const dayCountMap = new Map<string, number>();
+  for (const event of timeline) {
+    const day = event.timestamp.split('T')[0];
+    dayCountMap.set(day, (dayCountMap.get(day) || 0) + 1);
+  }
+  const activeDays = Array.from(dayCountMap.values()).filter(c => c >= 3).length;
+  const hasEnoughData = activeDays >= 7;
+
+  // Get events from the last 14 days
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 14);
+  const recentEvents = timeline.filter(e => new Date(e.timestamp) >= cutoff);
+
+  // --- Feed defaults ---
+  const recentFeeds = recentEvents.filter(e => e.type === 'feed');
+  const feedTypeCounts: Record<string, number> = { breast: 0, bottle: 0, solid: 0 };
+  const feedDurations: number[] = [];
+  const bottleAmounts: number[] = [];
+
+  for (const feed of recentFeeds) {
+    if (feed.feedType) feedTypeCounts[feed.feedType]++;
+    if (feed.feedDuration && feed.feedDuration > 0) feedDurations.push(feed.feedDuration);
+    if (feed.feedType === 'bottle' && feed.feedAmount && feed.feedAmount > 0) {
+      bottleAmounts.push(feed.feedAmount);
+    }
+  }
+
+  const totalFeeds = recentFeeds.length;
+  const topFeedType = (Object.entries(feedTypeCounts) as [string, number][])
+    .sort((a, b) => b[1] - a[1])[0];
+  const feedType = (topFeedType?.[0] || 'breast') as 'breast' | 'bottle' | 'solid';
+  const feedConfidence = totalFeeds > 0 ? topFeedType[1] / totalFeeds : 0;
+
+  // Alternate side based on lastFeedSide
+  const feedSide = feedType === 'breast'
+    ? (lastFeedSide === 'left' ? 'right' : lastFeedSide === 'right' ? 'left' : undefined)
+    : undefined;
+
+  // Median helper
+  const median = (arr: number[]): number | undefined => {
+    if (arr.length === 0) return undefined;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+  };
+
+  const feedDuration = feedType === 'breast' ? median(feedDurations) : undefined;
+  const feedAmount = feedType === 'bottle' ? median(bottleAmounts) : undefined;
+
+  // --- Sleep defaults ---
+  const recentSleeps = recentEvents.filter(e => e.type === 'sleep');
+  const hour = new Date().getHours();
+  const sleepType: 'nap' | 'night' = (hour >= 19 || hour < 6) ? 'night' : 'nap';
+
+  // Median duration for the matching sleep type
+  const matchingSleepDurations = recentSleeps
+    .filter(e => e.sleepType === sleepType && e.sleepDuration && e.sleepDuration > 0)
+    .map(e => e.sleepDuration!);
+  const sleepDuration = median(matchingSleepDurations);
+
+  // Confidence: how consistent is the time-of-day pattern
+  const matchingTypeCount = recentSleeps.filter(e => e.sleepType === sleepType).length;
+  const sleepConfidence = recentSleeps.length > 0 ? matchingTypeCount / recentSleeps.length : 0;
+
+  // --- Diaper defaults ---
+  const recentDiapers = recentEvents.filter(e => e.type === 'diaper');
+  const diaperTypeCounts: Record<string, number> = { wet: 0, dirty: 0, both: 0 };
+  for (const d of recentDiapers) {
+    if (d.diaperType) diaperTypeCounts[d.diaperType]++;
+  }
+  const totalDiapers = recentDiapers.length;
+  const topDiaperType = (Object.entries(diaperTypeCounts) as [string, number][])
+    .sort((a, b) => b[1] - a[1])[0];
+  const diaperType = (topDiaperType?.[0] || 'wet') as 'wet' | 'dirty' | 'both';
+  const diaperConfidence = totalDiapers > 0 ? topDiaperType[1] / totalDiapers : 0;
+
+  return {
+    feed: { feedType, feedSide, feedAmount, feedDuration, confidence: feedConfidence },
+    sleep: { sleepType, sleepDuration, confidence: sleepConfidence },
+    diaper: { diaperType, confidence: diaperConfidence },
+    hasEnoughData,
+  };
+}
+
+// ─── Adjusted Age (for premature babies) ─────────────────────
+
+export interface AgeInfo {
+  // Chronological age (from birth date)
+  chronologicalDays: number;
+  chronologicalWeeks: number;
+  chronologicalMonths: number;
+  // Adjusted/corrected age (from due date, if premature)
+  adjustedDays: number;
+  adjustedWeeks: number;
+  adjustedMonths: number;
+  // Premature info
+  isPremature: boolean;
+  weeksEarly: number; // 0 if not premature
+  // Display strings
+  ageDisplay: string; // "3 months" or "3 months (adjusted: 2 months)"
+  adjustedAgeDisplay: string; // "2 months" or same as ageDisplay if not premature
+}
+
+/**
+ * Calculate both chronological and adjusted age for a baby.
+ *
+ * AAP guidelines: Use adjusted/corrected age for developmental
+ * milestones until 24 months (corrected). A baby born at 35 weeks
+ * (5 weeks early) who is chronologically 3 months old would be
+ * developmentally at ~2 months adjusted age.
+ *
+ * Full term = 40 weeks gestation.
+ * Premature = born before 37 weeks.
+ */
+export function calculateAge(birthDate: string, dueDate?: string): AgeInfo {
+  const now = new Date();
+  const birth = new Date(birthDate);
+
+  // Chronological age
+  const chronologicalMs = now.getTime() - birth.getTime();
+  const chronologicalDays = Math.max(0, Math.floor(chronologicalMs / (1000 * 60 * 60 * 24)));
+  const chronologicalWeeks = Math.floor(chronologicalDays / 7);
+  const chronologicalMonths = Math.floor(chronologicalDays / 30.44); // average days per month
+
+  // Calculate prematurity adjustment
+  let weeksEarly = 0;
+  let adjustedDays = chronologicalDays;
+
+  if (dueDate) {
+    const due = new Date(dueDate);
+    const earlyMs = due.getTime() - birth.getTime();
+    const earlyDays = Math.floor(earlyMs / (1000 * 60 * 60 * 24));
+
+    // Only adjust if born more than 3 weeks early (clinically significant)
+    // and born before due date (not late)
+    if (earlyDays > 21) {
+      weeksEarly = Math.floor(earlyDays / 7);
+      adjustedDays = Math.max(0, chronologicalDays - earlyDays);
+    }
+  }
+
+  const isPremature = weeksEarly > 0;
+  const adjustedWeeks = Math.floor(adjustedDays / 7);
+  const adjustedMonths = Math.floor(adjustedDays / 30.44);
+
+  // Display strings
+  const formatAge = (days: number): string => {
+    const months = Math.floor(days / 30.44);
+    const weeks = Math.floor(days / 7);
+
+    if (days < 14) return `${days} days`;
+    if (weeks < 9) return `${weeks} weeks`;
+    return `${months} month${months !== 1 ? 's' : ''}`;
+  };
+
+  const chronologicalDisplay = formatAge(chronologicalDays);
+  const adjustedAgeDisplay = formatAge(adjustedDays);
+
+  const ageDisplay = isPremature
+    ? `${chronologicalDisplay} (adjusted: ${adjustedAgeDisplay})`
+    : chronologicalDisplay;
+
+  return {
+    chronologicalDays,
+    chronologicalWeeks,
+    chronologicalMonths,
+    adjustedDays,
+    adjustedWeeks,
+    adjustedMonths,
+    isPremature,
+    weeksEarly,
+    ageDisplay,
+    adjustedAgeDisplay,
+  };
 }

@@ -1,5 +1,89 @@
 # Rosie AI — Project Guidelines
 
+## Source-of-Truth Documents
+
+**IMPORTANT: Always read these before designing, wireframing, or building UI:**
+
+- **`docs/strategy.md`** — Product strategy, feature roadmap with checkboxes, and implementation log. Check this FIRST to understand what's built, what's in progress, and what's next. The "Next Up" section at the bottom of the roadmap tracks current priorities.
+- **`docs/design-thesis.md`** — Visual design system: spacing grid, typography scale, color system, animation vocabulary, component specs. Every CSS value must align with this document. Check card radius (20px), spacing tokens (4/8/12/16/20/24/32), typography weights, and color palette before writing any CSS.
+- **`docs/wireframe-home-redesign.html`** — Interactive wireframe for the home tab redesign. Run `npx serve docs` to view.
+
+## Wireframe-to-Code Implementation Process
+
+When implementing UI from HTML wireframe files (e.g., `docs/wireframe-home-redesign.html`), follow this exact process. **Do NOT declare a component "done" until every step is completed.**
+
+### Step 1: Extract CSS specs from the wireframe HTML
+
+Read the wireframe HTML source and extract every CSS property for the target component. Build a spec sheet of exact values:
+
+```
+Component: .rosie-catchup-progress
+  height: 4px
+  background: #E5E5EA
+  margin: 0
+  border-radius: (none)
+```
+
+Do this for every class that makes up the component — container, children, text, icons, all of it.
+
+### Step 2: Diff against implementation CSS
+
+Search `rosie.css` for each class from Step 1. Compare every property value. Document mismatches:
+
+```
+.rosie-plan-duration
+  font-weight: wireframe=400, actual=500  ← FIX
+  font-size: wireframe=13px, actual=13px  ← OK
+```
+
+### Step 3: Apply CSS fixes
+
+Edit `rosie.css` to match the wireframe values exactly. Only change properties that differ.
+
+### Step 4: Check structural/markup differences
+
+Compare the wireframe's HTML structure against the React component's JSX. Look for:
+- Missing sections (e.g., a component exists in wireframe but not rendered on the target page)
+- Extra elements not in the wireframe (e.g., emoji prefixes, extra wrappers)
+- Different element ordering
+
+### Step 5: Visual verification with browser (REQUIRED)
+
+This step is **mandatory** — never skip it.
+
+1. **Start both servers** using `preview_start` (dev server and wireframe server via `.claude/launch.json`)
+2. **Open both tabs** in Chrome MCP — one for the wireframe, one for the dev server
+3. **Handle time-of-day theming**: The app applies `morning|afternoon|evening|night` classes based on current hour. If it's nighttime, switch to daytime for comparison:
+   ```js
+   const c = document.querySelector('.rosie-container');
+   c.classList.remove('night'); c.classList.add('afternoon');
+   ```
+4. **Screenshot the wireframe component** — scroll to it, take a screenshot
+5. **Screenshot the same component on the dev server** — scroll to it, take a screenshot
+6. **Compare side by side** — check fonts, colors, spacing, alignment, icons, borders, backgrounds
+7. **Inspect computed styles** for anything that's hard to verify visually:
+   ```js
+   const el = document.querySelector('.rosie-whatever');
+   const s = getComputedStyle(el);
+   JSON.stringify({ color: s.color, fontSize: s.fontSize, fontWeight: s.fontWeight });
+   ```
+8. **If anything doesn't match**, go back to Step 3. Do NOT proceed until it matches.
+
+### Step 6: Verify night mode
+
+After daytime matches, switch to night mode and verify nothing breaks:
+```js
+const c = document.querySelector('.rosie-container');
+c.classList.remove('afternoon'); c.classList.add('night');
+```
+Check that text is readable (not white-on-white), backgrounds are dark, and cards have appropriate contrast.
+
+### Common Pitfalls
+- **Don't trust the CSS diff alone** — a property can be correct in the stylesheet but overridden by specificity, media queries, or night mode.
+- **Don't eyeball screenshots at full page zoom** — use `zoom` or `getComputedStyle` for precise values like font-weight, exact colors, and spacing.
+- **Check all visual states** — done/complete items often have strikethrough, different colors, or hidden elements (like arrows). Verify each state.
+- **Night mode is a separate pass** — daytime match + night mode match = done.
+
 ## Bash Guidelines
 
 ### IMPORTANT: Avoid commands that cause output buffering issues
@@ -12,6 +96,40 @@
 - Run commands directly without pipes when possible
 - If you need to limit output, use command-specific flags (e.g., `git log -n 10` instead of `git log | head -10`)
 - Avoid chained pipes that can cause output to buffer indefinitely
+
+## Design System (Quick Reference)
+
+These are the critical values from `docs/design-thesis.md`. When in doubt, read the full doc.
+
+### Spacing Grid (only use these values)
+`4px` · `8px` · `12px` · `16px` · `20px` · `24px` · `32px`
+
+### Typography Scale
+| Role | Size | Weight |
+|------|------|--------|
+| Greeting hero | 28px | 700 |
+| Section title | 18px | 700 |
+| Card title | 14-16px | 600 |
+| Body text | 14-15px | 400-500 |
+| Secondary text | 13px | 400 |
+| Labels | 11px | 700 |
+| Stat values | 18px | 700 |
+| Stat labels | 11px | 600 |
+
+### Colors
+- Text primary: `#1D1D1F` — Text secondary: `#86868B` — Text tertiary: `#C4C4C4`
+- Feed: `#FF9500` — Sleep: `#B57BEC` — Diaper: `#30D158`
+- Accent: `#007AFF` — Purple: `#8B5CF6` — Danger: `#FF3B30`
+
+### Card Rules
+- Border-radius: **20px** (use `--rosie-radius-card`)
+- **No box-shadow** on content cards — whitespace creates separation
+- **No borders** on content cards — exception: `1px solid rgba(0,0,0,0.04)` on gradient-bg cards only
+
+### Animation
+- Enter: 400ms `cubic-bezier(0.05, 0.7, 0.1, 1)` (decelerate)
+- Exit: 300ms `cubic-bezier(0.3, 0, 0.8, 0.15)` (accelerate)
+- Always respect `prefers-reduced-motion: reduce`
 
 ## Design Principles
 
@@ -32,21 +150,16 @@
 - Chat suggestions in `reassuranceMessages.ts` should be personalized with the baby's name.
 
 ### CSS Architecture
-- All styles in a single file: `src/components/rosie/rosie.css` (~135KB)
+- All styles in a single file: `src/components/rosie/rosie.css` (~137KB)
 - CSS classes use `rosie-*` prefix (BEM-ish naming)
 - No CSS-in-JS, no Tailwind — plain custom CSS with CSS variables
 - Key CSS variables are defined at the top of the file (colors, radii, shadows)
-
-### Animation Standards
-- Enter transitions: 400ms with `cubic-bezier(0.05, 0.7, 0.1, 1)` (Material Design 3 decelerate)
-- Exit transitions: 300ms with `cubic-bezier(0.3, 0, 0.8, 0.15)` (accelerating out)
-- Always respect `prefers-reduced-motion: reduce`
-- Use the `shouldRender` + `isVisible` pattern for mount/unmount animations (see RosieChat.tsx)
 
 ### Data Persistence
 - Timeline events → `rosie_events` table (Supabase)
 - User settings (location, etc.) → `rosie_profiles.settings` JSONB column
 - Growth measurements → `rosie_growth_measurements` table
+- Catch-up quiz → `rosie_babies.catch_up_data` JSONB column
 - All data also cached in localStorage (`rosie_data` key) for offline/fast access
 - Supabase is source of truth; localStorage is cache
 

@@ -1,11 +1,116 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRosieAuth } from './RosieAuthContext';
+import { calculateAge } from './contextEngine';
 import './rosie.css';
 
-type AuthView = 'welcome' | 'signin' | 'signup' | 'confirm-email' | 'signup-name' | 'signup-baby-name' | 'signup-baby-birthday' | 'celebration';
+type AuthView = 'welcome' | 'signin' | 'signup' | 'confirm-email' | 'signup-name' | 'signup-baby-name' | 'signup-baby-birthday' | 'signup-early' | 'celebration';
 
 interface RosieAuthProps {
   onComplete: () => void;
+}
+
+// ═══════════════════════════════════════
+// Typewriter Hook
+// ═══════════════════════════════════════
+function useTypewriter(text: string, speed = 40): { displayText: string; isComplete: boolean } {
+  const [displayText, setDisplayText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
+  // Check for reduced motion preference
+  const prefersReducedMotion = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
+
+  useEffect(() => {
+    // Reset when text changes
+    setDisplayText('');
+    setIsComplete(false);
+
+    if (prefersReducedMotion || !text) {
+      setDisplayText(text);
+      setIsComplete(true);
+      return;
+    }
+
+    let index = 0;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const typeNext = () => {
+      if (index < text.length) {
+        setDisplayText(text.slice(0, index + 1));
+        index++;
+
+        // Punctuation pauses
+        const char = text[index - 1];
+        let delay = speed;
+        if (char === ',') delay = 150;
+        else if (char === '.') delay = 300;
+        else if (char === '—' || char === '-') delay = 200;
+
+        timeoutId = setTimeout(typeNext, delay);
+      } else {
+        setIsComplete(true);
+      }
+    };
+
+    timeoutId = setTimeout(typeNext, speed);
+
+    return () => clearTimeout(timeoutId);
+  }, [text, speed, prefersReducedMotion]);
+
+  return { displayText, isComplete };
+}
+
+// ═══════════════════════════════════════
+// Confetti Component
+// ═══════════════════════════════════════
+const CONFETTI_COLORS = ['#8B5CF6', '#B57BEC', '#FFD700', '#FFC107', '#A78BFA', '#F5D060'];
+
+function Confetti() {
+  const particles = useMemo(() => {
+    return Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 1.2}s`,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      size: 6 + Math.random() * 6,
+    }));
+  }, []);
+
+  return (
+    <div className="ob-confetti">
+      {particles.map(p => (
+        <span
+          key={p.id}
+          style={{
+            left: p.left,
+            animationDelay: p.delay,
+            background: p.color,
+            width: p.size,
+            height: p.size,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════
+// Rosie Quote Generator
+// ═══════════════════════════════════════
+function getRosieQuote(babyName: string, ageMonths: number): string {
+  if (ageMonths < 2) {
+    return `Right now, ${babyName} is taking in the whole world — your voice, your face, your heartbeat. I'll help you know what to expect and when to just breathe.`;
+  } else if (ageMonths < 4) {
+    return `At ${ageMonths} months, ${babyName} is starting to smile, coo, and discover those tiny hands. I'll help you spot every little milestone.`;
+  } else if (ageMonths < 6) {
+    return `At ${ageMonths} months, ${babyName} is probably reaching for everything and getting ready to roll. I can't wait to help you with all of it.`;
+  } else if (ageMonths < 9) {
+    return `At ${ageMonths} months, ${babyName} is probably sitting up, reaching for everything, and ready for solid foods. I can't wait to help you with all of it.`;
+  } else {
+    return `At ${ageMonths} months, ${babyName} is on the move — crawling, babbling, and showing so much personality. Let's make the most of this amazing stage.`;
+  }
 }
 
 export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
@@ -32,18 +137,22 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   const [parentName, setParentName] = useState('');
   const [babyName, setBabyName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [wasEarly, setWasEarly] = useState<boolean | null>(null);
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [animationStep, setAnimationStep] = useState(0);
 
   // Navigate between auth views with slide animation
-  const navigateTo = (newView: AuthView, direction: 'left' | 'right' = 'left') => {
+  const navigateTo = useCallback((newView: AuthView, direction: 'left' | 'right' = 'left') => {
     setSlideDirection(direction);
     setView(newView);
     clearError();
     setLocalError(null);
-  };
+    setAnimationStep(0); // Reset animation sequence
+  }, [clearError]);
 
   const slideClass = slideDirection === 'left' ? 'slide-left' : slideDirection === 'right' ? 'slide-right' : '';
 
@@ -59,14 +168,12 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   const isPasswordValid = passwordValidation.hasMinLength;
   const isFormValid = email.trim() && isPasswordValid && passwordValidation.passwordsMatch;
 
-  // If user is signed in and has profile and babies, complete (or show celebration)
-  React.useEffect(() => {
+  // If user is signed in and has profile and babies, complete
+  useEffect(() => {
     if (loading) return;
-    // Don't override these screens — user is in a specific flow
     if (view === 'confirm-email' || view === 'celebration') return;
-    // Don't override profile/baby setup screens — user is actively filling in data
     if (view === 'signup-name' && !profile) return;
-    if ((view === 'signup-baby-name' || view === 'signup-baby-birthday') && babies.length === 0) return;
+    if ((view === 'signup-baby-name' || view === 'signup-baby-birthday' || view === 'signup-early') && babies.length === 0) return;
 
     if (user && profile && babies.length > 0) {
       onComplete();
@@ -75,16 +182,62 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     } else if (user && profile && babies.length === 0) {
       navigateTo('signup-baby-name', 'left');
     }
-  }, [user, profile, babies, loading, onComplete, view]);
+  }, [user, profile, babies, loading, onComplete, view, navigateTo]);
 
-  // Compute baby's age for celebration screen
-  const babyAgeWeeks = React.useMemo(() => {
+  // Animation orchestration: stagger reveals per screen
+  useEffect(() => {
+    setAnimationStep(0);
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // Step 0 happens immediately (emoji entrance)
+    // Step 1: title typewriter starts (200ms delay)
+    timers.push(setTimeout(() => setAnimationStep(1), 200));
+    // Steps 2-5 are driven by typewriter completion and additional delays
+    // We set them on timers as fallbacks, but typewriter onComplete can advance too
+
+    return () => timers.forEach(clearTimeout);
+  }, [view]);
+
+  // Compute baby's age info for celebration screen and birthday feedback
+  const ageInfo = useMemo(() => {
     if (!birthDate) return null;
-    const birth = new Date(birthDate + 'T12:00:00');
-    const now = new Date();
-    const diffMs = now.getTime() - birth.getTime();
-    return Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
-  }, [birthDate]);
+    return calculateAge(birthDate, wasEarly && dueDate ? dueDate : undefined);
+  }, [birthDate, dueDate, wasEarly]);
+
+  // Typewriter texts per screen
+  const typewriterTexts: Record<string, string> = {
+    'welcome': "Hey there, I'm RosieAI.",
+    'signup-name': 'First things first — what should I call you?',
+    'signup-baby-name': 'And the star of the show?',
+    'signup-baby-birthday': `When did ${babyName || 'your baby'} make her grand entrance?`,
+    'signup-early': `One more thing — was ${babyName || 'your baby'} early?`,
+    'celebration': `You're all set, ${parentName || 'friend'}!`,
+  };
+
+  const currentTypewriterText = typewriterTexts[view] || '';
+  const { displayText: typedTitle, isComplete: titleComplete } = useTypewriter(
+    animationStep >= 1 ? currentTypewriterText : '',
+    40
+  );
+
+  // Advance animation steps after typewriter completes
+  useEffect(() => {
+    if (!titleComplete || animationStep < 1) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    if (animationStep < 2) {
+      timers.push(setTimeout(() => setAnimationStep(2), 100)); // subtitle
+    }
+    if (animationStep < 3) {
+      timers.push(setTimeout(() => setAnimationStep(3), 250)); // input
+    }
+    if (animationStep < 4) {
+      timers.push(setTimeout(() => setAnimationStep(4), 400)); // button
+    }
+
+    return () => timers.forEach(clearTimeout);
+  }, [titleComplete, animationStep]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,10 +322,17 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     setLocalError(null);
     setLocalLoading(true);
 
-    const result = await addBaby({
+    const babyData: { name: string; birthDate: string; dueDate?: string } = {
       name: babyName,
       birthDate,
-    });
+    };
+
+    // Only include due date if baby was early and date was provided
+    if (wasEarly && dueDate) {
+      babyData.dueDate = dueDate;
+    }
+
+    const result = await addBaby(babyData);
 
     if (result.success) {
       navigateTo('celebration', 'left');
@@ -185,21 +345,26 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
 
   const displayError = localError || error;
 
-  // Progress bar helper: 4 segments
-  // Step 1: Account (signup) | Step 2: Parent name | Step 3: Baby name + birthday | Step 4: Celebration
-  const renderProgress = (currentStep: number) => {
-    const segments = [1, 2, 3, 4];
+  // ═══════════════════════════════════════
+  // Progress Segments (horizontal bar style per wireframe)
+  // ═══════════════════════════════════════
+  const renderProgress = (currentStep: number, totalSteps = 4) => {
+    const segs = Array.from({ length: totalSteps }, (_, i) => i + 1);
     return (
       <div className="ob-progress">
-        {segments.map(s => (
+        {segs.map(s => (
           <div
             key={s}
-            className={`ob-progress-seg ${s < currentStep ? 'done' : s === currentStep ? 'active' : ''}`}
+            className={`ob-progress-seg ${s < currentStep ? 'done' : ''} ${s === currentStep ? 'active' : ''}`}
           />
         ))}
       </div>
     );
   };
+
+  // Reveal helper: returns className for staggered animation
+  const reveal = (step: number, spring = false) =>
+    `ob-reveal ${animationStep >= step ? 'visible' : ''} ${spring ? 'spring' : ''}`;
 
   // ═══════════════════════════════════════
   // WELCOME SCREEN
@@ -211,52 +376,31 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
           <div className="ob-screen">
             <div className="ob-spacer" />
 
-            <div className="ob-logo">🌱</div>
-            <h1 className="ob-hero-title">
-              Your calm companion<br />for the first year
-            </h1>
-            <p className="ob-hero-subtitle">
-              Track, learn, and breathe — Rosie is<br />here for you and your baby.
-            </p>
+            <div className="ob-emoji-anim heart">💜</div>
 
-            <div className="ob-values">
-              <div className="ob-value">
-                <div className="ob-value-icon orange">🍼</div>
-                <div className="ob-value-text">
-                  <h4>Track without stress</h4>
-                  <p>Quick logging for feeds, sleep, and diapers. No perfectionism required.</p>
-                </div>
-              </div>
-              <div className="ob-value">
-                <div className="ob-value-icon purple">🧠</div>
-                <div className="ob-value-text">
-                  <h4>Understand every leap</h4>
-                  <p>Know why your baby is fussy and when the sunny days return.</p>
-                </div>
-              </div>
-              <div className="ob-value">
-                <div className="ob-value-icon green">💚</div>
-                <div className="ob-value-text">
-                  <h4>Support for you too</h4>
-                  <p>You're not just a caregiver. Rosie checks in on how you're doing.</p>
-                </div>
-              </div>
-            </div>
+            <h1 className="ob-hero-title">
+              {typedTitle}
+              <span className={`ob-typewriter-cursor ${titleComplete ? 'done' : ''}`} />
+            </h1>
+
+            <p className={`ob-hero-subtitle ${reveal(2)}`}>
+              I help parents survive (and enjoy) the first year. Think of me as that friend who's been through it and always picks up the phone.
+            </p>
 
             <div className="ob-spacer" />
 
-            <div className="ob-actions">
+            <div className={`ob-actions ${reveal(3)}`}>
               <button
                 className="ob-btn ob-btn-primary"
                 onClick={() => navigateTo('signup', 'left')}
               >
-                Get Started
+                Let's get started
               </button>
               <button
-                className="ob-btn ob-btn-secondary"
+                className="ob-skip"
                 onClick={() => navigateTo('signin', 'left')}
               >
-                I already have an account
+                Already have an account? Sign in
               </button>
             </div>
           </div>
@@ -495,24 +639,31 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     return (
       <div className="ob-container">
         <div className={`ob-card ${slideClass}`}>
-          {renderProgress(2)}
+          {renderProgress(1)}
           <div className="ob-screen">
             <div className="ob-spacer-lg" />
 
-            <h1 className="ob-question">What should we call you?</h1>
-            <p className="ob-question-sub">This is how Rosie will greet you.</p>
+            <div className="ob-emoji-anim wave">👋</div>
+
+            <h1 className="ob-question">
+              {typedTitle}
+              <span className={`ob-typewriter-cursor ${titleComplete ? 'done' : ''}`} />
+            </h1>
+            <p className={`ob-question-sub ${reveal(2)}`}>
+              Just your first name. We're on a first-name basis here.
+            </p>
 
             {displayError && (
               <div className="ob-error">{displayError}</div>
             )}
 
             <form onSubmit={handleCreateProfile}>
-              <div className="ob-field">
+              <div className={`ob-field ${reveal(3, true)}`}>
                 <input
                   type="text"
                   value={parentName}
                   onChange={(e) => setParentName(e.target.value)}
-                  placeholder="e.g., Sarah, Mom, Mama"
+                  placeholder="Your name"
                   className="ob-input ob-input-large"
                   required
                   autoFocus
@@ -520,13 +671,13 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
               </div>
 
               <div className="ob-spacer" />
-              <div className="ob-actions">
+              <div className={`ob-actions ${reveal(4)}`}>
                 <button
                   type="submit"
                   className="ob-btn ob-btn-primary"
                   disabled={localLoading || !parentName.trim()}
                 >
-                  {localLoading ? 'Saving...' : 'Continue'}
+                  {localLoading ? 'Saving...' : "That's me →"}
                 </button>
               </div>
             </form>
@@ -550,30 +701,37 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
     return (
       <div className="ob-container">
         <div className={`ob-card ${slideClass}`}>
-          {renderProgress(3)}
+          {renderProgress(2)}
           <div className="ob-screen">
             <div className="ob-spacer-lg" />
 
-            <h1 className="ob-question">What's your baby's name?</h1>
-            <p className="ob-question-sub">We'll use this to personalize everything.</p>
+            <div className="ob-emoji-anim bounce">👶</div>
+
+            <h1 className="ob-question">
+              {typedTitle}
+              <span className={`ob-typewriter-cursor ${titleComplete ? 'done' : ''}`} />
+            </h1>
+            <p className={`ob-question-sub ${reveal(2)}`}>
+              What's your little one's name? Nickname totally counts.
+            </p>
 
             {displayError && (
               <div className="ob-error">{displayError}</div>
             )}
 
-            <div className="ob-field">
+            <div className={`ob-field ${reveal(3, true)}`}>
               <input
                 type="text"
                 value={babyName}
                 onChange={(e) => setBabyName(e.target.value)}
-                placeholder="Enter baby's name"
+                placeholder="Baby's name"
                 className="ob-input ob-input-large"
                 autoFocus
               />
             </div>
 
             <div className="ob-spacer" />
-            <div className="ob-actions">
+            <div className={`ob-actions ${reveal(4)}`}>
               <button
                 className="ob-btn ob-btn-primary"
                 onClick={() => {
@@ -583,7 +741,7 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
                 }}
                 disabled={!babyName.trim()}
               >
-                Continue
+                Love that name →
               </button>
             </div>
 
@@ -613,14 +771,21 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
             </button>
             <div className="ob-spacer-lg" />
 
-            <h1 className="ob-question">When was {babyName} born?</h1>
-            <p className="ob-question-sub">This helps us track milestones and developmental leaps accurately.</p>
+            <div className="ob-emoji-anim land">🎂</div>
+
+            <h1 className="ob-question">
+              {typedTitle}
+              <span className={`ob-typewriter-cursor ${titleComplete ? 'done' : ''}`} />
+            </h1>
+            <p className={`ob-question-sub ${reveal(2)}`}>
+              This is the magic number — it's how I know exactly where {babyName} is in her development.
+            </p>
 
             {displayError && (
               <div className="ob-error">{displayError}</div>
             )}
 
-            <div className="ob-field">
+            <div className={`ob-field ${reveal(3, true)}`}>
               <input
                 type="date"
                 value={birthDate}
@@ -630,20 +795,128 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
                 required
                 autoFocus
               />
+
+              {birthDate && ageInfo && (
+                <div className="ob-age-feedback">
+                  That makes {babyName} {ageInfo.ageDisplay} old ✨
+                </div>
+              )}
             </div>
 
             <div className="ob-spacer" />
-            <div className="ob-actions">
+            <div className={`ob-actions ${reveal(4)}`}>
               <button
                 className="ob-btn ob-btn-primary"
                 onClick={() => {
                   if (birthDate) {
-                    handleAddBaby();
+                    navigateTo('signup-early', 'left');
                   }
                 }}
-                disabled={localLoading || !birthDate}
+                disabled={!birthDate}
               >
-                {localLoading ? 'Setting up...' : 'Continue'}
+                Almost done →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════
+  // SIGNUP STEP: EARLY ARRIVAL
+  // ═══════════════════════════════════════
+  if (view === 'signup-early') {
+    // Compute adjusted age feedback when due date is entered
+    const adjustedAgeInfo = wasEarly && dueDate ? calculateAge(birthDate, dueDate) : null;
+
+    return (
+      <div className="ob-container">
+        <div className={`ob-card ${slideClass}`}>
+          {renderProgress(4)}
+          <div className="ob-screen">
+            <button className="ob-back" onClick={() => navigateTo('signup-baby-birthday', 'right')}>
+              ← Back
+            </button>
+            <div className="ob-spacer-lg" />
+
+            <div className="ob-emoji-anim glow">🌟</div>
+
+            <h1 className="ob-question">
+              {typedTitle}
+              <span className={`ob-typewriter-cursor ${titleComplete ? 'done' : ''}`} />
+            </h1>
+            <p className={`ob-question-sub ${reveal(2)}`}>
+              If {babyName} arrived ahead of schedule, I'll use her due date to give more accurate developmental guidance. No pressure either way.
+            </p>
+
+            <div className={`${reveal(3)}`}>
+              <div className="ob-option-group">
+                <div
+                  className={`ob-option ${wasEarly === false ? 'selected' : ''}`}
+                  onClick={() => {
+                    setWasEarly(false);
+                    setDueDate('');
+                  }}
+                >
+                  <div className="ob-option-radio">
+                    <div className="ob-option-radio-dot" />
+                  </div>
+                  <div className="ob-option-text">Nope, right on time</div>
+                </div>
+                <div
+                  className={`ob-option ${wasEarly === true ? 'selected' : ''}`}
+                  onClick={() => setWasEarly(true)}
+                >
+                  <div className="ob-option-radio">
+                    <div className="ob-option-radio-dot" />
+                  </div>
+                  <div className="ob-option-text">Yes, {babyName} was early</div>
+                </div>
+              </div>
+
+              {/* Due date picker — slides in when "Yes" is selected */}
+              <div className={`ob-due-date-reveal ${wasEarly === true ? 'visible' : ''}`}>
+                <div style={{ paddingTop: 12 }}>
+                  <label className="ob-label" style={{ fontWeight: 600 }}>
+                    When was {babyName} originally due?
+                  </label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="ob-input"
+                    min={birthDate}
+                  />
+
+                  {adjustedAgeInfo && adjustedAgeInfo.isPremature && (
+                    <div className="ob-age-feedback">
+                      Got it — I'll use {babyName}'s adjusted age ({adjustedAgeInfo.adjustedAgeDisplay}) for milestones
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="ob-spacer" />
+            <div className={`ob-actions ${reveal(4)}`}>
+              <button
+                className="ob-btn ob-btn-primary"
+                onClick={handleAddBaby}
+                disabled={localLoading || wasEarly === null || (wasEarly === true && !dueDate)}
+              >
+                {localLoading ? 'Setting up...' : "Let's go! →"}
+              </button>
+              <button
+                className="ob-skip"
+                onClick={() => {
+                  setWasEarly(false);
+                  setDueDate('');
+                  handleAddBaby();
+                }}
+                disabled={localLoading}
+              >
+                Skip — {babyName} was on time
               </button>
             </div>
           </div>
@@ -656,45 +929,50 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   // CELEBRATION SCREEN
   // ═══════════════════════════════════════
   if (view === 'celebration') {
-    const weekText = babyAgeWeeks !== null ? `Week ${babyAgeWeeks + 1}` : '';
+    const ageMonths = ageInfo?.chronologicalMonths ?? 0;
+    const ageWeeks = ageInfo?.chronologicalWeeks ?? 0;
+    const ageDisplay = ageInfo?.ageDisplay ?? '';
+    const rosieQuote = getRosieQuote(babyName, ageMonths);
+
     return (
       <div className="ob-container">
         <div className={`ob-card ${slideClass}`}>
-          {renderProgress(4)}
           <div className="ob-screen">
             <div className="ob-spacer" />
 
-            <div className="ob-success">
-              <div className="ob-success-emoji">🎉</div>
-              <h1 className="ob-success-title">You're all set!</h1>
-              <p className="ob-success-subtitle">
-                Rosie is ready to help you and {babyName} through the first year.
-              </p>
+            <Confetti />
 
-              <div className="ob-success-card">
-                <h4>What you can do</h4>
-                <div className="ob-success-item">
-                  <div className="ob-success-check">✓</div>
-                  <span>Log feeds, sleep, and diapers with one tap</span>
-                </div>
-                <div className="ob-success-item">
-                  <div className="ob-success-check">✓</div>
-                  <span>{weekText ? `See what's normal at ${weekText}` : "See what's normal for your baby's age"}</span>
-                </div>
-                <div className="ob-success-item">
-                  <div className="ob-success-check">✓</div>
-                  <span>Ask Rosie anything — she's always here</span>
-                </div>
+            <div className="ob-emoji-anim party">🎉</div>
+
+            <h1 className="ob-hero-title">
+              {typedTitle}
+              <span className={`ob-typewriter-cursor ${titleComplete ? 'done' : ''}`} />
+            </h1>
+
+            <p className={`ob-hero-subtitle ${reveal(2)}`}>
+              RosieAI is ready to help you and {babyName}. I've already got some ideas based on where {babyName} is right now.
+            </p>
+
+            {/* Profile celebration card */}
+            <div className={`ob-celebration-card ${reveal(3)}`}>
+              <div className="ob-celebration-card-name">{babyName}</div>
+              <div className="ob-celebration-card-age">
+                {ageDisplay} old · Week {ageWeeks + 1}
+              </div>
+              <div className="ob-celebration-card-divider" />
+              <div className="ob-celebration-card-rosie">
+                "{rosieQuote}"
               </div>
             </div>
 
             <div className="ob-spacer" />
-            <div className="ob-actions">
+
+            <div className={`ob-actions ${reveal(4)}`}>
               <button
                 className="ob-btn ob-btn-primary"
                 onClick={onComplete}
               >
-                Start Using Rosie
+                Meet your new home →
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 export interface BabyProfile {
   name: string;
   birthDate: string; // ISO date string
+  dueDate?: string; // ISO date string — for adjusted age if born early
   gender?: 'boy' | 'girl' | 'other';
   avatarEmoji?: string;
   avatarImage?: string; // Base64 encoded image data URL
@@ -11,6 +12,39 @@ export interface BabyProfile {
   birthLength?: number; // in inches or cm
   weightUnit?: 'oz' | 'lb' | 'g' | 'kg';
   lengthUnit?: 'in' | 'cm';
+  // Quick Catch-Up quiz data
+  catchUpData?: CatchUpData;
+}
+
+// Quick Catch-Up quiz responses — stored in rosie_babies.catch_up_data JSONB
+export interface CatchUpData {
+  // Topic 1: Feeding
+  feedingMethod?: 'breast' | 'bottle' | 'both' | 'pumping';
+  solidFoods?: boolean;
+  // Topic 2: Sleep
+  sleepBaseline?: {
+    napsPerDay?: number;
+    bedtime?: string; // "19:00" format
+    nightWakings?: number;
+    sleepMethod?: 'contact' | 'crib' | 'cosleep' | 'bassinet';
+  };
+  // Topic 3: Milestones (IDs from milestoneData.ts)
+  milestonesChecked?: string[];
+  // Topic 4: Concerns
+  concerns?: string[]; // predefined concern tags
+  parentConcernText?: string; // free-text from parent
+  // Progress tracking
+  completedTopics?: string[]; // e.g., ['feeding', 'sleep', 'milestones', 'concerns']
+  completedAt?: string; // ISO date when fully completed
+}
+
+// Milestone completion record — stored in rosie_milestones table
+export interface MilestoneRecord {
+  id: string;
+  milestoneId: string; // references static milestone definition
+  status: 'done' | 'emerging' | 'next';
+  notedAt?: string; // ISO date when parent marked it
+  note?: string; // optional parent note
 }
 
 export interface GrowthMeasurement {
@@ -90,6 +124,14 @@ export interface CaregiverNote {
 export interface UserSettings {
   location?: string; // City, State or ZIP code
   temperatureUnit?: 'fahrenheit' | 'celsius';
+  // Location details (resolved from geocoding)
+  latitude?: number;
+  longitude?: number;
+  neighborhood?: string; // e.g., "Capitol Hill"
+  locationShared?: boolean; // whether user granted location permission
+  // Onboarding progress
+  onboardingComplete?: boolean;
+  catchUpComplete?: boolean;
 }
 
 export interface WeatherData {

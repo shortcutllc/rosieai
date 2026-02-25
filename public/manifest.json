@@ -1,6 +1,6 @@
 {
-  "name": "Rosie AI - Baby Companion",
-  "short_name": "Rosie",
+  "name": "RosieAI - Baby Companion",
+  "short_name": "RosieAI",
   "description": "Your AI-powered parenting assistant for tracking feeds, sleep, and development",
   "start_url": "/",
   "display": "standalone",

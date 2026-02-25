@@ -4,7 +4,7 @@ import { RosieAuth } from './RosieAuth';
 import { RosieOnboarding } from './RosieOnboarding';
 import { RosieTimeline } from './RosieTimeline';
 import { RosieChat } from './RosieChat';
-import { RosieDevelopment } from './RosieDevelopment';
+import { RosieDiscover } from './RosieDiscover';
 import { RosieHome } from './RosieHome';
 import { RosieHeader, TimePeriod, getTimePeriod, getGreeting } from './RosieHeader';
 import { RosieQuickLog } from './RosieQuickLog';
@@ -12,6 +12,7 @@ import { RosieProfile } from './RosieProfile';
 import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, GrowthMeasurement, UserSettings } from './types';
 import { getStoredData, saveData, clearData } from './storage';
 import { getDevelopmentalInfo } from './developmentalData';
+import { getSmartDefaults } from './contextEngine';
 import { fetchEvents, addEvent, deleteEvent as deleteEventFromDB } from './supabaseEvents';
 import { fetchSettings, saveSettings } from './supabaseSettings';
 import { fetchGrowthMeasurements, addGrowthMeasurement, deleteGrowthMeasurement } from './supabaseGrowth';
@@ -44,16 +45,16 @@ const formatDuration = (seconds: number): string => {
 
 // Inner component that uses auth context
 const RosieAIContent: React.FC = () => {
-  const { user, currentBaby, profile, loading: authLoading, signOut, updateProfile, updateBaby: updateBabyInDb } = useRosieAuth();
+  const { user, currentBaby, profile, loading: authLoading, signOut, updateProfile, updateBaby: updateBabyInDb, updateCatchUpData } = useRosieAuth();
   const [data, setData] = useState<RosieData | null>(null);
-  const [activeTab, setActiveTab] = useState<'home' | 'timeline' | 'development' | 'chat'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'timeline' | 'discover' | 'chat'>('home');
   const [showChat, setShowChat] = useState(false);
-  const [previousTab, setPreviousTab] = useState<'home' | 'timeline' | 'development'>('home');
+  const [previousTab, setPreviousTab] = useState<'home' | 'timeline' | 'discover'>('home');
   const [isLoading, setIsLoading] = useState(true);
   const [bannerTimerDisplay, setBannerTimerDisplay] = useState(0);
   const [showQuickLogModal, setShowQuickLogModal] = useState<'feed' | 'sleep' | 'diaper' | null>(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>(() => getTimePeriod(new Date().getHours()));
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('afternoon'); // TODO: restore → getTimePeriod(new Date().getHours())
   const [showAuth, setShowAuth] = useState(false);
   const [weather, setWeather] = useState<import('./types').WeatherData | null>(null);
 
@@ -159,6 +160,12 @@ const RosieAIContent: React.FC = () => {
     return lastBreastFeed?.feedLastSide;
   }, [data?.timeline]);
 
+  // Smart defaults for quick log pre-filling
+  const smartDefaults = useMemo(
+    () => data?.timeline ? getSmartDefaults(data.timeline, lastFeedSide) : undefined,
+    [data?.timeline, lastFeedSide]
+  );
+
   // Timer management handlers
   const handleStartTimer = (timer: ActiveTimer) => {
     if (!data) return;
@@ -201,8 +208,8 @@ const RosieAIContent: React.FC = () => {
     setData(newData);
   };
 
-  const handleAddEvent = async (event: Omit<TimelineEvent, 'id' | 'timestamp'>) => {
-    if (!data) return;
+  const handleAddEvent = (event: Omit<TimelineEvent, 'id' | 'timestamp'>): string => {
+    if (!data) return '';
 
     const newEvent: TimelineEvent = {
       ...event,
@@ -218,14 +225,16 @@ const RosieAIContent: React.FC = () => {
     setData(updatedData);
     saveData(updatedData); // Cache locally
 
-    // Save to Supabase if authenticated
+    // Save to Supabase if authenticated (fire and forget)
     if (user && currentBaby) {
-      const result = await addEvent(newEvent, user.id, currentBaby.id);
-      if (!result.success) {
-        console.error('Failed to save event to Supabase:', result.error);
-        // Event is still in local state/cache, will sync later
-      }
+      addEvent(newEvent, user.id, currentBaby.id).then(result => {
+        if (!result.success) {
+          console.error('Failed to save event to Supabase:', result.error);
+        }
+      });
     }
+
+    return newEvent.id;
   };
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -510,11 +519,11 @@ const RosieAIContent: React.FC = () => {
           <span className="rosie-tab-label">Timeline</span>
         </button>
         <button
-          className={`rosie-tab ${activeTab === 'development' && !showChat ? 'active' : ''}`}
-          onClick={() => { setActiveTab('development'); setShowChat(false); }}
+          className={`rosie-tab ${activeTab === 'discover' && !showChat ? 'active' : ''}`}
+          onClick={() => { setActiveTab('discover'); setShowChat(false); }}
         >
-          <span className="rosie-tab-icon">🌱</span>
-          <span className="rosie-tab-label">This Week</span>
+          <span className="rosie-tab-icon">🧭</span>
+          <span className="rosie-tab-label">Discover</span>
         </button>
       </nav>
 
@@ -528,8 +537,10 @@ const RosieAIContent: React.FC = () => {
               developmentalInfo={developmentalInfo}
               timePeriod={timePeriod}
               lastFeedSide={lastFeedSide}
+              catchUpData={currentBaby?.catchUpData}
               onOpenQuickLog={(type) => setShowQuickLogModal(type)}
               onNavigateTab={(tab) => { setActiveTab(tab); setShowChat(false); }}
+              onUpdateCatchUp={currentBaby ? (data) => updateCatchUpData(currentBaby.id, data) : undefined}
             />
           )}
           {activeTab === 'timeline' && (
@@ -539,27 +550,35 @@ const RosieAIContent: React.FC = () => {
               onDeleteEvent={handleDeleteEvent}
             />
           )}
-          {activeTab === 'development' && (
-            <RosieDevelopment
+          {activeTab === 'discover' && (
+            <RosieDiscover
               baby={data.baby}
               developmentalInfo={developmentalInfo}
+              weather={weather}
             />
           )}
         </div>
       </main>
 
-      {/* Floating "Ask Rosie" pill — always visible at bottom */}
+      {/* Floating "Ask Rosie" pill — always visible at bottom with cycling suggestions */}
       {!showChat && (
         <div className="rosie-ask-pill-container">
           <button
             className="rosie-ask-pill"
             onClick={() => {
-              setPreviousTab(activeTab as 'home' | 'timeline' | 'development');
+              setPreviousTab(activeTab as 'home' | 'timeline' | 'discover');
               setShowChat(true);
             }}
           >
             <span className="rosie-ask-pill-icon">✨</span>
-            <span className="rosie-ask-pill-text">Ask Rosie anything...</span>
+            <div className="rosie-pill-text-wrap">
+              <div className="rosie-pill-suggestions">
+                <span>Ask RosieAI anything...</span>
+                <span>Is {data.baby.name} sleeping enough?</span>
+                <span>Why is {data.baby.name} fussy?</span>
+                <span>Log a quick feed 🍼</span>
+              </div>
+            </div>
           </button>
         </div>
       )}
@@ -570,6 +589,8 @@ const RosieAIContent: React.FC = () => {
         messages={data.chatHistory}
         onAddMessage={handleAddMessage}
         onUpdateHistory={handleUpdateChatHistory}
+        onAddEvent={handleAddEvent}
+        onDeleteEvent={handleDeleteEvent}
         timeline={data.timeline}
         developmentalInfo={developmentalInfo}
         growthMeasurements={data.growthMeasurements}
@@ -589,6 +610,7 @@ const RosieAIContent: React.FC = () => {
         onStopTimer={handleStopTimer}
         onUpdateTimer={handleUpdateTimer}
         lastFeedSide={lastFeedSide}
+        smartDefaults={smartDefaults}
         openModal={showQuickLogModal}
         onModalClose={() => setShowQuickLogModal(null)}
         hideBar={true}

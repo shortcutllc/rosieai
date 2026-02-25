@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TimelineEvent, ActiveTimer } from './types';
 import { DurationRing } from './DurationRing';
+import { SmartDefaults } from './contextEngine';
 
 interface RosieQuickLogProps {
   onAddEvent: (event: Omit<TimelineEvent, 'id' | 'timestamp'>) => void;
@@ -9,6 +10,7 @@ interface RosieQuickLogProps {
   onStopTimer: () => void;
   onUpdateTimer: (timer: ActiveTimer) => void;
   lastFeedSide?: 'left' | 'right';
+  smartDefaults?: SmartDefaults;
   openModal?: 'feed' | 'sleep' | 'diaper' | null;
   onModalClose?: () => void;
   hideBar?: boolean;
@@ -65,6 +67,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
   onStopTimer,
   onUpdateTimer,
   lastFeedSide,
+  smartDefaults,
   openModal,
   onModalClose,
   hideBar,
@@ -84,12 +87,31 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
   const [leftTimerRunning, setLeftTimerRunning] = useState(false);
   const [rightTimerRunning, setRightTimerRunning] = useState(false);
 
-  // Open modal from parent (e.g., from timer banner)
+  // Open modal from parent (e.g., from timer banner) + apply smart defaults
   useEffect(() => {
     if (openModal) {
       setActiveModal(openModal);
+
+      // Apply smart defaults when opening fresh (not resuming a timer)
+      if (smartDefaults?.hasEnoughData) {
+        if (openModal === 'feed' && feedTimerPhase === 'ready' && (!activeTimer || activeTimer.type !== 'feed')) {
+          if (smartDefaults.feed.confidence >= 0.6) {
+            setFeedType(smartDefaults.feed.feedType);
+          }
+        }
+        if (openModal === 'sleep') {
+          if (smartDefaults.sleep.confidence >= 0.6) {
+            setSleepType(smartDefaults.sleep.sleepType);
+          }
+        }
+        if (openModal === 'diaper') {
+          if (smartDefaults.diaper.confidence >= 0.6) {
+            setDiaperType(smartDefaults.diaper.diaperType);
+          }
+        }
+      }
     }
-  }, [openModal]);
+  }, [openModal, smartDefaults, feedTimerPhase, activeTimer]);
 
   // Feed state
   const [feedType, setFeedType] = useState<'breast' | 'bottle' | 'solid'>('breast');

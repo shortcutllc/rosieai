@@ -1,0 +1,3161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosie — Home Tab Redesign Wireframes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    background: #F0F0F5;
+    padding: 40px 20px;
+    color: #1D1D1F;
+  }
+
+  /* ====== PAGE LAYOUT ====== */
+  .page-header {
+    text-align: center;
+    max-width: 1000px;
+    margin: 0 auto 40px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .page-header p {
+    font-size: 15px;
+    color: #86868B;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .section-divider {
+    text-align: center;
+    max-width: 1000px;
+    margin: 0 auto 32px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+  .section-divider h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section-divider p {
+    font-size: 14px;
+    color: #86868B;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .wireframe-row {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #86868B;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .label.current { color: #FF9500; }
+  .label.new { color: #34C759; }
+
+  .annotation {
+    max-width: 320px;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #FFF;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.5;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .annotation strong {
+    color: #1D1D1F;
+  }
+
+  /* ====== PHONE FRAME ====== */
+  .phone {
+    width: 390px;
+    min-height: 844px;
+    background: #FAFAFA;
+    border-radius: 44px;
+    border: 6px solid #1D1D1F;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+  .phone-notch {
+    width: 126px;
+    height: 34px;
+    background: #1D1D1F;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+  }
+  .phone-content {
+    padding: 0;
+    overflow-y: auto;
+    max-height: 800px;
+  }
+
+  /* ====== HEADER ====== */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px;
+    background: #FAFAFA;
+  }
+  .weather-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #F2F2F7;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #86868B;
+    font-weight: 500;
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    font-weight: 600;
+  }
+
+  /* ====== GREETING ====== */
+  .greeting {
+    padding: 8px 20px 12px;
+  }
+  .greeting h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #1D1D1F;
+  }
+  .greeting .subtitle {
+    font-size: 14px;
+    color: #86868B;
+    margin-top: 2px;
+  }
+
+  /* ====== TAB BAR ====== */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 20px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #86868B;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #B57BEC, #9B59F0);
+    color: #FFF;
+  }
+
+  /* ====== SECTIONS ====== */
+  .section {
+    padding: 0 16px;
+    margin-bottom: 20px;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1D1D1F;
+  }
+  .section-link {
+    font-size: 13px;
+    color: #B57BEC;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ====== CURRENT: ACTION CARDS ====== */
+  .action-cards {
+    display: flex;
+    gap: 8px;
+  }
+  .action-card {
+    flex: 1;
+    background: #FFF;
+    border-radius: 20px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .card-accent {
+    height: 4px;
+  }
+  .card-accent.orange { background: linear-gradient(90deg, #FF9500, #FFAB40); }
+  .card-accent.purple { background: linear-gradient(90deg, #B57BEC, #9B59F0); }
+  .card-accent.green { background: linear-gradient(90deg, #34C759, #6DD86D); }
+  .card-body {
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .card-icon { font-size: 20px; margin-bottom: 4px; }
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .card-value {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .card-value.orange { color: #FF9500; }
+  .card-value.purple { color: #B57BEC; }
+  .card-value.green { color: #34C759; }
+  .card-detail {
+    font-size: 11px;
+    color: #86868B;
+    margin-bottom: 8px;
+  }
+  .card-btn {
+    display: block;
+    width: 100%;
+    padding: 7px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #FFF;
+    cursor: pointer;
+  }
+  .card-btn.orange { background: #FF9500; }
+  .card-btn.purple { background: #B57BEC; }
+  .card-btn.green { background: #34C759; }
+
+  /* ====== CURRENT: CAROUSEL ====== */
+  .carousel-card {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 16px;
+  }
+  .carousel-cat {
+    font-size: 11px;
+    font-weight: 600;
+    color: #B57BEC;
+    margin-bottom: 6px;
+  }
+  .carousel-text {
+    font-size: 14px;
+    color: #1D1D1F;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .carousel-more {
+    font-size: 13px;
+    color: #B57BEC;
+    font-weight: 600;
+  }
+  .carousel-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D1D1D6;
+  }
+  .dot.active { background: #B57BEC; width: 16px; border-radius: 3px; }
+
+  /* ====== CURRENT: STATS RINGS ====== */
+  .stats-rings {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+  }
+  .stat-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .ring-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 6px solid #E5E5EA;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-circle.partial-orange { border-color: #E5E5EA; border-top-color: #FF9500; border-right-color: #FF9500; }
+  .ring-circle.partial-purple { border-color: #E5E5EA; }
+  .ring-circle.partial-green { border-color: #E5E5EA; }
+  .ring-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1D1D1F;
+  }
+  .ring-label {
+    font-size: 11px;
+    color: #86868B;
+    font-weight: 600;
+  }
+
+  /* ====== CURRENT: NORMAL RANGES ====== */
+  .normal-ranges {
+    background: #F2F2F7;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-top: 12px;
+  }
+  .normal-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #86868B;
+    margin-bottom: 8px;
+  }
+  .normal-items {
+    display: flex;
+    justify-content: space-between;
+  }
+  .normal-item {
+    text-align: center;
+    font-size: 11px;
+  }
+  .normal-value {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .normal-value.orange { color: #FF9500; }
+  .normal-value.purple { color: #B57BEC; }
+  .normal-value.green { color: #34C759; }
+
+  /* ====== CURRENT: EVENTS LIST ====== */
+  .event-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .event-bar {
+    width: 3px;
+    height: 36px;
+    border-radius: 2px;
+  }
+  .event-bar.orange { background: #FF9500; }
+  .event-bar.purple { background: #B57BEC; }
+  .event-bar.green { background: #34C759; }
+  .event-icon-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .event-icon-circle.orange-bg { background: rgba(255,149,0,0.1); }
+  .event-icon-circle.purple-bg { background: rgba(181,123,236,0.1); }
+  .event-icon-circle.green-bg { background: rgba(52,199,89,0.1); }
+  .event-content { flex: 1; }
+  .event-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .event-detail {
+    font-size: 13px;
+    color: #86868B;
+  }
+  .event-time {
+    font-size: 13px;
+    color: #86868B;
+    font-weight: 400;
+  }
+
+  /* ====== NEW: SMART PROMPT ====== */
+  .smart-prompt {
+    background: linear-gradient(135deg, #FFF5F0, #FFF0F5);
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .smart-prompt:hover { transform: scale(1.01); }
+  .smart-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #FF9500, #FFAB40);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .smart-content { flex: 1; }
+  .smart-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 2px;
+  }
+  .smart-sub {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.4;
+  }
+  .smart-arrow {
+    font-size: 18px;
+    color: #C7C7CC;
+  }
+
+  /* ====== NEW: PROACTIVE ALERT ====== */
+  .proactive-alert {
+    background: linear-gradient(135deg, #F0F0FF, #F5EEFF);
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .alert-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .alert-content { flex: 1; }
+  .alert-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 4px;
+  }
+  .alert-text {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.5;
+  }
+  .alert-dismiss {
+    font-size: 13px;
+    color: #B57BEC;
+    font-weight: 600;
+    margin-top: 6px;
+    cursor: pointer;
+  }
+
+  /* ====== NEW: DAILY PLAN ====== */
+  .daily-plan {
+    background: #FFF;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .plan-header {
+    background: linear-gradient(135deg, #F8F0FF, #F0F0FF);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .plan-header-icon { font-size: 18px; }
+  .plan-header-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .plan-header-sub {
+    font-size: 13px;
+    color: #86868B;
+    font-weight: 400;
+    margin-left: auto;
+  }
+  .plan-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .plan-item:last-child { border-bottom: none; }
+  .plan-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #D1D1D6;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: transparent;
+  }
+  .plan-check.done {
+    background: #34C759;
+    border-color: #34C759;
+    color: #FFF;
+  }
+  .plan-text { flex: 1; }
+  .plan-activity {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .plan-activity-sub {
+    font-size: 13px;
+    color: #86868B;
+    margin-top: 1px;
+  }
+  .plan-duration {
+    font-size: 13px;
+    color: #86868B;
+    font-weight: 400;
+  }
+
+  /* ====== NEW: MINI QUICK LOG ====== */
+  .mini-quick-log {
+    display: flex;
+    gap: 8px;
+  }
+  .mini-log-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+    background: #FFF;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mini-log-btn:hover {
+    border-color: #B57BEC;
+    background: #FAFAFF;
+  }
+  .mini-log-emoji { font-size: 16px; }
+  .mini-log-sub {
+    font-size: 11px;
+    color: #86868B;
+    font-weight: 400;
+  }
+
+  /* ====== NEW: COMPACT STATS ====== */
+  .compact-stats {
+    display: flex;
+    gap: 8px;
+  }
+  .compact-stat {
+    flex: 1;
+    background: #FFF;
+    border-radius: 20px;
+    padding: 12px;
+    text-align: center;
+  }
+  .compact-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .compact-stat-value.orange { color: #FF9500; }
+  .compact-stat-value.purple { color: #B57BEC; }
+  .compact-stat-value.green { color: #34C759; }
+  .compact-stat-label {
+    font-size: 11px;
+    color: #86868B;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .compact-stat-context {
+    font-size: 11px;
+    color: #AEAEB2;
+    margin-top: 4px;
+  }
+
+  /* ====== NEW: VOICE INPUT BAR ====== */
+  .voice-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #FFF;
+    border-radius: 16px;
+    padding: 12px 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .voice-bar-text {
+    flex: 1;
+    font-size: 14px;
+    color: #C7C7CC;
+  }
+  .voice-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #FFF;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* ====== NEW: DISCOVER TAB ====== */
+  .near-you-card {
+    background: #FFF;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .near-you-header {
+    background: linear-gradient(135deg, #E8F5E8, #F0FFF0);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .near-you-header-icon { font-size: 18px; }
+  .near-you-header-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .near-you-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .near-you-item:last-child { border-bottom: none; }
+  .near-you-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #F2F2F7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .near-you-text { flex: 1; }
+  .near-you-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .near-you-meta {
+    font-size: 13px;
+    color: #86868B;
+    margin-top: 1px;
+  }
+  .near-you-dist {
+    font-size: 13px;
+    color: #34C759;
+    font-weight: 600;
+  }
+
+  /* ====== NEW: MILESTONE SKILL TREE ====== */
+  .skill-tree {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 16px;
+  }
+  .skill-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+  }
+  .skill-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .skill-dot.done { background: #34C759; }
+  .skill-dot.emerging { background: #FFD60A; }
+  .skill-dot.next { background: #E5E5EA; }
+  .skill-name {
+    flex: 1;
+    font-size: 14px;
+    color: #1D1D1F;
+  }
+  .skill-name.done-text { color: #86868B; text-decoration: line-through; }
+  .skill-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .skill-tag.done { background: rgba(52,199,89,0.1); color: #34C759; }
+  .skill-tag.emerging { background: rgba(255,214,10,0.15); color: #B8860B; }
+  .skill-tag.next { background: #F2F2F7; color: #86868B; }
+  .skill-connector {
+    width: 2px;
+    height: 12px;
+    background: #E5E5EA;
+    margin-left: 5px;
+  }
+
+  /* ====== FLOATING PILL (cycling suggestions) ====== */
+  .ask-pill {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    color: #FFF;
+    border-radius: 24px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(181,123,236,0.4);
+    cursor: pointer;
+    z-index: 20;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 320px;
+  }
+  .pill-suggestions {
+    display: flex;
+    flex-direction: column;
+    animation: pill-cycle 12s infinite;
+    line-height: 1;
+  }
+  .pill-suggestions span {
+    height: 18px;
+    display: flex;
+    align-items: center;
+  }
+  @keyframes pill-cycle {
+    0%, 20%   { transform: translateY(0); }
+    25%, 45%  { transform: translateY(-18px); }
+    50%, 70%  { transform: translateY(-36px); }
+    75%, 95%  { transform: translateY(-54px); }
+    100%      { transform: translateY(0); }
+  }
+  .pill-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .pill-text-wrap {
+    height: 18px;
+    overflow: hidden;
+  }
+
+  /* ====== EMPTY STATE ====== */
+  .empty-welcome {
+    background: linear-gradient(135deg, #F8F0FF, #FFF0F5);
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 20px;
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .empty-welcome-emoji {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  .empty-welcome-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 8px;
+  }
+  .empty-welcome-sub {
+    font-size: 14px;
+    color: #86868B;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .empty-welcome-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    color: #FFF;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+  .empty-welcome-hint {
+    font-size: 13px;
+    color: #AEAEB2;
+    margin-top: 8px;
+  }
+  .empty-log-options {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    justify-content: center;
+  }
+  .empty-log-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 20px;
+    background: #FFF;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.04);
+    cursor: pointer;
+    min-width: 90px;
+  }
+  .empty-log-option:hover {
+    border-color: #B57BEC;
+  }
+  .empty-log-icon {
+    font-size: 24px;
+  }
+  .empty-log-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+
+  /* ====== LOCATION PERMISSION ====== */
+  .location-prompt {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 16px;
+    text-align: center;
+    border: 1px dashed #D1D1D6;
+  }
+  .location-prompt-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .location-prompt-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 4px;
+  }
+  .location-prompt-text {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .location-prompt-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    color: #FFF;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+  .location-prompt-skip {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #AEAEB2;
+    cursor: pointer;
+  }
+
+  /* ====== CATCH-UP / ONBOARDING QUIZ ====== */
+  .catchup-card {
+    background: #FFF;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .catchup-header {
+    background: linear-gradient(135deg, #F0E6FF, #F8F0FF);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .catchup-header-icon { font-size: 20px; }
+  .catchup-header-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .catchup-header-sub {
+    font-size: 13px;
+    color: #86868B;
+    font-weight: 400;
+  }
+  .catchup-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .catchup-item:last-child { border-bottom: none; }
+  .catchup-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .catchup-dot.active { background: #B57BEC; }
+  .catchup-dot.pending { background: #E5E5EA; }
+  .catchup-dot.done { background: #34C759; }
+  .catchup-text { flex: 1; }
+  .catchup-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .catchup-label.done-text {
+    color: #86868B;
+    text-decoration: line-through;
+  }
+  .catchup-sub {
+    font-size: 13px;
+    color: #86868B;
+    margin-top: 1px;
+  }
+  .catchup-arrow {
+    font-size: 16px;
+    color: #C7C7CC;
+  }
+  .catchup-progress {
+    height: 4px;
+    background: #F2F2F7;
+    border-radius: 2px;
+    margin: 0 16px 12px;
+  }
+  .catchup-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #B57BEC, #8B5CF6);
+  }
+
+  /* ====== AGE BADGE ====== */
+  .age-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #F0E6FF, #E6D5FF);
+    font-size: 11px;
+    font-weight: 600;
+    color: #8B5CF6;
+  }
+
+  /* ====== ONBOARDING SCREENS ====== */
+  .ob-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 800px;
+    padding: 0;
+    background: #FAFAFA;
+  }
+  .ob-progress {
+    display: flex;
+    gap: 6px;
+    padding: 16px 24px 0;
+  }
+  .ob-progress-dot {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: #E5E5EA;
+  }
+  .ob-progress-dot.filled {
+    background: linear-gradient(90deg, #B57BEC, #8B5CF6);
+  }
+  .ob-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 28px;
+    text-align: center;
+  }
+  .ob-emoji {
+    font-size: 56px;
+    margin-bottom: 20px;
+  }
+  .ob-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #1D1D1F;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .ob-subtitle {
+    font-size: 15px;
+    color: #86868B;
+    line-height: 1.5;
+    margin-bottom: 32px;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .ob-input {
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 16px;
+    border: 2px solid #E5E5EA;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    outline: none;
+    background: #FFF;
+    color: #1D1D1F;
+    margin-bottom: 16px;
+  }
+  .ob-input:focus {
+    border-color: #B57BEC;
+  }
+  .ob-input::placeholder {
+    color: #C7C7CC;
+    font-weight: 400;
+  }
+  .ob-date-display {
+    padding: 16px 20px;
+    border-radius: 16px;
+    border: 2px solid #B57BEC;
+    background: #FAFAFF;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1D1D1F;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .ob-hint {
+    font-size: 13px;
+    color: #AEAEB2;
+    margin-top: -8px;
+    margin-bottom: 16px;
+  }
+  .ob-footer {
+    padding: 20px 28px 40px;
+  }
+  .ob-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    color: #FFF;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+  }
+  .ob-btn.disabled {
+    background: #E5E5EA;
+    color: #AEAEB2;
+    cursor: default;
+  }
+  .ob-skip {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #AEAEB2;
+    cursor: pointer;
+  }
+  .ob-option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    margin-bottom: 16px;
+  }
+  .ob-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 2px solid #E5E5EA;
+    background: #FFF;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ob-option.selected {
+    border-color: #B57BEC;
+    background: #FAFAFF;
+  }
+  .ob-option-radio {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #D1D1D6;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ob-option.selected .ob-option-radio {
+    border-color: #B57BEC;
+    background: #B57BEC;
+  }
+  .ob-option-radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #FFF;
+    display: none;
+  }
+  .ob-option.selected .ob-option-radio-dot {
+    display: block;
+  }
+  .ob-option-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1D1D1F;
+  }
+  .ob-celebration {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 800px;
+    padding: 40px 28px;
+    text-align: center;
+    background: linear-gradient(180deg, #F8F0FF 0%, #FAFAFA 50%);
+  }
+  .ob-celebration-emoji {
+    font-size: 72px;
+    margin-bottom: 24px;
+  }
+  .ob-celebration-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #1D1D1F;
+    margin-bottom: 8px;
+  }
+  .ob-celebration-sub {
+    font-size: 15px;
+    color: #86868B;
+    line-height: 1.5;
+    max-width: 280px;
+    margin: 0 auto 32px;
+  }
+  .ob-celebration-card {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 32px;
+    width: 100%;
+    max-width: 300px;
+  }
+  .ob-celebration-card-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1D1D1F;
+    margin-bottom: 4px;
+  }
+  .ob-celebration-card-age {
+    font-size: 14px;
+    color: #86868B;
+  }
+  .ob-celebration-card-divider {
+    height: 1px;
+    background: #F2F2F7;
+    margin: 12px 0;
+  }
+  .ob-celebration-card-rosie {
+    font-size: 14px;
+    color: #86868B;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* ====== DESIGN PRINCIPLES SECTION ====== */
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    max-width: 1000px;
+    margin: 0 auto 56px;
+  }
+  .principle-card {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 20px;
+  }
+  .principle-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1D1D1F;
+  }
+  .principle-card p {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.5;
+  }
+  .principle-card .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .tag.moat { background: #F0E6FF; color: #8B5CF6; }
+  .tag.ux { background: #E6F7ED; color: #34C759; }
+  .tag.ai { background: #FFF0E0; color: #FF9500; }
+  .tag.emotional { background: #FFE6E6; color: #FF3B30; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Rosie — Home Tab Redesign</h1>
+  <p>From data dashboard to intelligent companion. Side-by-side comparison of current layout vs. proposed redesign, plus the new Discover tab.</p>
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 0: FIRST-TIME USER      -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>0. First-Time User — Empty State</h2>
+  <p>No data yet. Welcome the parent and guide their first action.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <div class="column">
+    <div class="label new">New User — Home Tab</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">62&deg; &middot; Monday</div>
+          <div class="avatar">W</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Welcome, Will!</h1>
+          <div class="subtitle">Oliver &middot; Newborn &middot; Born today</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Welcome card (replaces smart prompt when no data) -->
+        <div class="section">
+          <div class="empty-welcome">
+            <div class="empty-welcome-emoji">&#x1F49C;</div>
+            <div class="empty-welcome-title">Congratulations on Oliver!</div>
+            <div class="empty-welcome-sub">Rosie is here to help you through the first year. Start by logging your first event &mdash; I'll learn Oliver's patterns and start giving you personalized guidance.</div>
+            <div class="empty-log-options">
+              <div class="empty-log-option">
+                <span class="empty-log-icon">&#x1F37C;</span>
+                <span class="empty-log-label">Feed</span>
+              </div>
+              <div class="empty-log-option">
+                <span class="empty-log-icon">&#x1F4A4;</span>
+                <span class="empty-log-label">Sleep</span>
+              </div>
+              <div class="empty-log-option">
+                <span class="empty-log-icon">&#x1F9F7;</span>
+                <span class="empty-log-label">Diaper</span>
+              </div>
+            </div>
+            <div class="empty-welcome-hint">Or just text Rosie: "Fed Oliver at 2pm"</div>
+          </div>
+        </div>
+
+        <!-- Newborn guidance (replaces proactive alert) -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #FFF8E1, #FFF3CD); border-color: rgba(255,193,7,0.2);">
+            <div class="alert-icon">&#x1F476;</div>
+            <div class="alert-content">
+              <div class="alert-title">Week 1: The Newborn Cocoon</div>
+              <div class="alert-text">Oliver will eat every 2-3 hours, sleep 16-17 hours a day, and go through 8-12 diapers. This is all completely normal. You're doing great already.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty today stats -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today</div>
+          </div>
+          <div class="compact-stats">
+            <div class="compact-stat">
+              <div class="compact-stat-value" style="color: #D1D1D6;">0</div>
+              <div class="compact-stat-label">Feeds</div>
+              <div class="compact-stat-context">~10 typical for newborns</div>
+            </div>
+            <div class="compact-stat">
+              <div class="compact-stat-value" style="color: #D1D1D6;">0m</div>
+              <div class="compact-stat-label">Sleep</div>
+              <div class="compact-stat-context">~16h typical for newborns</div>
+            </div>
+            <div class="compact-stat">
+              <div class="compact-stat-value" style="color: #D1D1D6;">0</div>
+              <div class="compact-stat-label">Diapers</div>
+              <div class="compact-stat-context">~10 typical for newborns</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily plan still shows (content-first) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today's Plan</div>
+          </div>
+          <div class="daily-plan">
+            <div class="plan-header">
+              <span class="plan-header-icon">&#x1F3AF;</span>
+              <span class="plan-header-text">3 activities for Oliver</span>
+              <span class="plan-header-sub">Week 1</span>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Skin-to-skin time</div>
+                <div class="plan-activity-sub">Regulates temperature &amp; bonding</div>
+              </div>
+              <div class="plan-duration">10 min</div>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Gentle tummy time on chest</div>
+                <div class="plan-activity-sub">Builds early neck strength</div>
+              </div>
+              <div class="plan-duration">2 min</div>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Talk or sing to Oliver</div>
+                <div class="plan-activity-sub">Language development starts now</div>
+              </div>
+              <div class="plan-duration">5 min</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- Cycling suggestion pill -->
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Log Oliver's first feed</span>
+            <span>What should I expect this week?</span>
+            <span>Is this normal for a newborn?</span>
+            <span>How often should Oliver eat?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>First-time user:</strong> Welcome card with baby's name replaces smart prompt. Three large log buttons invite the first action. Hint shows conversational logging is an option. Developmental guidance appears immediately (no data needed). Today's Plan gives something to DO even before any logging.
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="label new">After First Log</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">62&deg; &middot; Monday</div>
+          <div class="avatar">W</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Welcome, Will!</h1>
+          <div class="subtitle">Oliver &middot; Newborn &middot; Born today</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Smart prompt appears after first event -->
+        <div class="section">
+          <div class="smart-prompt">
+            <div class="smart-icon">&#x1F37C;</div>
+            <div class="smart-content">
+              <div class="smart-title">Log Next Feed</div>
+              <div class="smart-sub">Last feed 1h 30m ago &middot; Newborns eat every 2-3h</div>
+            </div>
+            <div class="smart-arrow">&rsaquo;</div>
+          </div>
+        </div>
+
+        <!-- Celebration micro-moment -->
+        <div class="section">
+          <div style="background: linear-gradient(135deg, #F0FFF0, #E8F5E8); border: 1px solid rgba(0,0,0,0.04); border-radius: 20px; padding: 16px; display: flex; gap: 12px; align-items: center;">
+            <span style="font-size: 24px;">&#x1F389;</span>
+            <div>
+              <div style="font-size: 14px; font-weight: 600; color: #1D1D1F;">First feed logged!</div>
+              <div style="font-size: 13px; color: #86868B; line-height: 1.4;">You're officially tracking. Rosie will start learning Oliver's patterns from here.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini quick log -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Log</div>
+          </div>
+          <div class="mini-quick-log">
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F37C;</span>
+              <span>Feed</span>
+            </div>
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F4A4;</span>
+              <span>Sleep</span>
+            </div>
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F9F7;</span>
+              <span>Diaper</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today stats (first event) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today</div>
+            <div class="section-link">Timeline &rarr;</div>
+          </div>
+          <div class="compact-stats">
+            <div class="compact-stat">
+              <div class="compact-stat-value orange">1</div>
+              <div class="compact-stat-label">Feeds</div>
+              <div class="compact-stat-context">of ~10 typical</div>
+            </div>
+            <div class="compact-stat">
+              <div class="compact-stat-value" style="color: #D1D1D6;">0m</div>
+              <div class="compact-stat-label">Sleep</div>
+              <div class="compact-stat-context">of ~16h typical</div>
+            </div>
+            <div class="compact-stat">
+              <div class="compact-stat-value" style="color: #D1D1D6;">0</div>
+              <div class="compact-stat-label">Diapers</div>
+              <div class="compact-stat-context">of ~10 typical</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- First event in timeline -->
+        <div class="section">
+          <div class="event-item">
+            <div class="event-bar orange"></div>
+            <div class="event-icon-circle orange-bg">&#x1F37C;</div>
+            <div class="event-content">
+              <div class="event-title">Breastfeed &middot; Left &middot; 12 min</div>
+            </div>
+            <div class="event-time">2:15 PM</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>How do I know Oliver is full?</span>
+            <span>Log a diaper change</span>
+            <span>Is this latch right?</span>
+            <span>When should Oliver nap?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>After first log:</strong> Smart prompt activates with newborn-specific context ("Newborns eat every 2-3h"). Celebration micro-moment reinforces the behavior. The app transitions from welcome state to active tracking. Pill suggestions update to newborn-relevant questions.
+    </div>
+  </div>
+
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 0b: MID-YEAR JOIN       -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>0b. Mid-Year Join — Age-Aware Onboarding</h2>
+  <p>A parent joining at 6 months needs Rosie to catch up to <em>them</em>, not the other way around. The birth date drives everything.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- MID-YEAR: 6 MONTHS -->
+  <div class="column">
+    <div class="label new">Joining at 6 Months</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">45&deg; &middot; Monday</div>
+          <div class="avatar">S</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Welcome, Sarah!</h1>
+          <div class="subtitle">Lily &middot; Week 26 &middot; 6 months old</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Age-aware welcome (NOT newborn) -->
+        <div class="section">
+          <div class="empty-welcome" style="background: linear-gradient(135deg, #F0E6FF, #F0F0FF);">
+            <div class="empty-welcome-emoji">&#x1F44B;</div>
+            <div class="empty-welcome-title">Rosie's excited to meet Lily!</div>
+            <div class="empty-welcome-sub">At 6 months, Lily is probably sitting up, reaching for everything, and maybe starting solids. Help Rosie learn Lily's patterns so I can give you personalized guidance.</div>
+            <button class="empty-welcome-btn">Tell Rosie About Lily</button>
+            <div class="empty-welcome-hint">Takes about 2 minutes</div>
+          </div>
+        </div>
+
+        <!-- Quick catch-up quiz -->
+        <div class="section">
+          <div class="catchup-card">
+            <div class="catchup-header">
+              <span class="catchup-header-icon">&#x1F9E0;</span>
+              <div>
+                <div class="catchup-header-text">Quick Catch-Up</div>
+                <div class="catchup-header-sub">Help Rosie learn what Lily can do</div>
+              </div>
+            </div>
+            <div class="catchup-progress">
+              <div class="catchup-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="catchup-item">
+              <div class="catchup-dot active"></div>
+              <div class="catchup-text">
+                <div class="catchup-label">Feeding</div>
+                <div class="catchup-sub">Breast, bottle, solids, or combo?</div>
+              </div>
+              <div class="catchup-arrow">&rsaquo;</div>
+            </div>
+            <div class="catchup-item">
+              <div class="catchup-dot pending"></div>
+              <div class="catchup-text">
+                <div class="catchup-label">Sleep</div>
+                <div class="catchup-sub">Nap count, bedtime, night wakes</div>
+              </div>
+              <div class="catchup-arrow">&rsaquo;</div>
+            </div>
+            <div class="catchup-item">
+              <div class="catchup-dot pending"></div>
+              <div class="catchup-text">
+                <div class="catchup-label">Milestones</div>
+                <div class="catchup-sub">Quick check of what Lily's doing</div>
+              </div>
+              <div class="catchup-arrow">&rsaquo;</div>
+            </div>
+            <div class="catchup-item">
+              <div class="catchup-dot pending"></div>
+              <div class="catchup-text">
+                <div class="catchup-label">Your concerns</div>
+                <div class="catchup-sub">Anything you're wondering about?</div>
+              </div>
+              <div class="catchup-arrow">&rsaquo;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Age-appropriate developmental info -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #FFF8E1, #FFF3CD); border-color: rgba(255,193,7,0.2);">
+            <div class="alert-icon">&#x1F9E0;</div>
+            <div class="alert-content">
+              <div class="alert-title">Week 26: Big changes happening</div>
+              <div class="alert-text">Most babies are sitting with support, transferring objects between hands, and responding to their name. Solid foods are usually starting now.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Is Lily ready for solids?</span>
+            <span>Best first foods at 6 months</span>
+            <span>Sleep training — where to start?</span>
+            <span>How much should Lily eat?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Age-aware onboarding:</strong> Birth date tells Rosie this is a 6-month-old, not a newborn. Welcome message references age-appropriate milestones (sitting, reaching, solids). "Quick Catch-Up" quiz lets Rosie learn the baby's current state in 2 minutes. Pill suggestions are 6-month-relevant. No condescending "here's what a baby is" content.
+    </div>
+  </div>
+
+  <!-- AFTER CATCH-UP: PERSONALIZED HOME -->
+  <div class="column">
+    <div class="label new">After Catch-Up (same session)</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">45&deg; &middot; Monday</div>
+          <div class="avatar">S</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Hey, Sarah!</h1>
+          <div class="subtitle">Lily &middot; Week 26 &middot; 6 months old</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Smart prompt (already personalized from catch-up) -->
+        <div class="section">
+          <div class="smart-prompt" style="background: linear-gradient(135deg, #FFF5F0, #FFF8E1); border-color: rgba(255,149,0,0.2);">
+            <div class="smart-icon" style="background: linear-gradient(135deg, #FF9500, #FFAB40);">&#x1F37C;</div>
+            <div class="smart-content">
+              <div class="smart-title">Log Lily's Next Feed</div>
+              <div class="smart-sub">You mentioned she's doing bottles + solids</div>
+            </div>
+            <div class="smart-arrow">&rsaquo;</div>
+          </div>
+        </div>
+
+        <!-- AI insight from catch-up data -->
+        <div class="section">
+          <div class="proactive-alert">
+            <div class="alert-icon">&#x1F4A1;</div>
+            <div class="alert-content">
+              <div class="alert-title">Based on what you told me</div>
+              <div class="alert-text">Lily's waking 3x at night at 6 months. That's on the higher side. Once I track a few days of data, I can help identify patterns and suggest a plan.</div>
+              <div class="alert-dismiss">Tell me more</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick log -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Log</div>
+          </div>
+          <div class="mini-quick-log">
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F37C;</span>
+              <span>Feed</span>
+            </div>
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F4A4;</span>
+              <span>Sleep</span>
+            </div>
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F9F7;</span>
+              <span>Diaper</span>
+            </div>
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F957;</span>
+              <span>Solids</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Plan (6-month appropriate) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today's Plan</div>
+          </div>
+          <div class="daily-plan">
+            <div class="plan-header">
+              <span class="plan-header-icon">&#x1F3AF;</span>
+              <span class="plan-header-text">3 activities for Lily</span>
+              <span class="plan-header-sub">Week 26</span>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Sitting practice with pillows</div>
+                <div class="plan-activity-sub">Strengthens core for independent sitting</div>
+              </div>
+              <div class="plan-duration">5 min</div>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Offer a new food texture</div>
+                <div class="plan-activity-sub">Soft, mashable — avocado or banana</div>
+              </div>
+              <div class="plan-duration">meal</div>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Peek-a-boo with blanket</div>
+                <div class="plan-activity-sub">Object permanence &amp; social play</div>
+              </div>
+              <div class="plan-duration">3 min</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milestone quick-fill from catch-up -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Lily's Milestones</div>
+            <div class="section-link">All &rarr;</div>
+          </div>
+          <div class="skill-tree">
+            <div class="skill-row">
+              <div class="skill-dot done"></div>
+              <div class="skill-name done-text">Rolling both ways</div>
+              <div class="skill-tag done">Done</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot emerging"></div>
+              <div class="skill-name">Sitting without support</div>
+              <div class="skill-tag emerging">Emerging</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot next"></div>
+              <div class="skill-name">Crawling</div>
+              <div class="skill-tag next">Next</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Help with Lily's night waking</span>
+            <span>What solids can Lily try next?</span>
+            <span>Is Lily sitting on schedule?</span>
+            <span>Find a baby swim class near me</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>After catch-up:</strong> Rosie immediately uses the quiz data. Smart prompt references "bottles + solids" from the catch-up. AI insight addresses the night waking concern. Quick log includes a "Solids" button (not shown for newborns). Today's Plan has 6-month activities. Milestones are pre-filled from the quiz. The app feels personalized from minute one — not empty.
+    </div>
+  </div>
+
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 1: HOME TAB COMPARISON  -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>1. Home Tab — Current vs. Proposed (Returning User)</h2>
+  <p>The key shift: from "here's your data" to "here's what you need right now"</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- CURRENT HOME -->
+  <div class="column">
+    <div class="label current">Current</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <!-- Header -->
+        <div class="header">
+          <div class="weather-pill">28&deg; &middot; Tuesday</div>
+          <div class="avatar">L</div>
+        </div>
+
+        <!-- Greeting -->
+        <div class="greeting">
+          <h1>Morning, Lauren</h1>
+          <div class="subtitle">Rosie &middot; Week 15 &middot; 3 months, 8 days old</div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F331; This Week</button>
+        </div>
+
+        <!-- Quick Log -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Quick Log</div>
+          </div>
+          <div class="action-cards">
+            <div class="action-card">
+              <div class="card-accent orange"></div>
+              <div class="card-body">
+                <div class="card-icon">&#x1F37C;</div>
+                <div class="card-label">Last Feed</div>
+                <div class="card-value orange">2h 21m</div>
+                <div class="card-detail">Bottle, 4oz</div>
+                <div class="card-btn orange">+ Feed</div>
+              </div>
+            </div>
+            <div class="action-card">
+              <div class="card-accent purple"></div>
+              <div class="card-body">
+                <div class="card-icon">&#x1F4A4;</div>
+                <div class="card-label">Last Sleep</div>
+                <div class="card-value purple">19h 38m</div>
+                <div class="card-detail">Nap, 1h 6m</div>
+                <div class="card-btn purple">+ Sleep</div>
+              </div>
+            </div>
+            <div class="action-card">
+              <div class="card-accent green"></div>
+              <div class="card-body">
+                <div class="card-icon">&#x1F9F7;</div>
+                <div class="card-label">Last Diaper</div>
+                <div class="card-value green">20h 21m</div>
+                <div class="card-detail">Wet</div>
+                <div class="card-btn green">+ Diaper</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- This Week Carousel -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">This Week</div>
+            <div class="section-link">More &rarr;</div>
+          </div>
+          <div class="carousel-card">
+            <div class="carousel-cat">&#x1F3AF; Quick Win &middot; Week 15</div>
+            <div class="carousel-text">Try putting a toy just out of Rosie's reach during tummy time. She's building the core strength she needs for rolling.</div>
+            <div class="carousel-more">Read more &rarr;</div>
+          </div>
+          <div class="carousel-dots">
+            <div class="dot"></div>
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+
+        <!-- Today's Stats -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today's Stats</div>
+          </div>
+          <div class="stats-rings">
+            <div class="stat-ring">
+              <div class="ring-circle partial-orange">
+                <span class="ring-value">1</span>
+              </div>
+              <span class="ring-label">Feeds</span>
+            </div>
+            <div class="stat-ring">
+              <div class="ring-circle partial-purple">
+                <span class="ring-value">0m</span>
+              </div>
+              <span class="ring-label">Sleep</span>
+            </div>
+            <div class="stat-ring">
+              <div class="ring-circle partial-green">
+                <span class="ring-value">0</span>
+              </div>
+              <span class="ring-label">Diapers</span>
+            </div>
+          </div>
+          <div class="normal-ranges">
+            <div class="normal-title">What's normal at 14 weeks</div>
+            <div class="normal-items">
+              <div class="normal-item">
+                <span class="normal-value orange">6-8</span>
+                Feeds/day
+              </div>
+              <div class="normal-item">
+                <span class="normal-value purple">14-15h</span>
+                Total sleep
+              </div>
+              <div class="normal-item">
+                <span class="normal-value green">6-8</span>
+                Diapers/day
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today Events -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today</div>
+            <div class="section-link">All &rarr;</div>
+          </div>
+          <div class="event-item">
+            <div class="event-bar orange"></div>
+            <div class="event-icon-circle orange-bg">&#x1F37C;</div>
+            <div class="event-content">
+              <div class="event-title">Bottle &middot; 4oz</div>
+              <div class="event-detail">Formula</div>
+            </div>
+            <div class="event-time">7:51 AM</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Ask about sleep training</span>
+            <span>Log a quick feed</span>
+            <span>Is this normal at 15 weeks?</span>
+            <span>What should I do with Rosie today?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Issues with current layout:</strong> 5 distinct sections compete for attention. The action cards show stale data ("19h ago") without context. Stats rings duplicate the cards' info. Carousel auto-advances but users rarely interact. No proactive guidance.
+    </div>
+  </div>
+
+  <!-- PROPOSED HOME -->
+  <div class="column">
+    <div class="label new">Proposed</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <!-- Header -->
+        <div class="header">
+          <div class="weather-pill">28&deg; &middot; Tuesday</div>
+          <div class="avatar">L</div>
+        </div>
+
+        <!-- Greeting -->
+        <div class="greeting">
+          <h1>Morning, Lauren</h1>
+          <div class="subtitle">Rosie &middot; Week 15 &middot; 3 months, 8 days old</div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Smart Prompt — one-tap contextual action -->
+        <div class="section">
+          <div class="smart-prompt">
+            <div class="smart-icon">&#x1F37C;</div>
+            <div class="smart-content">
+              <div class="smart-title">Start Feed &mdash; Right Side</div>
+              <div class="smart-sub">Last feed 2h 20m ago &middot; Left side was last</div>
+            </div>
+            <div class="smart-arrow">&rsaquo;</div>
+          </div>
+        </div>
+
+        <!-- Proactive Alert (conditional — only shows when relevant) -->
+        <div class="section">
+          <div class="proactive-alert">
+            <div class="alert-icon">&#x1F4A1;</div>
+            <div class="alert-content">
+              <div class="alert-title">Growth spurt likely</div>
+              <div class="alert-text">Rosie's feeding frequency is up 25% over the last 2 days. This is common at 15 weeks and usually lasts 2-3 days.</div>
+              <div class="alert-dismiss">Got it</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini Quick Log — compact buttons -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Log</div>
+          </div>
+          <div class="mini-quick-log">
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F37C;</span>
+              <span>Feed</span>
+            </div>
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F4A4;</span>
+              <span>Sleep</span>
+            </div>
+            <div class="mini-log-btn">
+              <span class="mini-log-emoji">&#x1F9F7;</span>
+              <span>Diaper</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Stats (compact) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today</div>
+            <div class="section-link">Timeline &rarr;</div>
+          </div>
+          <div class="compact-stats">
+            <div class="compact-stat">
+              <div class="compact-stat-value orange">3</div>
+              <div class="compact-stat-label">Feeds</div>
+              <div class="compact-stat-context">of ~7 typical</div>
+            </div>
+            <div class="compact-stat">
+              <div class="compact-stat-value purple">2h 15m</div>
+              <div class="compact-stat-label">Sleep</div>
+              <div class="compact-stat-context">of ~14h typical</div>
+            </div>
+            <div class="compact-stat">
+              <div class="compact-stat-value green">2</div>
+              <div class="compact-stat-label">Diapers</div>
+              <div class="compact-stat-context">of ~7 typical</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Plan -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Today's Plan</div>
+          </div>
+          <div class="daily-plan">
+            <div class="plan-header">
+              <span class="plan-header-icon">&#x1F3AF;</span>
+              <span class="plan-header-text">3 activities for Rosie</span>
+              <span class="plan-header-sub">Week 15</span>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check done">&#x2713;</div>
+              <div class="plan-text">
+                <div class="plan-activity">Tummy time with toy reach</div>
+                <div class="plan-activity-sub">Builds core strength for rolling</div>
+              </div>
+              <div class="plan-duration">5 min</div>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Mirror play</div>
+                <div class="plan-activity-sub">Supports social awareness</div>
+              </div>
+              <div class="plan-duration">3 min</div>
+            </div>
+            <div class="plan-item">
+              <div class="plan-check"></div>
+              <div class="plan-text">
+                <div class="plan-activity">Rattle grasp practice</div>
+                <div class="plan-activity-sub">Fine motor development</div>
+              </div>
+              <div class="plan-duration">5 min</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Events (compact) -->
+        <div class="section">
+          <div class="event-item">
+            <div class="event-bar orange"></div>
+            <div class="event-icon-circle orange-bg">&#x1F37C;</div>
+            <div class="event-content">
+              <div class="event-title">Bottle &middot; 4oz</div>
+            </div>
+            <div class="event-time">7:51 AM</div>
+          </div>
+          <div class="event-item">
+            <div class="event-bar purple"></div>
+            <div class="event-icon-circle purple-bg">&#x1F4A4;</div>
+            <div class="event-content">
+              <div class="event-title">Nap &middot; 45m</div>
+            </div>
+            <div class="event-time">6:30 AM</div>
+          </div>
+        </div>
+
+      </div>
+      <!-- Voice-enabled Ask Rosie pill -->
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Log a quick feed &#x1F37C;</span>
+            <span>Why is Rosie fussy today?</span>
+            <span>Find activities near me</span>
+            <span>How's Rosie's sleep this week?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Key changes:</strong> Smart Prompt replaces 3 action cards with one contextual suggestion ("Right Side" because Rosie knows). Proactive Alert surfaces AI insights. Compact stats replace rings. Daily Plan gives parents actionable activities. The "Discover" tab replaces "This Week."
+    </div>
+  </div>
+
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 2: DISCOVER TAB         -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>2. Discover Tab (replaces "This Week")</h2>
+  <p>Developmental guidance + daily activities + location-aware suggestions</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- CURRENT THIS WEEK -->
+  <div class="column">
+    <div class="label current">Current: This Week</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">28&deg; &middot; Tuesday</div>
+          <div class="avatar">L</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Morning, Lauren</h1>
+          <div class="subtitle">Rosie &middot; Week 15 &middot; 3 months, 8 days old</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab active">&#x1F331; This Week</button>
+        </div>
+
+        <!-- Static developmental content -->
+        <div class="section">
+          <div class="carousel-card" style="margin-bottom: 12px;">
+            <div class="carousel-cat">&#x1F9E0; Week 15 &middot; Leap 4</div>
+            <div class="carousel-text" style="font-size: 15px; font-weight: 600;">Events: How Your Baby Learns About the World</div>
+            <div class="carousel-text">Rosie is learning that events have sequences. She understands that certain actions lead to results, and she may start showing frustration when things don't go as expected.</div>
+          </div>
+
+          <div class="carousel-card" style="margin-bottom: 12px;">
+            <div class="carousel-cat">&#x2B50; Milestones This Week</div>
+            <div class="carousel-text">&bull; Bringing hands together at midline<br>&bull; Reaching for objects with both hands<br>&bull; Recognizing familiar faces from a distance</div>
+          </div>
+
+          <div class="carousel-card" style="margin-bottom: 12px;">
+            <div class="carousel-cat">&#x1F4A4; Sleep Info</div>
+            <div class="carousel-text">Total sleep: 14-15 hours &middot; 3 naps typical<br>Wake window: 1.5-2.25 hours</div>
+          </div>
+
+          <div class="carousel-card">
+            <div class="carousel-cat">&#x1F4DA; Expert Insight</div>
+            <div class="carousel-text">Research shows that responding consistently to your baby's cues builds secure attachment, which supports all future development.</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Ask about sleep training</span>
+            <span>Log a quick feed</span>
+            <span>Is this normal at 15 weeks?</span>
+            <span>What should I do with Rosie today?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Issues:</strong> Static content cards that don't change during the week. No connection to baby's actual data. No activities to DO. No location awareness. Feels like reading an article, not using a companion.
+    </div>
+  </div>
+
+  <!-- PROPOSED DISCOVER -->
+  <div class="column">
+    <div class="label new">Proposed: Discover</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">28&deg; &middot; Tuesday</div>
+          <div class="avatar">L</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Morning, Lauren</h1>
+          <div class="subtitle">Rosie &middot; Week 15 &middot; 3 months, 8 days old</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab active">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- This Week Focus (compact) -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #FFF8E1, #FFF3CD); border-color: rgba(255,193,7,0.2);">
+            <div class="alert-icon">&#x1F9E0;</div>
+            <div class="alert-content">
+              <div class="alert-title">Week 15: Leap 4 &mdash; Events</div>
+              <div class="alert-text">Rosie is learning that events have sequences. She may be fussier than usual. This is a sign of healthy brain development.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milestone Skill Tree -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Milestones</div>
+            <div class="section-link">All &rarr;</div>
+          </div>
+          <div class="skill-tree">
+            <div class="skill-row">
+              <div class="skill-dot done"></div>
+              <div class="skill-name done-text">Head control during tummy time</div>
+              <div class="skill-tag done">Done</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot done"></div>
+              <div class="skill-name done-text">Hands together at midline</div>
+              <div class="skill-tag done">Done</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot emerging"></div>
+              <div class="skill-name">Reaching for objects</div>
+              <div class="skill-tag emerging">Emerging</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot next"></div>
+              <div class="skill-name">Rolling tummy to back</div>
+              <div class="skill-tag next">Next</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Near You (personalized to neighborhood) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">In Capitol Hill</div>
+            <div class="section-link">Map &rarr;</div>
+          </div>
+          <div class="near-you-card">
+            <div class="near-you-header">
+              <span class="near-you-header-icon">&#x1F4CD;</span>
+              <span class="near-you-header-text">Age-appropriate for Rosie</span>
+            </div>
+            <div class="near-you-item">
+              <div class="near-you-icon">&#x1F3B5;</div>
+              <div class="near-you-text">
+                <div class="near-you-name">Music & Movement (0-12mo)</div>
+                <div class="near-you-meta">YMCA Downtown &middot; Thu 10am</div>
+              </div>
+              <div class="near-you-dist">0.8 mi</div>
+            </div>
+            <div class="near-you-item">
+              <div class="near-you-icon">&#x1F4DA;</div>
+              <div class="near-you-text">
+                <div class="near-you-name">Baby Story Time</div>
+                <div class="near-you-meta">Public Library &middot; Wed 11am</div>
+              </div>
+              <div class="near-you-dist">1.2 mi</div>
+            </div>
+            <div class="near-you-item">
+              <div class="near-you-icon">&#x1F3A8;</div>
+              <div class="near-you-text">
+                <div class="near-you-name">Sensory Play Group</div>
+                <div class="near-you-meta">Little Explorers &middot; Fri 9:30am</div>
+              </div>
+              <div class="near-you-dist">2.4 mi</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weather-aware suggestion -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #E3F2FD, #F0F7FF); border-color: rgba(0,122,255,0.15);">
+            <div class="alert-icon">&#x1F327;&#xFE0F;</div>
+            <div class="alert-content">
+              <div class="alert-title">Indoor day today</div>
+              <div class="alert-text">Rain until 4pm. Try the mirror play activity from today's plan &mdash; great for social development and no gear needed.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Log a quick feed &#x1F37C;</span>
+            <span>Why is Rosie fussy today?</span>
+            <span>Find activities near me</span>
+            <span>How's Rosie's sleep this week?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Key changes:</strong> Developmental content becomes a compact alert, not a full page. Milestone skill tree replaces static checklists. "In Capitol Hill" personalizes with neighborhood. Weather-aware suggestion connects environment to developmental activities.
+    </div>
+  </div>
+
+</div>
+
+<!-- Location permission variant -->
+<div class="section-divider">
+  <h2>2b. Discover Tab — Before Location Shared</h2>
+  <p>When the user hasn't shared location yet, the "Near You" section becomes a permission prompt</p>
+</div>
+
+<div class="wireframe-row">
+  <div class="column">
+    <div class="label new">No Location — Discover Tab</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">Tuesday</div>
+          <div class="avatar">L</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Morning, Lauren</h1>
+          <div class="subtitle">Rosie &middot; Week 15 &middot; 3 months, 8 days old</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab active">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- This Week Focus -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #FFF8E1, #FFF3CD); border-color: rgba(255,193,7,0.2);">
+            <div class="alert-icon">&#x1F9E0;</div>
+            <div class="alert-content">
+              <div class="alert-title">Week 15: Leap 4 &mdash; Events</div>
+              <div class="alert-text">Rosie is learning that events have sequences. She may be fussier than usual.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milestone Skill Tree -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Milestones</div>
+            <div class="section-link">All &rarr;</div>
+          </div>
+          <div class="skill-tree">
+            <div class="skill-row">
+              <div class="skill-dot done"></div>
+              <div class="skill-name done-text">Head control during tummy time</div>
+              <div class="skill-tag done">Done</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot emerging"></div>
+              <div class="skill-name">Reaching for objects</div>
+              <div class="skill-tag emerging">Emerging</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot next"></div>
+              <div class="skill-name">Rolling tummy to back</div>
+              <div class="skill-tag next">Next</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location permission prompt (replaces Near You) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Near You</div>
+          </div>
+          <div class="location-prompt">
+            <div class="location-prompt-icon">&#x1F4CD;</div>
+            <div class="location-prompt-title">Discover activities nearby</div>
+            <div class="location-prompt-text">Share your location so Rosie can find age-appropriate classes, play groups, and events near you.</div>
+            <button class="location-prompt-btn">Share Location</button>
+            <span class="location-prompt-skip">Maybe later</span>
+          </div>
+        </div>
+
+        <!-- Weather placeholder (no location = no weather) -->
+        <div class="section">
+          <div class="location-prompt" style="border-style: solid; border-color: #E5E5EA; padding: 16px;">
+            <div style="font-size: 13px; color: #86868B; line-height: 1.5;">&#x1F326;&#xFE0F; Share your location to get weather-aware activity suggestions</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Find activities near me</span>
+            <span>What can I do with Rosie today?</span>
+            <span>Is this normal at 15 weeks?</span>
+            <span>Tell me about Leap 4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>No location yet:</strong> "Near You" section shows a friendly permission prompt instead of activities. Weather pill in header shows only the day (no temperature). A secondary weather prompt at bottom reinforces the value of sharing location. Non-pushy — "Maybe later" always available.
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="label new">After Location Shared</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+
+        <div class="header">
+          <div class="weather-pill">28&deg; Partly Cloudy &middot; Tuesday</div>
+          <div class="avatar">L</div>
+        </div>
+
+        <div class="greeting">
+          <h1>Morning, Lauren</h1>
+          <div class="subtitle">Rosie &middot; Week 15 &middot; 3 months, 8 days old</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab active">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- This Week Focus -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #FFF8E1, #FFF3CD); border-color: rgba(255,193,7,0.2);">
+            <div class="alert-icon">&#x1F9E0;</div>
+            <div class="alert-content">
+              <div class="alert-title">Week 15: Leap 4 &mdash; Events</div>
+              <div class="alert-text">Rosie is learning that events have sequences. She may be fussier than usual.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milestones (abbreviated) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Milestones</div>
+            <div class="section-link">All &rarr;</div>
+          </div>
+          <div class="skill-tree">
+            <div class="skill-row">
+              <div class="skill-dot emerging"></div>
+              <div class="skill-name">Reaching for objects</div>
+              <div class="skill-tag emerging">Emerging</div>
+            </div>
+            <div class="skill-connector"></div>
+            <div class="skill-row">
+              <div class="skill-dot next"></div>
+              <div class="skill-name">Rolling tummy to back</div>
+              <div class="skill-tag next">Next</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Near You — personalized with neighborhood -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">In Capitol Hill</div>
+            <div class="section-link">Map &rarr;</div>
+          </div>
+          <div class="near-you-card">
+            <div class="near-you-header">
+              <span class="near-you-header-icon">&#x1F4CD;</span>
+              <span class="near-you-header-text">Age-appropriate for Rosie</span>
+            </div>
+            <div class="near-you-item">
+              <div class="near-you-icon">&#x1F3B5;</div>
+              <div class="near-you-text">
+                <div class="near-you-name">Music & Movement (0-12mo)</div>
+                <div class="near-you-meta">YMCA Capitol Hill &middot; Thu 10am</div>
+              </div>
+              <div class="near-you-dist">0.3 mi</div>
+            </div>
+            <div class="near-you-item">
+              <div class="near-you-icon">&#x1F4DA;</div>
+              <div class="near-you-text">
+                <div class="near-you-name">Baby Story Time</div>
+                <div class="near-you-meta">Capitol Hill Library &middot; Wed 11am</div>
+              </div>
+              <div class="near-you-dist">0.5 mi</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weather-aware suggestion (now personalized) -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #E8F5E8, #F0FFF0); border-color: rgba(52,199,89,0.15);">
+            <div class="alert-icon">&#x26C5;</div>
+            <div class="alert-content">
+              <div class="alert-title">Nice afternoon ahead</div>
+              <div class="alert-text">Clearing up by 2pm, 54&deg;. Cal Anderson Park is a 5-minute walk &mdash; great for stroller time and tummy time on a blanket.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Find a class this weekend</span>
+            <span>Parks near me for tummy time</span>
+            <span>Is Rosie ready for swim class?</span>
+            <span>What's happening in Capitol Hill?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>After location:</strong> "Near You" becomes "In Capitol Hill" — personalized to their neighborhood. Weather pill shows temperature. Activities use local venue names. Weather suggestion references a nearby park by name. Pill suggestions become location-aware ("What's happening in Capitol Hill?").
+    </div>
+  </div>
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 3: CHAT REDESIGN        -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>3. Ask Rosie Chat — Input Redesign</h2>
+  <p>Voice input + natural language logging ("just text Rosie")</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- CURRENT CHAT INPUT -->
+  <div class="column">
+    <div class="label current">Current</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content" style="display: flex; flex-direction: column; height: 780px;">
+
+        <!-- Chat header -->
+        <div style="padding: 12px 20px; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 20px; color: #86868B;">&lsaquo;</span>
+          <span style="flex: 1; text-align: center; font-size: 16px; font-weight: 600;">Ask Rosie</span>
+          <span style="font-size: 16px; color: #86868B;">&#x270F;&#xFE0F;</span>
+        </div>
+
+        <!-- Messages -->
+        <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; justify-content: flex-end;">
+          <div style="background: #F2F2F7; border-radius: 20px; padding: 12px 16px; max-width: 85%; font-size: 14px; line-height: 1.5; color: #1D1D1F;">
+            Rosie's been doing great with tummy time! Her head control is right on track for 15 weeks. Keep it up with short sessions throughout the day.
+          </div>
+          <div style="background: linear-gradient(135deg, #B57BEC, #8B5CF6); border-radius: 20px; padding: 12px 16px; max-width: 80%; align-self: flex-end; font-size: 14px; line-height: 1.5; color: #FFF;">
+            She seems fussy today, is that normal?
+          </div>
+          <div style="background: #F2F2F7; border-radius: 20px; padding: 12px 16px; max-width: 85%; font-size: 14px; line-height: 1.5; color: #1D1D1F;">
+            Totally normal at 15 weeks! She's in Leap 4 right now, which can make babies fussier than usual. It usually lasts a couple of weeks and it's a sign her brain is making big connections.
+          </div>
+        </div>
+
+        <!-- Current input -->
+        <div style="padding: 12px 16px 24px; background: #FAFAFA;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" placeholder="Ask Rosie anything..." style="flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.04); font-size: 14px; outline: none; background: #FFF;">
+            <button style="width: 40px; height: 40px; border-radius: 50%; background: #B57BEC; border: none; color: #FFF; font-size: 16px; cursor: pointer;">&#x2191;</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Current input:</strong> Text-only. No voice. No ability to log events through chat. Requires typing with both hands.
+    </div>
+  </div>
+
+  <!-- PROPOSED CHAT INPUT -->
+  <div class="column">
+    <div class="label new">Proposed</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content" style="display: flex; flex-direction: column; height: 780px;">
+
+        <!-- Chat header -->
+        <div style="padding: 12px 20px; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 20px; color: #86868B;">&lsaquo;</span>
+          <span style="flex: 1; text-align: center; font-size: 16px; font-weight: 600;">Ask Rosie</span>
+          <span style="font-size: 16px; color: #86868B;">&#x270F;&#xFE0F;</span>
+        </div>
+
+        <!-- Messages with logged event inline -->
+        <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; justify-content: flex-end;">
+
+          <!-- User message (conversational logging) -->
+          <div style="background: linear-gradient(135deg, #B57BEC, #8B5CF6); border-radius: 20px; padding: 12px 16px; max-width: 80%; align-self: flex-end; font-size: 14px; line-height: 1.5; color: #FFF;">
+            Just fed, right side, about 15 minutes
+          </div>
+
+          <!-- Rosie response with logged event card -->
+          <div style="max-width: 88%;">
+            <div style="background: #F2F2F7; border-radius: 20px; padding: 12px 16px; font-size: 14px; line-height: 1.5; color: #1D1D1F; margin-bottom: 8px;">
+              Logged! That's 3 feeds so far today, right on track. Her feeding intervals have been really consistent this week.
+            </div>
+            <!-- Inline logged event confirmation -->
+            <div style="background: #FFF; border: 1px solid rgba(0,0,0,0.04); border-radius: 20px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 18px;">&#x1F37C;</span>
+              <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 600; color: #1D1D1F;">Breastfeed &middot; Right &middot; 15 min</div>
+                <div style="font-size: 11px; color: #86868B;">Logged at 10:32 AM</div>
+              </div>
+              <span style="font-size: 11px; color: #34C759; font-weight: 600;">&#x2713; Saved</span>
+            </div>
+          </div>
+
+          <!-- Rosie follow-up -->
+          <div style="background: #F2F2F7; border-radius: 20px; padding: 12px 16px; max-width: 85%; font-size: 14px; line-height: 1.5; color: #1D1D1F;">
+            How are you doing today? I noticed you were up at 3am and 5am for feeds last night.
+          </div>
+
+        </div>
+
+        <!-- New input with voice + photo -->
+        <div style="padding: 12px 16px 24px; background: #FAFAFA;">
+          <!-- Quick action chips -->
+          <div style="display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto;">
+            <span style="padding: 6px 12px; border-radius: 20px; background: #F2F2F7; font-size: 13px; font-weight: 500; color: #86868B; white-space: nowrap; cursor: pointer;">&#x1F37C; Log feed</span>
+            <span style="padding: 6px 12px; border-radius: 20px; background: #F2F2F7; font-size: 13px; font-weight: 500; color: #86868B; white-space: nowrap; cursor: pointer;">&#x1F4A4; Log sleep</span>
+            <span style="padding: 6px 12px; border-radius: 20px; background: #F2F2F7; font-size: 13px; font-weight: 500; color: #86868B; white-space: nowrap; cursor: pointer;">Is this normal?</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button style="width: 36px; height: 36px; border-radius: 50%; background: #F2F2F7; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0;">&#x1F4F7;</button>
+            <input type="text" placeholder="Log or ask anything..." style="flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.04); font-size: 14px; outline: none; background: #FFF;">
+            <button style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #B57BEC, #8B5CF6); border: none; color: #FFF; font-size: 14px; cursor: pointer; flex-shrink: 0;">&#x1F3A4;</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Key changes:</strong> Voice button replaces send (send appears when typing). Camera button for photo logging. Quick action chips for common intents. Conversational logging: "just fed, right side, 15 min" creates a structured event + response. Rosie shows inline confirmation card. Placeholder says "Log or ask anything..." to signal dual purpose.
+    </div>
+  </div>
+
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 4: NIGHT MODE           -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>4. Night Mode (10pm - 6am)</h2>
+  <p>Reduced contrast, warm tones, minimal content for 3am feeds</p>
+</div>
+
+<div class="wireframe-row">
+  <div class="column">
+    <div class="label new">Night Mode Home</div>
+    <div class="phone" style="background: #1A1A2E; border-color: #2A2A4A;">
+      <div class="phone-notch" style="background: #2A2A4A;"></div>
+      <div class="phone-content">
+
+        <!-- Header -->
+        <div class="header" style="background: #1A1A2E;">
+          <div class="weather-pill" style="background: #252540; color: #8888AA;">28&deg; &middot; Tuesday</div>
+          <div class="avatar">L</div>
+        </div>
+
+        <!-- Greeting (softer) -->
+        <div class="greeting">
+          <h1 style="color: #E8E8F0; font-size: 24px;">Hi, Lauren</h1>
+          <div class="subtitle" style="color: #6666AA;">Week 15 &middot; Rosie is doing great</div>
+        </div>
+
+        <!-- Night tabs -->
+        <div class="tabs">
+          <button class="tab active" style="background: linear-gradient(135deg, #9B59F0, #7C3AED); color: #FFF;">&#x1F3E0; Home</button>
+          <button class="tab" style="color: #555577;">&#x1F4C5; Timeline</button>
+          <button class="tab" style="color: #555577;">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Smart prompt (night version) -->
+        <div class="section">
+          <div class="smart-prompt" style="background: linear-gradient(135deg, #252540, #2A2A50); border-color: rgba(181,123,236,0.2);">
+            <div class="smart-icon" style="background: linear-gradient(135deg, #9B59F0, #B57BEC);">&#x1F37C;</div>
+            <div class="smart-content">
+              <div class="smart-title" style="color: #E8E8F0;">Start Feed &mdash; Left Side</div>
+              <div class="smart-sub" style="color: #8888AA;">Last feed 3h ago</div>
+            </div>
+            <div class="smart-arrow" style="color: #555577;">&rsaquo;</div>
+          </div>
+        </div>
+
+        <!-- Mini log (night) -->
+        <div class="section">
+          <div class="mini-quick-log">
+            <div class="mini-log-btn" style="background: #252540; border-color: #333355; color: #CCCCEE;">
+              <span class="mini-log-emoji">&#x1F37C;</span>
+              <span>Feed</span>
+            </div>
+            <div class="mini-log-btn" style="background: #252540; border-color: #333355; color: #CCCCEE;">
+              <span class="mini-log-emoji">&#x1F4A4;</span>
+              <span>Sleep</span>
+            </div>
+            <div class="mini-log-btn" style="background: #252540; border-color: #333355; color: #CCCCEE;">
+              <span class="mini-log-emoji">&#x1F9F7;</span>
+              <span>Diaper</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Night reassurance -->
+        <div class="section">
+          <div style="background: #252540; border-radius: 20px; padding: 20px; text-align: center;">
+            <div style="font-size: 24px; margin-bottom: 8px;">&#x1F31F;</div>
+            <div style="font-size: 15px; color: #CCCCEE; line-height: 1.5; font-weight: 500;">You're doing amazing.<br>Rosie is healthy and growing well.</div>
+            <div style="font-size: 13px; color: #6666AA; margin-top: 8px;">3 feeds tonight &middot; All on track</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ask-pill" style="background: linear-gradient(135deg, #9B59F0, #7C3AED); box-shadow: 0 4px 20px rgba(124,58,237,0.4);">
+        <span class="pill-icon">&#x2728;</span>
+        <div class="pill-text-wrap">
+          <div class="pill-suggestions">
+            <span>Log this feed quickly</span>
+            <span>Is this crying normal?</span>
+            <span>How many feeds tonight?</span>
+            <span>When did she last eat?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Night mode principles:</strong> Dark indigo background (not pure black). Reduced content &mdash; no daily plan, no stats, no carousel. Just the smart prompt, quick log, and a reassurance message. Ultra-low cognitive load for 3am feeds.
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="label new">Night Mode Chat</div>
+    <div class="phone" style="background: #1A1A2E; border-color: #2A2A4A;">
+      <div class="phone-notch" style="background: #2A2A4A;"></div>
+      <div class="phone-content" style="display: flex; flex-direction: column; height: 780px;">
+
+        <!-- Chat header (night) -->
+        <div style="padding: 12px 20px; display: flex; align-items: center; gap: 12px; background: #1A1A2E;">
+          <span style="font-size: 20px; color: #6666AA;">&lsaquo;</span>
+          <span style="flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #CCCCEE;">Ask Rosie</span>
+          <span style="font-size: 16px; color: #6666AA;">&#x270F;&#xFE0F;</span>
+        </div>
+
+        <!-- Night messages -->
+        <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; justify-content: flex-end;">
+          <div style="background: linear-gradient(135deg, #B57BEC, #8B5CF6); border-radius: 20px; padding: 12px 16px; max-width: 80%; align-self: flex-end; font-size: 14px; line-height: 1.5; color: #FFF;">
+            She won't stop crying
+          </div>
+          <div style="background: #252540; border-radius: 20px; padding: 16px; max-width: 88%; font-size: 14px; line-height: 1.6; color: #E8E8F0;">
+            I hear you. That's exhausting at 3am. A few things to try:<br><br>
+            &#x2022; Hold her stomach-down on your forearm, support her head, and sway gently.<br><br>
+            &#x2022; If that doesn't work, it's okay to put her down safely and step away for 2 minutes. She'll be fine.<br><br>
+            She had a similar fussy spell last Tuesday. It passed after about an hour.
+          </div>
+        </div>
+
+        <!-- Night input -->
+        <div style="padding: 12px 16px 24px; background: #1A1A2E;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" placeholder="Talk to Rosie..." style="flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid #333355; font-size: 14px; outline: none; background: #252540; color: #E8E8F0;">
+            <button style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #8B5CF6, #B57BEC); border: none; color: #FFF; font-size: 14px; cursor: pointer;">&#x1F3A4;</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Night chat:</strong> Darker backgrounds, warmer text. Rosie's responses are shorter, more empathetic, action-oriented. "I hear you" first, practical steps second, historical context last. No data, no stats, no links. Just help.
+    </div>
+  </div>
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 5: DESIGN PRINCIPLES    -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>5. Design Principles</h2>
+  <p>The rules that guide every layout and interaction decision</p>
+</div>
+
+<div class="principles-grid">
+  <div class="principle-card">
+    <div class="tag moat">MOAT</div>
+    <h3>Smart Prompt > Action Cards</h3>
+    <p>Replace 3 generic action cards with 1 contextual suggestion. Rosie knows the last feed was left side 2h ago, so she suggests "Right Side" next. One tap, not three decisions. The prompt gets smarter with more data.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ux">UX</div>
+    <h3>Compact Stats > Progress Rings</h3>
+    <p>Stats rings are visually heavy and duplicate the action cards. Replace with compact stat chips that show the number + "of ~X typical" context. Parents need "am I on track?" not a dashboard.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ai">AI</div>
+    <h3>Proactive Alerts</h3>
+    <p>Only appear when the AI has something worth saying. Growth spurt detected, developmental leap approaching, unusual pattern noticed. Not a daily notification — a contextual insight that earns its screen space.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ux">UX</div>
+    <h3>Daily Plan = Actionable Value</h3>
+    <p>Parents ask "what should I do with my baby today?" The Daily Plan answers with 3 age-appropriate activities tied to current developmental focus. Checkable for satisfaction. This is the stickiest content on the Home tab.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag moat">MOAT</div>
+    <h3>Conversational Logging</h3>
+    <p>"Just text Rosie" to log events. "Fed right side 15 min" becomes a structured event. The chat input serves dual purpose: questions AND logging. The placeholder says "Log or ask anything..." — this is the anti-tracking tracker.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag moat">MOAT</div>
+    <h3>Discover = Location + Development</h3>
+    <p>"This Week" becomes "Discover" — merging developmental content with hyperlocal age-appropriate activities and weather-aware suggestions. "There's a music class at the YMCA, 10 min walk." No other baby app does this.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ux">UX</div>
+    <h3>Milestone Skill Tree > Checklist</h3>
+    <p>Checklists create anxiety ("my baby hasn't checked this box"). Skill trees show progression: Done &rarr; Emerging &rarr; Next. Parents see what their baby IS doing, not what they haven't done yet. Celebrates progress, not gaps.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag emotional">EMOTIONAL</div>
+    <h3>Night Mode = Empathy Mode</h3>
+    <p>10pm-6am: dark indigo, minimal content, no stats, no carousel. Just the smart prompt, quick log, and a reassurance message. The 3am parent needs "you're doing great" not a dashboard. Chat responses are shorter and warmer.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ai">AI</div>
+    <h3>Voice-First for One-Handed Use</h3>
+    <p>The voice button is always visible. Hold to speak, release to send. "Just fed, right side, she was fussy." Parsed into structured event + conversational response. Critical for feeding with one hand.</p>
+  </div>
+</div>
+
+<!-- =============================== -->
+<!-- SECTION 6: ONBOARDING FLOW      -->
+<!-- =============================== -->
+<div class="section-divider">
+  <h2>6. Onboarding — Friendly, Fast, Personality-First</h2>
+  <p>4 essential fields in under 60 seconds. Warm, playful, zero pressure. Every screen earns its place.</p>
+</div>
+
+<div class="wireframe-row">
+
+  <!-- SCREEN 1: WELCOME -->
+  <div class="column">
+    <div class="label new">Screen 1: Welcome</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="ob-screen">
+        <div class="ob-body">
+          <div class="ob-emoji">&#x1F49C;</div>
+          <div class="ob-title">Hey there, I'm Rosie.</div>
+          <div class="ob-subtitle">I help parents survive (and enjoy) the first year. Think of me as that friend who's been through it and always picks up the phone.</div>
+          <div style="margin-top: 16px;">
+            <button class="ob-btn">Let's get started</button>
+            <span class="ob-skip" style="margin-top: 16px; display: block;">Already have an account? Sign in</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Personality first.</strong> Rosie introduces herself before asking for anything. The tone is warm and relatable — "survive (and enjoy)" acknowledges reality with a wink. No corporate copy, no feature lists.
+    </div>
+  </div>
+
+  <!-- SCREEN 2: PARENT NAME -->
+  <div class="column">
+    <div class="label new">Screen 2: Your Name</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="ob-screen">
+        <div class="ob-progress">
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot"></div>
+          <div class="ob-progress-dot"></div>
+          <div class="ob-progress-dot"></div>
+        </div>
+        <div class="ob-body">
+          <div class="ob-emoji">&#x1F44B;</div>
+          <div class="ob-title">First things first — what should I call you?</div>
+          <div class="ob-subtitle">Just your first name. We're on a first-name basis here.</div>
+          <input class="ob-input" type="text" placeholder="Your name" value="Sarah" />
+        </div>
+        <div class="ob-footer">
+          <button class="ob-btn">That's me &rarr;</button>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Conversational, not clinical.</strong> "What should I call you?" feels like meeting someone, not filling a form. "We're on a first-name basis here" is a little personality wink. Button copy is playful: "That's me" instead of "Next."
+    </div>
+  </div>
+
+</div>
+
+<div class="wireframe-row">
+
+  <!-- SCREEN 3: BABY NAME -->
+  <div class="column">
+    <div class="label new">Screen 3: Baby's Name</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="ob-screen">
+        <div class="ob-progress">
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot"></div>
+          <div class="ob-progress-dot"></div>
+        </div>
+        <div class="ob-body">
+          <div class="ob-emoji">&#x1F476;</div>
+          <div class="ob-title">And the star of the show?</div>
+          <div class="ob-subtitle">What's your little one's name? Nickname totally counts.</div>
+          <input class="ob-input" type="text" placeholder="Baby's name" value="Lily" />
+        </div>
+        <div class="ob-footer">
+          <button class="ob-btn">Love that name &rarr;</button>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>"Star of the show"</strong> — playful, warm. "Nickname totally counts" removes pressure (some parents use "Bean" for months). Button copy: "Love that name" is a tiny moment of delight. Every micro-interaction has personality.
+    </div>
+  </div>
+
+  <!-- SCREEN 4: BIRTHDAY -->
+  <div class="column">
+    <div class="label new">Screen 4: Birthday</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="ob-screen">
+        <div class="ob-progress">
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot"></div>
+        </div>
+        <div class="ob-body">
+          <div class="ob-emoji">&#x1F382;</div>
+          <div class="ob-title">When did Lily make her grand entrance?</div>
+          <div class="ob-subtitle">This is the magic number — it's how I know exactly where Lily is in her development.</div>
+          <div class="ob-date-display">August 24, 2025</div>
+          <div class="ob-hint">That makes Lily 6 months old &#x2728;</div>
+        </div>
+        <div class="ob-footer">
+          <button class="ob-btn">Almost done &rarr;</button>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>"Grand entrance"</strong> — a tiny smile. The instant age calculation ("That makes Lily 6 months old ✨") gives immediate feedback and shows why this question matters. This is the most important data point — Rosie acknowledges it: "the magic number."
+    </div>
+  </div>
+
+</div>
+
+<div class="wireframe-row">
+
+  <!-- SCREEN 5: EARLY ARRIVAL -->
+  <div class="column">
+    <div class="label new">Screen 5: Early Arrival? (Conditional)</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="ob-screen">
+        <div class="ob-progress">
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot filled"></div>
+          <div class="ob-progress-dot filled"></div>
+        </div>
+        <div class="ob-body">
+          <div class="ob-emoji">&#x1F31F;</div>
+          <div class="ob-title">One more thing — was Lily early?</div>
+          <div class="ob-subtitle">If Lily arrived ahead of schedule, I'll use her due date to give more accurate developmental guidance. No pressure either way.</div>
+          <div class="ob-option-group">
+            <div class="ob-option">
+              <div class="ob-option-radio"><div class="ob-option-radio-dot"></div></div>
+              <div class="ob-option-text">Nope, right on time</div>
+            </div>
+            <div class="ob-option selected">
+              <div class="ob-option-radio"><div class="ob-option-radio-dot"></div></div>
+              <div class="ob-option-text">Yes, Lily was early</div>
+            </div>
+          </div>
+          <div style="margin-top: 4px;">
+            <div style="font-size: 14px; font-weight: 600; color: #1D1D1F; margin-bottom: 8px; text-align: left;">When was Lily originally due?</div>
+            <div class="ob-date-display" style="font-size: 16px;">October 15, 2025</div>
+            <div class="ob-hint">Got it — I'll use Lily's adjusted age (4 months) for milestones</div>
+          </div>
+        </div>
+        <div class="ob-footer">
+          <button class="ob-btn">Let's go! &rarr;</button>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>"No pressure either way"</strong> — non-judgmental. If parent selects "Yes," the due date picker appears inline with immediate adjusted age feedback. "I'll use Lily's adjusted age (4 months) for milestones" instantly shows the value of answering. Skip always available.
+    </div>
+  </div>
+
+  <!-- SCREEN 6: CELEBRATION -->
+  <div class="column">
+    <div class="label new">Screen 6: Celebration</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="ob-celebration">
+        <div class="ob-celebration-emoji">&#x1F389;</div>
+        <div class="ob-celebration-title">You're all set, Sarah!</div>
+        <div class="ob-celebration-sub">Rosie is ready to help you and Lily. I've already got some ideas based on where Lily is right now.</div>
+        <div class="ob-celebration-card">
+          <div class="ob-celebration-card-name">Lily</div>
+          <div class="ob-celebration-card-age">6 months old &middot; Week 26</div>
+          <div class="ob-celebration-card-divider"></div>
+          <div class="ob-celebration-card-rosie">"At 6 months, Lily is probably sitting up, reaching for everything, and ready for solid foods. I can't wait to help you with all of it."</div>
+        </div>
+        <div style="width: 100%; max-width: 300px;">
+          <button class="ob-btn">Meet your new home &rarr;</button>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Celebration is a preview.</strong> The card shows Lily's profile with an age-appropriate Rosie quote — this is the first taste of personalized AI. The parent sees that Rosie already "knows" something about their baby just from the birth date. "Meet your new home" builds anticipation.
+    </div>
+  </div>
+
+</div>
+
+<!-- Onboarding design notes -->
+<div class="section-divider">
+  <h2>6b. Onboarding Voice & Copy Principles</h2>
+  <p>The tone rules behind every screen</p>
+</div>
+
+<div class="principles-grid">
+  <div class="principle-card">
+    <div class="tag emotional">VOICE</div>
+    <h3>Questions, Not Forms</h3>
+    <p>"What should I call you?" not "Enter your name." "When did Lily make her grand entrance?" not "Date of birth." Every field is a conversation, not a form. The parent is talking to Rosie, not filling out a government document.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ux">DELIGHT</div>
+    <h3>Buttons Have Personality</h3>
+    <p>"That's me" → "Love that name" → "Almost done" → "Let's go!" Each button is a micro-moment of warmth. No "Next" "Next" "Next" "Submit." The progression builds momentum and makes the parent smile.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ai">SMART</div>
+    <h3>Show Value Immediately</h3>
+    <p>"That makes Lily 6 months old ✨" appears the instant they enter a date. The celebration screen shows a personalized Rosie quote. Before the parent has logged a single event, they can see the AI already knows something about their baby.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag ux">PACE</div>
+    <h3>One Thing Per Screen</h3>
+    <p>Each screen asks exactly one question. No multi-field forms. No scrolling. The progress dots show 4 steps — but the whole flow takes under 60 seconds. Speed builds trust: "This app respects my time."</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag emotional">TONE</div>
+    <h3>Playful, Not Silly</h3>
+    <p>"Star of the show" and "grand entrance" are warm and fun without being cheesy. The humor is gentle — a parent at 3am with a newborn should still feel welcomed, not annoyed. If a joke wouldn't land in the NICU, cut it.</p>
+  </div>
+
+  <div class="principle-card">
+    <div class="tag moat">TRUST</div>
+    <h3>No Pressure, Ever</h3>
+    <p>"No pressure either way" on the prematurity question. "Nickname totally counts." Skip is always visible. Rosie never guilts a parent into sharing more. This builds the trust foundation that the entire AI relationship depends on.</p>
+  </div>
+</div>
+
+</body>
+</html>

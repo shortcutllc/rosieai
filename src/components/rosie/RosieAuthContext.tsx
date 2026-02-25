@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabaseClient';
-import { BabyProfile } from './types';
+import { BabyProfile, CatchUpData } from './types';
 
 // Rosie-specific user profile
 export interface RosieUserProfile {
@@ -39,6 +39,7 @@ interface RosieAuthContextType {
   updateProfile: (name: string) => Promise<{ success: boolean; error?: string }>;
   addBaby: (baby: Omit<BabyProfile, 'id'>) => Promise<{ success: boolean; baby?: RosieBabyProfile; error?: string }>;
   updateBaby: (babyId: string, updates: Partial<BabyProfile>) => Promise<{ success: boolean; error?: string }>;
+  updateCatchUpData: (babyId: string, catchUpData: Partial<CatchUpData>) => Promise<{ success: boolean; error?: string }>;
   setCurrentBaby: (babyId: string) => void;
 
   // Utility
@@ -115,9 +116,11 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         user_id: row.user_id,
         name: row.name,
         birthDate: row.birth_date,
+        dueDate: row.due_date || undefined,
         photoUrl: row.photo_url,
         birthWeight: row.birth_weight,
         weightUnit: row.weight_unit || 'oz',
+        catchUpData: row.catch_up_data || undefined,
         created_at: row.created_at,
       })) as RosieBabyProfile[];
     } catch (err) {
@@ -478,9 +481,11 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           user_id: user.id,
           name: baby.name,
           birth_date: baby.birthDate,
+          due_date: baby.dueDate || null,
           photo_url: baby.photoUrl || null,
           birth_weight: baby.birthWeight || null,
           weight_unit: baby.weightUnit || 'oz',
+          catch_up_data: baby.catchUpData || null,
         })
         .select()
         .single();
@@ -494,9 +499,11 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         user_id: data.user_id,
         name: data.name,
         birthDate: data.birth_date,
+        dueDate: data.due_date || undefined,
         photoUrl: data.photo_url,
         birthWeight: data.birth_weight,
         weightUnit: data.weight_unit || 'oz',
+        catchUpData: data.catch_up_data || undefined,
         created_at: data.created_at,
       };
 
@@ -526,7 +533,9 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const updateData: Record<string, unknown> = {};
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.birthDate !== undefined) updateData.birth_date = updates.birthDate;
+      if (updates.dueDate !== undefined) updateData.due_date = updates.dueDate;
       if (updates.photoUrl !== undefined) updateData.photo_url = updates.photoUrl;
+      if (updates.catchUpData !== undefined) updateData.catch_up_data = updates.catchUpData;
 
       const { error: updateError } = await supabase
         .from('rosie_babies')
@@ -556,6 +565,38 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Update catch-up quiz data (merges with existing data)
+  const updateCatchUpData = async (babyId: string, catchUpData: Partial<CatchUpData>): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Get existing catch-up data to merge
+      const existingBaby = babies.find(b => b.id === babyId);
+      const merged: CatchUpData = {
+        ...(existingBaby?.catchUpData || {}),
+        ...catchUpData,
+      };
+
+      const { error: updateError } = await supabase
+        .from('rosie_babies')
+        .update({ catch_up_data: merged })
+        .eq('id', babyId);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setBabies(prev => prev.map(b =>
+        b.id === babyId ? { ...b, catchUpData: merged } : b
+      ));
+      if (currentBaby?.id === babyId) {
+        setCurrentBabyState(prev => prev ? { ...prev, catchUpData: merged } : null);
+      }
+
+      return { success: true };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update catch-up data';
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -589,6 +630,7 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateProfile,
         addBaby,
         updateBaby,
+        updateCatchUpData,
         setCurrentBaby,
         clearError,
       }}

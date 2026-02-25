@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData } from './types';
 import { formatTime } from './developmentalData';
 import { getChatPrompts, ChatPrompt } from './reassuranceMessages';
+import { useSpeechRecognition } from './useSpeechRecognition';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
 const generateUUID = (): string => {
@@ -15,11 +16,79 @@ const generateUUID = (): string => {
   });
 };
 
+// Extracted event from the chat API (matches log_event tool output)
+interface ExtractedEvent {
+  type: 'feed' | 'sleep' | 'diaper';
+  feedType?: 'breast' | 'bottle' | 'solid';
+  feedSide?: 'left' | 'right' | 'both';
+  feedAmount?: number;
+  feedDuration?: number;
+  sleepType?: 'nap' | 'night';
+  sleepDuration?: number;
+  diaperType?: 'wet' | 'dirty' | 'both';
+  note?: string;
+  eventTime?: string;
+}
+
+// Logged event confirmation (tied to a message ID)
+interface LoggedEventConfirmation {
+  messageId: string;
+  eventId: string;
+  summary: string;
+  createdAt: number;
+}
+
+// Convert extracted event to a display summary
+function summarizeEvent(event: ExtractedEvent): string {
+  const parts: string[] = [];
+  if (event.type === 'feed') {
+    parts.push('Feed');
+    if (event.feedType === 'breast' && event.feedSide) parts.push(event.feedSide);
+    else if (event.feedType === 'bottle' && event.feedAmount) parts.push(`${event.feedAmount}oz`);
+    else if (event.feedType) parts.push(event.feedType);
+    if (event.feedDuration) parts.push(`${event.feedDuration}min`);
+  } else if (event.type === 'sleep') {
+    parts.push(event.sleepType === 'night' ? 'Night sleep' : 'Nap');
+    if (event.sleepDuration) parts.push(`${event.sleepDuration}min`);
+  } else if (event.type === 'diaper') {
+    parts.push(event.diaperType === 'both' ? 'Wet + dirty' : event.diaperType === 'dirty' ? 'Dirty diaper' : 'Wet diaper');
+  }
+  return parts.join(' · ');
+}
+
+// Convert extracted event to TimelineEvent shape for onAddEvent
+function mapExtractedEvent(extracted: ExtractedEvent): Omit<TimelineEvent, 'id' | 'timestamp'> {
+  const event: Omit<TimelineEvent, 'id' | 'timestamp'> = {
+    type: extracted.type,
+  };
+
+  if (extracted.type === 'feed') {
+    event.feedType = extracted.feedType || 'breast';
+    event.feedSide = extracted.feedSide;
+    event.feedAmount = extracted.feedAmount;
+    event.feedDuration = extracted.feedDuration;
+    if (extracted.feedSide && extracted.feedSide !== 'both') {
+      event.feedLastSide = extracted.feedSide as 'left' | 'right';
+    }
+  } else if (extracted.type === 'sleep') {
+    event.sleepType = extracted.sleepType || 'nap';
+    event.sleepDuration = extracted.sleepDuration;
+  } else if (extracted.type === 'diaper') {
+    event.diaperType = extracted.diaperType || 'wet';
+  }
+
+  if (extracted.note) event.note = extracted.note;
+
+  return event;
+}
+
 interface RosieChatProps {
   baby: BabyProfile;
   messages: ChatMessage[];
   onAddMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   onUpdateHistory: (messages: ChatMessage[]) => void;
+  onAddEvent?: (event: Omit<TimelineEvent, 'id' | 'timestamp'>) => string | void;
+  onDeleteEvent?: (eventId: string) => void;
   timeline: TimelineEvent[];
   developmentalInfo: DevelopmentalInfo;
   growthMeasurements?: GrowthMeasurement[];
@@ -33,6 +102,8 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   messages,
   onAddMessage,
   onUpdateHistory,
+  onAddEvent,
+  onDeleteEvent,
   timeline,
   developmentalInfo,
   growthMeasurements,
@@ -42,6 +113,18 @@ export const RosieChat: React.FC<RosieChatProps> = ({
 }) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [loggedEvents, setLoggedEvents] = useState<LoggedEventConfirmation[]>([]);
+
+  // Speech recognition for voice input
+  const { isListening, transcript, interimTranscript, isSupported: speechSupported, startListening, stopListening } = useSpeechRecognition();
+
+  // When speech transcript finalizes, append to input
+  useEffect(() => {
+    if (transcript) {
+      setInput(prev => prev + (prev ? ' ' : '') + transcript);
+    }
+  }, [transcript]);
+
   const [hasEnteredView, setHasEnteredView] = useState(false);
   const [isVisible, setIsVisible] = useState(false); // controls CSS class for animation
   const [shouldRender, setShouldRender] = useState(false); // controls DOM presence
@@ -107,14 +190,17 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   }, [messages, scrollToBottom]);
 
   // Call the Claude API via Netlify function
-  const callClaudeAPI = async (userMessage: string): Promise<string> => {
+  const callClaudeAPI = async (userMessage: string): Promise<{ message: string; events?: ExtractedEvent[] }> => {
     try {
+      // Strip lone surrogates that produce invalid JSON (causes API 400 errors)
+      const sanitizeJson = (str: string) => str.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: sanitizeJson(JSON.stringify({
           message: userMessage,
           baby: {
             name: baby.name,
@@ -122,13 +208,14 @@ export const RosieChat: React.FC<RosieChatProps> = ({
             gender: baby.gender,
             birthWeight: baby.birthWeight,
             weightUnit: baby.weightUnit,
+            catchUpData: baby.catchUpData,
           },
           timeline,
           developmentalInfo,
           chatHistory: messages.map(m => ({ role: m.role, content: m.content })),
           growthMeasurements,
           weather: weather || undefined,
-        }),
+        })),
       });
 
       if (!response.ok) {
@@ -138,7 +225,7 @@ export const RosieChat: React.FC<RosieChatProps> = ({
       }
 
       const data = await response.json();
-      return data.message;
+      return { message: data.message, events: data.events };
     } catch (error) {
       console.error('Error calling Claude API:', error);
       throw error;
@@ -183,13 +270,13 @@ Could you tell me more about what you're experiencing?`;
   };
 
   // Generate AI response - try Claude API first, fallback to mock
-  const generateResponse = async (userMessage: string): Promise<string> => {
+  const generateResponse = async (userMessage: string): Promise<{ message: string; events?: ExtractedEvent[] }> => {
     try {
       return await callClaudeAPI(userMessage);
     } catch (error) {
       console.warn('Claude API failed, using fallback response');
       await new Promise(resolve => setTimeout(resolve, 500));
-      return generateFallbackResponse(userMessage);
+      return { message: generateFallbackResponse(userMessage) };
     }
   };
 
@@ -211,14 +298,31 @@ Could you tell me more about what you're experiencing?`;
 
     setIsTyping(true);
     try {
-      const response = await generateResponse(userMessage);
+      const { message: responseText, events } = await generateResponse(userMessage);
 
+      const assistantMsgId = generateUUID();
       const assistantMsg: ChatMessage = {
-        id: generateUUID(),
+        id: assistantMsgId,
         timestamp: new Date().toISOString(),
         role: 'assistant',
-        content: response,
+        content: responseText,
       };
+
+      // Process extracted events (if any) — create timeline events
+      if (events && events.length > 0 && onAddEvent) {
+        for (const extracted of events) {
+          const eventData = mapExtractedEvent(extracted);
+          const eventId = onAddEvent(eventData);
+          if (eventId) {
+            setLoggedEvents(prev => [...prev, {
+              messageId: assistantMsgId,
+              eventId,
+              summary: summarizeEvent(extracted),
+              createdAt: Date.now(),
+            }]);
+          }
+        }
+      }
 
       onUpdateHistory([...updatedMessages, assistantMsg]);
     } catch (error) {
@@ -226,6 +330,12 @@ Could you tell me more about what you're experiencing?`;
     } finally {
       setIsTyping(false);
     }
+  };
+
+  // Undo a logged event
+  const handleUndoEvent = (eventId: string) => {
+    onDeleteEvent?.(eventId);
+    setLoggedEvents(prev => prev.filter(e => e.eventId !== eventId));
   };
 
   const handleSuggestionClick = (question: string) => {
@@ -319,7 +429,7 @@ Could you tell me more about what you're experiencing?`;
         </button>
         <div className="rosie-chat-topbar-title">
           <img src="/rosie-icon.svg" alt="" className="rosie-chat-topbar-logo" />
-          <span>Ask Rosie</span>
+          <span>Ask RosieAI</span>
         </div>
         <button
           className="rosie-chat-new-btn"
@@ -379,17 +489,36 @@ Could you tell me more about what you're experiencing?`;
           </div>
         ) : (
           <div className="rosie-chat-messages">
-            {messages.map(message => (
-              <div
-                key={message.id}
-                className={`rosie-chat-message ${message.role}`}
-              >
-                {renderMessage(message.content)}
-                <div className="rosie-chat-message-time">
-                  {formatTime(message.timestamp)}
-                </div>
-              </div>
-            ))}
+            {messages.map(message => {
+              const eventConfirmations = loggedEvents.filter(e => e.messageId === message.id);
+              return (
+                <React.Fragment key={message.id}>
+                  <div className={`rosie-chat-message ${message.role}`}>
+                    {renderMessage(message.content)}
+                    <div className="rosie-chat-message-time">
+                      {formatTime(message.timestamp)}
+                    </div>
+                  </div>
+                  {eventConfirmations.map(conf => {
+                    const canUndo = Date.now() - conf.createdAt < 30000;
+                    return (
+                      <div key={conf.eventId} className="rosie-chat-event-card">
+                        <span className="rosie-chat-event-check">✓</span>
+                        <span className="rosie-chat-event-summary">Logged: {conf.summary}</span>
+                        {canUndo && (
+                          <button
+                            className="rosie-chat-event-undo"
+                            onClick={() => handleUndoEvent(conf.eventId)}
+                          >
+                            Undo
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
 
             {isTyping && (
               <div className="rosie-chat-typing">
@@ -411,23 +540,37 @@ Could you tell me more about what you're experiencing?`;
             ref={inputRef}
             type="text"
             className="rosie-chat-input"
-            placeholder={`Ask about ${baby.name}...`}
+            placeholder={isListening && interimTranscript ? interimTranscript : `Ask about ${baby.name}...`}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isTyping}
           />
-          <button
-            className="rosie-chat-send"
-            onClick={handleSend}
-            disabled={!input.trim() || isTyping}
-            aria-label="Send message"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </button>
+          {!input.trim() && speechSupported && !isTyping ? (
+            <button
+              className={`rosie-chat-mic ${isListening ? 'listening' : ''}`}
+              onClick={isListening ? stopListening : startListening}
+              aria-label={isListening ? 'Stop recording' : 'Voice input'}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="1" width="6" height="13" rx="3" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="20" x2="12" y2="24" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              className="rosie-chat-send"
+              onClick={handleSend}
+              disabled={!input.trim() || isTyping}
+              aria-label="Send message"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </div>

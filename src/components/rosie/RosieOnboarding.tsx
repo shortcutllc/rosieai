@@ -48,7 +48,7 @@ export const RosieOnboarding: React.FC<RosieOnboardingProps> = ({ onComplete, on
             <div className="rosie-onboarding-logo">
               <img src="/rosie-icon.svg" alt="Rosie" className="rosie-onboarding-logo-img" />
             </div>
-            <h1 className="rosie-onboarding-title">Rosie</h1>
+            <h1 className="rosie-onboarding-title">RosieAI</h1>
             <p className="rosie-onboarding-subtitle">
               Calm technology for chaotic moments
             </p>
@@ -287,7 +287,7 @@ export const RosieOnboarding: React.FC<RosieOnboardingProps> = ({ onComplete, on
               onClick={handleComplete}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Setting up...' : 'Start Using Rosie'}
+              {isSubmitting ? 'Setting up...' : 'Start Using RosieAI'}
             </button>
           </div>
         );
