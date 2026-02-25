@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData } from './types';
 import { formatTime } from './developmentalData';
 import { getChatPrompts, ChatPrompt, generateSessionGreeting } from './reassuranceMessages';
-import { isNewSession, setLastChatOpenTime } from './storage';
 import { useSpeechRecognition } from './useSpeechRecognition';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
@@ -150,7 +149,7 @@ export const RosieChat: React.FC<RosieChatProps> = ({
     return getChatPrompts(babyAgeWeeks, baby.name);
   }, [babyAgeWeeks, baby.name]);
 
-  // Session greeting — computed once when chat opens for a new session
+  // Personalized greeting — always shown in chat empty state
   const sessionGreeting = useMemo(() => {
     const hour = new Date().getHours();
     return generateSessionGreeting(
@@ -158,19 +157,14 @@ export const RosieChat: React.FC<RosieChatProps> = ({
       baby.name,
       developmentalInfo.ageDisplay,
       weather ? { condition: weather.condition, temperature: weather.temperature } : null,
-      hour
+      hour,
+      babyAgeWeeks
     );
-  }, [parentName, baby.name, developmentalInfo.ageDisplay, weather]);
-
-  // Track whether this is a new session (>30 min since last chat open)
-  const [showSessionGreeting, setShowSessionGreeting] = useState(false);
+  }, [parentName, baby.name, developmentalInfo.ageDisplay, weather, babyAgeWeeks]);
 
   // Handle open/close animation lifecycle
   useEffect(() => {
     if (isOpen) {
-      // Check if this is a new session before recording the open
-      setShowSessionGreeting(isNewSession());
-      setLastChatOpenTime();
 
       // Mount, then animate in on next frame
       setShouldRender(true);
@@ -493,16 +487,16 @@ Could you tell me more about what you're experiencing?`;
               </div>
               <div className="rosie-chat-greeting-text">
                 <span className="rosie-chat-greeting-hey">
-                  {showSessionGreeting ? sessionGreeting.greeting : 'Hey there'}
+                  {sessionGreeting.greeting}
                 </span>
                 <span className="rosie-chat-greeting-sub">
-                  {showSessionGreeting ? sessionGreeting.subtext : `I know all about ${baby.name} at ${developmentalInfo.ageDisplay}. What's on your mind?`}
+                  {sessionGreeting.subtext}
                 </span>
               </div>
             </div>
 
-            {/* Quick Actions — show on new sessions */}
-            {showSessionGreeting && onOpenQuickLog && (
+            {/* Quick Actions — always shown */}
+            {onOpenQuickLog && (
               <div className={`rosie-chat-quick-actions ${hasEnteredView ? 'entered' : ''}`}>
                 <button
                   className="rosie-chat-quick-action"

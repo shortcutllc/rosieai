@@ -325,58 +325,122 @@ export const getNormalRangesForAge = (babyAgeWeeks: number): {
   }
 };
 
-// ─── Session Greeting ─────────────────────────────────────────
+// ─── Chat Greeting ──────────────────────────────────────────
 
 interface WeatherForGreeting {
   condition: string;
   temperature: number;
 }
 
+/** Day-of-year for deterministic daily rotation (same greeting all day, different tomorrow) */
+function dayOfYear(): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  return Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 /**
- * Generate a personalized greeting for the chat empty state when opening a new session.
- * Time-aware + weather-aware + baby-personalized.
+ * Generate a personalized greeting for the chat empty state.
+ * Matches the onboarding voice: warm, personal, baby-name-first, playful but passes the 3am test.
+ * Time-aware + weather-aware + age-aware.
  */
 export function generateSessionGreeting(
   parentName: string | undefined,
   babyName: string,
   ageDisplay: string,
   weather: WeatherForGreeting | null,
-  hour: number
+  hour: number,
+  babyAgeWeeks?: number
 ): { greeting: string; subtext: string } {
   const name = parentName || '';
+  const day = dayOfYear();
 
-  // Time-based greeting
+  // ── Greeting line (time-of-day aware, rotates daily) ──
+
   let greeting: string;
   if (hour >= 0 && hour < 6) {
-    greeting = name ? `Late night, ${name}?` : 'Late night?';
+    const options = [
+      name ? `Late night with ${babyName}?` : `Late night with the little one?`,
+      name ? `Up with ${babyName}? I'm here.` : `Up late? I'm here.`,
+    ];
+    greeting = options[day % options.length];
   } else if (hour >= 6 && hour < 12) {
-    greeting = name ? `Good morning, ${name}!` : 'Good morning!';
+    const options = [
+      name ? `Good morning, ${name}!` : 'Good morning!',
+      name ? `Morning! How'd the night go with ${babyName}?` : `Morning! How'd the night go?`,
+    ];
+    greeting = options[day % options.length];
   } else if (hour >= 12 && hour < 17) {
-    greeting = name ? `Hey ${name}!` : 'Hey there!';
+    const options = [
+      name ? `Hey ${name}!` : 'Hey there!',
+      `Afternoon! How's ${babyName}'s day going?`,
+    ];
+    greeting = options[day % options.length];
   } else {
-    greeting = name ? `Hey ${name}. How's your evening?` : 'How\'s your evening going?';
+    const options = [
+      name ? `Hey ${name}!` : 'Hey there!',
+      `How's your evening with ${babyName}?`,
+    ];
+    greeting = options[day % options.length];
   }
 
-  // Weather-aware subtext
-  const badConditions = ['Rain', 'Drizzle', 'Snow', 'Showers', 'Snow Showers', 'Thunderstorm'];
-  let subtext: string;
+  // ── Subtext line (weather takes priority, then age-aware, then fallback) ──
 
+  const badConditions = ['Rain', 'Drizzle', 'Snow', 'Showers', 'Snow Showers', 'Thunderstorm'];
+  let subtext: string | null = null;
+
+  // Weather-aware subtext (takes priority when weather is notable)
   if (weather && badConditions.includes(weather.condition)) {
     if (weather.condition === 'Snow' || weather.condition === 'Snow Showers') {
-      subtext = `Snowy day — cozy inside with ${babyName}. What can I help with?`;
+      subtext = `Cozy day in — perfect for snuggles with ${babyName}.`;
     } else if (weather.condition === 'Thunderstorm') {
-      subtext = `Stormy out there. I've got indoor ideas for ${babyName} if you need them.`;
+      subtext = `Stormy out there. I've got indoor ideas if you need them.`;
     } else {
-      subtext = `Rainy day — I've got some cozy indoor ideas if you need them.`;
+      subtext = `Rainy day — perfect excuse to stay in with ${babyName}.`;
     }
   } else if (weather && weather.temperature < 32) {
-    subtext = `Brrr, it's cold out there. Staying warm with ${babyName}?`;
+    subtext = `Brrr — staying warm with ${babyName} today?`;
   } else if (weather && weather.temperature > 95) {
-    subtext = `Hot one today — staying cool inside with ${babyName}?`;
-  } else if (hour >= 0 && hour < 6) {
-    subtext = `I'm here for you and ${babyName}. What's going on?`;
-  } else {
-    subtext = `I know all about ${babyName} at ${ageDisplay}. What's on your mind?`;
+    subtext = `Hot one today — let's keep ${babyName} cool and comfy.`;
+  } else if (weather && (weather.condition === 'Clear' || weather.condition === 'Partly Cloudy') && weather.temperature >= 55 && weather.temperature <= 85) {
+    subtext = `Beautiful day out there — great for a walk with ${babyName}!`;
+  }
+
+  // Night-specific subtext (overrides age-aware for the 3am crowd)
+  if (hour >= 0 && hour < 6) {
+    subtext = subtext || `I'm here for you and ${babyName}. What's going on?`;
+    return { greeting, subtext };
+  }
+
+  // Age-aware subtext (the "show value immediately" principle)
+  if (!subtext && babyAgeWeeks !== undefined) {
+    const weeks = babyAgeWeeks;
+    if (weeks <= 4) {
+      subtext = `These early days are a blur — I'll help you know what to expect.`;
+    } else if (weeks <= 8) {
+      subtext = `${babyName}'s probably starting to focus on your face. Such a sweet stage.`;
+    } else if (weeks <= 12) {
+      subtext = `Those first real smiles are coming — or maybe they're already here!`;
+    } else if (weeks <= 16) {
+      subtext = `${babyName}'s discovering those tiny hands. What's on your mind?`;
+    } else if (weeks <= 20) {
+      subtext = `${babyName}'s getting so interactive now. What can I help with?`;
+    } else if (weeks <= 26) {
+      subtext = `${ageDisplay} already! ${babyName}'s probably keeping you on your toes.`;
+    } else if (weeks <= 36) {
+      subtext = `${babyName}'s on the move — crawling, babbling, so much personality.`;
+    } else if (weeks <= 52) {
+      subtext = `Almost a year! ${babyName}'s growing so fast. How can I help today?`;
+    }
+  }
+
+  // General fallback
+  if (!subtext) {
+    const fallbacks = [
+      `What's on your mind?`,
+      `How can I help you and ${babyName} today?`,
+    ];
+    subtext = fallbacks[day % fallbacks.length];
   }
 
   return { greeting, subtext };
