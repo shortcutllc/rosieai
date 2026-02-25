@@ -1,6 +1,10 @@
 import { Handler } from '@netlify/functions';
 import Anthropic from '@anthropic-ai/sdk';
 
+// Strip lone surrogates that produce invalid JSON (causes Anthropic API 400/500 errors)
+const sanitizeString = (str: string): string =>
+  str.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+
 // Types from the frontend
 interface CatchUpData {
   feedingMethod?: 'breast' | 'bottle' | 'both' | 'pumping';
@@ -533,13 +537,16 @@ const handler: Handler = async (event) => {
       content: message,
     });
 
-    const systemPrompt = buildSystemPrompt(baby, developmentalInfo, timeline, growthMeasurements, weather, milestoneRecords, parentName);
+    const systemPrompt = sanitizeString(buildSystemPrompt(baby, developmentalInfo, timeline, growthMeasurements, weather, milestoneRecords, parentName));
+
+    // Sanitize all messages to strip lone surrogates from user/timeline data
+    const sanitizedMessages = messages.map(m => ({ ...m, content: typeof m.content === 'string' ? sanitizeString(m.content) : m.content }));
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
       system: systemPrompt,
-      messages,
+      messages: sanitizedMessages,
       tools: [LOG_EVENT_TOOL],
     });
 
