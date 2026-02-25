@@ -172,8 +172,11 @@ export const RosieAuth: React.FC<RosieAuthProps> = ({ onComplete }) => {
   useEffect(() => {
     if (loading) return;
     if (view === 'confirm-email' || view === 'celebration') return;
-    if (view === 'signup-name') return;
-    if (view === 'signup-baby-name' || view === 'signup-baby-birthday' || view === 'signup-early') return;
+    // On signup screens, only skip auto-redirect if user hasn't completed them yet.
+    // This allows back-navigation during onboarding while still letting existing users
+    // (who have profile + babies) pass through to onComplete() after sign-in.
+    if (view === 'signup-name' && !(profile && babies.length > 0)) return;
+    if ((view === 'signup-baby-name' || view === 'signup-baby-birthday' || view === 'signup-early') && babies.length === 0) return;
 
     if (user && profile && babies.length > 0) {
       onComplete();
