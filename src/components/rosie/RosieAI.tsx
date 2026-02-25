@@ -639,7 +639,7 @@ const RosieAIContent: React.FC = () => {
         weather={weather}
         isOpen={showChat}
         initialMessage={chatInitialMessage}
-        parentName={profile?.name}
+        parentName={profile?.name ?? undefined}
         onOpenQuickLog={(type) => setShowQuickLogModal(type)}
         onClose={() => {
           setShowChat(false);
@@ -668,7 +668,7 @@ const RosieAIContent: React.FC = () => {
           baby={data.baby}
           growthMeasurements={data.growthMeasurements || []}
           userSettings={data.userSettings}
-          parentName={profile?.name}
+          parentName={profile?.name ?? undefined}
           onUpdateParentName={async (name: string) => {
             await updateProfile(name);
           }}
