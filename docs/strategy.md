@@ -328,9 +328,9 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 - [x] **Weather-aware daily planning** — activities tagged indoor/outdoor/either, getTodaysActivities() filters by weather (bad weather → indoor only, good weather → boost outdoor), weather label on daily plan card
 - [x] **Cabin fever detection** — proactive alert in Home carousel when weather is bad (rain/snow/cold/heat) with tailored messages + indoor activity suggestion from dailyActivities
 - [ ] **Hyperlocal activity discovery** (age-appropriate classes, events within 1-5 miles — requires external API, deferred)
-- [ ] **Seasonal awareness** (seasonal expert insights + seasonal system prompt context)
+- [x] **Seasonal awareness** — 10 seasonal expert insights (winter/spring/summer/fall) mixed into Home carousel + seasonal context block injected into Claude system prompt with season-specific guidance
 - [ ] **Walking vs driving radius** (quick walk < 1mi, quick drive < 5mi — deferred, requires external API)
-- [ ] **Chat greeting on login** — when user opens app, Rosie greets them in chat with quick action buttons (quick log, analyze data, ask a question)
+- [x] **Chat greeting on login** — personalized time-aware + weather-aware greeting on new sessions (>30 min gap), quick action buttons (Quick log, How's baby?, Activity ideas), session tracking in localStorage
 
 ### Phase 4: Predictive Intelligence (Months 9-12)
 *Rosie gets genuinely predictive*

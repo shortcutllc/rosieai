@@ -782,3 +782,117 @@ export const getExpertInsightForTopic = (topic: keyof typeof expertInsights): Ex
   // Return a random insight for variety
   return insights[Math.floor(Math.random() * insights.length)];
 };
+
+// ─── Seasonal Insights ──────────────────────────────────────
+
+export type Season = 'winter' | 'spring' | 'summer' | 'fall';
+
+/**
+ * Determine the current season from the current month.
+ */
+export function getSeason(): Season {
+  const month = new Date().getMonth(); // 0-indexed
+  if (month >= 2 && month <= 4) return 'spring';   // Mar-May
+  if (month >= 5 && month <= 7) return 'summer';    // Jun-Aug
+  if (month >= 8 && month <= 10) return 'fall';     // Sep-Nov
+  return 'winter'; // Dec-Feb
+}
+
+const SEASONAL_INSIGHTS: Record<Season, ExpertInsight[]> = {
+  winter: [
+    {
+      topic: 'Winter Wellness',
+      insight: 'Breastfed babies may need 400 IU of vitamin D daily since winter sunlight alone isn\'t enough. Talk to your pediatrician about supplementation.',
+      source: 'AAP Vitamin D Guidelines',
+      sourceType: 'aap',
+    },
+    {
+      topic: 'Winter Wellness',
+      insight: 'Dress baby in one more layer than you\'re wearing. If your hands are cold, add a layer to baby. If baby\'s neck feels sweaty, remove one.',
+      source: 'AAP Cold Weather Safety',
+      sourceType: 'aap',
+    },
+    {
+      topic: 'Winter Activities',
+      insight: 'Cabin fever is real for parents and babies. Sensory bins, water play in the bath, and "dance parties" are great ways to burn energy inside on cold days.',
+      source: 'Pathways.org',
+      sourceType: 'expert',
+    },
+  ],
+  spring: [
+    {
+      topic: 'Spring Safety',
+      insight: 'Seasonal allergies can start in infancy. If baby has persistent runny nose, sneezing, or watery eyes in spring, talk to your pediatrician — it\'s not always a cold.',
+      source: 'AAP Allergy Guidelines',
+      sourceType: 'aap',
+    },
+    {
+      topic: 'Spring Activities',
+      insight: 'Outdoor tummy time on a blanket is great for sensory development — grass textures, birdsong, and natural light all stimulate baby\'s senses in new ways.',
+      source: 'Pathways.org',
+      sourceType: 'expert',
+    },
+  ],
+  summer: [
+    {
+      topic: 'Summer Safety',
+      insight: 'Babies under 6 months should avoid direct sunlight. Use shade, hats, and lightweight clothing instead of sunscreen — their skin is too sensitive for SPF products.',
+      source: 'AAP Sun Safety Guidelines',
+      sourceType: 'aap',
+    },
+    {
+      topic: 'Summer Safety',
+      insight: 'Babies can overheat quickly. Watch for flushed cheeks, rapid breathing, and fussiness. Keep baby hydrated — breastfed babies may want to nurse more often.',
+      source: 'AAP Heat Safety',
+      sourceType: 'aap',
+    },
+    {
+      topic: 'Summer Activities',
+      insight: 'Supervised water play (splash pads, shallow water tables) is wonderful sensory development for babies 6+ months. Always stay within arm\'s reach.',
+      source: 'Pathways.org',
+      sourceType: 'expert',
+    },
+  ],
+  fall: [
+    {
+      topic: 'Fall Wellness',
+      insight: 'Flu season starts in October. Babies 6+ months can get a flu shot. For younger babies, everyone in the household getting vaccinated creates a protective cocoon.',
+      source: 'CDC Flu Vaccination Guidelines',
+      sourceType: 'aap',
+    },
+    {
+      topic: 'Fall Routines',
+      insight: 'As days get shorter, baby\'s internal clock may shift. Moving bedtime 10-15 minutes earlier each week helps ease the transition to fall/winter routines.',
+      source: 'Sleep Foundation',
+      sourceType: 'research',
+    },
+  ],
+};
+
+/**
+ * Get seasonal insights for the current time of year.
+ */
+export function getSeasonalInsights(): ExpertInsight[] {
+  return SEASONAL_INSIGHTS[getSeason()];
+}
+
+/**
+ * Get insights for a given week, including 1-2 seasonal insights
+ * mixed in so they appear naturally in the Home carousel.
+ */
+export function getInsightsForWeekWithSeasonal(weekNumber: number): ExpertInsight[] {
+  const ageInsights = getInsightsForWeek(weekNumber);
+  const seasonal = getSeasonalInsights();
+
+  // Pick 1-2 seasonal insights deterministically based on day
+  const today = new Date();
+  const dayHash = today.getFullYear() * 400 + today.getMonth() * 32 + today.getDate();
+  const pick1 = seasonal[dayHash % seasonal.length];
+  const pick2 = seasonal.length > 1 ? seasonal[(dayHash + 1) % seasonal.length] : null;
+
+  // Append seasonal insights at the end
+  const combined = [...ageInsights];
+  if (pick1) combined.push(pick1);
+  if (pick2 && pick2 !== pick1) combined.push(pick2);
+  return combined;
+}

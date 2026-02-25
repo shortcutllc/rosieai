@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData } from './types';
 import { formatTime } from './developmentalData';
-import { getChatPrompts, ChatPrompt } from './reassuranceMessages';
+import { getChatPrompts, ChatPrompt, generateSessionGreeting } from './reassuranceMessages';
+import { isNewSession, setLastChatOpenTime } from './storage';
 import { useSpeechRecognition } from './useSpeechRecognition';
 
 // Helper to generate UUID (fallback for browsers without crypto.randomUUID)
@@ -95,6 +96,8 @@ interface RosieChatProps {
   weather?: WeatherData | null;
   isOpen: boolean;
   initialMessage?: string;
+  parentName?: string;
+  onOpenQuickLog?: (type: 'feed' | 'sleep' | 'diaper') => void;
   onClose: () => void;
 }
 
@@ -111,6 +114,8 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   weather,
   isOpen,
   initialMessage,
+  parentName,
+  onOpenQuickLog,
   onClose,
 }) => {
   const [input, setInput] = useState('');
@@ -145,9 +150,28 @@ export const RosieChat: React.FC<RosieChatProps> = ({
     return getChatPrompts(babyAgeWeeks, baby.name);
   }, [babyAgeWeeks, baby.name]);
 
+  // Session greeting — computed once when chat opens for a new session
+  const sessionGreeting = useMemo(() => {
+    const hour = new Date().getHours();
+    return generateSessionGreeting(
+      parentName,
+      baby.name,
+      developmentalInfo.ageDisplay,
+      weather ? { condition: weather.condition, temperature: weather.temperature } : null,
+      hour
+    );
+  }, [parentName, baby.name, developmentalInfo.ageDisplay, weather]);
+
+  // Track whether this is a new session (>30 min since last chat open)
+  const [showSessionGreeting, setShowSessionGreeting] = useState(false);
+
   // Handle open/close animation lifecycle
   useEffect(() => {
     if (isOpen) {
+      // Check if this is a new session before recording the open
+      setShowSessionGreeting(isNewSession());
+      setLastChatOpenTime();
+
       // Mount, then animate in on next frame
       setShouldRender(true);
       document.body.style.overflow = 'hidden'; // lock body scroll
@@ -462,18 +486,47 @@ Could you tell me more about what you're experiencing?`;
       <div className="rosie-chat-body">
         {messages.length === 0 && !isTyping ? (
           <div className="rosie-chat-empty-state">
-            {/* Greeting */}
+            {/* Greeting — personalized for new sessions */}
             <div className={`rosie-chat-greeting ${hasEnteredView ? 'entered' : ''}`}>
               <div className="rosie-chat-greeting-avatar">
                 <img src="/rosie-icon.svg" alt="Rosie" className="rosie-chat-greeting-logo" />
               </div>
               <div className="rosie-chat-greeting-text">
-                <span className="rosie-chat-greeting-hey">Hey there</span>
+                <span className="rosie-chat-greeting-hey">
+                  {showSessionGreeting ? sessionGreeting.greeting : 'Hey there'}
+                </span>
                 <span className="rosie-chat-greeting-sub">
-                  I know all about {baby.name} at {developmentalInfo.ageDisplay}. What's on your mind?
+                  {showSessionGreeting ? sessionGreeting.subtext : `I know all about ${baby.name} at ${developmentalInfo.ageDisplay}. What's on your mind?`}
                 </span>
               </div>
             </div>
+
+            {/* Quick Actions — show on new sessions */}
+            {showSessionGreeting && onOpenQuickLog && (
+              <div className={`rosie-chat-quick-actions ${hasEnteredView ? 'entered' : ''}`}>
+                <button
+                  className="rosie-chat-quick-action"
+                  onClick={() => { onOpenQuickLog('feed'); }}
+                >
+                  <span className="rosie-chat-quick-action-icon">🍼</span>
+                  Quick log
+                </button>
+                <button
+                  className="rosie-chat-quick-action"
+                  onClick={() => handleSuggestionClick(`How's ${baby.name} doing today?`)}
+                >
+                  <span className="rosie-chat-quick-action-icon">📊</span>
+                  How's {baby.name}?
+                </button>
+                <button
+                  className="rosie-chat-quick-action"
+                  onClick={() => handleSuggestionClick(`What should we do with ${baby.name} today?`)}
+                >
+                  <span className="rosie-chat-quick-action-icon">🎯</span>
+                  Activity ideas
+                </button>
+              </div>
+            )}
 
             {/* Suggestions */}
             <div className="rosie-chat-suggestions">

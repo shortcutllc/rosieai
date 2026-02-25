@@ -639,6 +639,8 @@ const RosieAIContent: React.FC = () => {
         weather={weather}
         isOpen={showChat}
         initialMessage={chatInitialMessage}
+        parentName={profile?.name}
+        onOpenQuickLog={(type) => setShowQuickLogModal(type)}
         onClose={() => {
           setShowChat(false);
           setActiveTab(previousTab);

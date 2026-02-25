@@ -324,3 +324,60 @@ export const getNormalRangesForAge = (babyAgeWeeks: number): {
     };
   }
 };
+
+// ─── Session Greeting ─────────────────────────────────────────
+
+interface WeatherForGreeting {
+  condition: string;
+  temperature: number;
+}
+
+/**
+ * Generate a personalized greeting for the chat empty state when opening a new session.
+ * Time-aware + weather-aware + baby-personalized.
+ */
+export function generateSessionGreeting(
+  parentName: string | undefined,
+  babyName: string,
+  ageDisplay: string,
+  weather: WeatherForGreeting | null,
+  hour: number
+): { greeting: string; subtext: string } {
+  const name = parentName || '';
+
+  // Time-based greeting
+  let greeting: string;
+  if (hour >= 0 && hour < 6) {
+    greeting = name ? `Late night, ${name}?` : 'Late night?';
+  } else if (hour >= 6 && hour < 12) {
+    greeting = name ? `Good morning, ${name}!` : 'Good morning!';
+  } else if (hour >= 12 && hour < 17) {
+    greeting = name ? `Hey ${name}!` : 'Hey there!';
+  } else {
+    greeting = name ? `Hey ${name}. How's your evening?` : 'How\'s your evening going?';
+  }
+
+  // Weather-aware subtext
+  const badConditions = ['Rain', 'Drizzle', 'Snow', 'Showers', 'Snow Showers', 'Thunderstorm'];
+  let subtext: string;
+
+  if (weather && badConditions.includes(weather.condition)) {
+    if (weather.condition === 'Snow' || weather.condition === 'Snow Showers') {
+      subtext = `Snowy day — cozy inside with ${babyName}. What can I help with?`;
+    } else if (weather.condition === 'Thunderstorm') {
+      subtext = `Stormy out there. I've got indoor ideas for ${babyName} if you need them.`;
+    } else {
+      subtext = `Rainy day — I've got some cozy indoor ideas if you need them.`;
+    }
+  } else if (weather && weather.temperature < 32) {
+    subtext = `Brrr, it's cold out there. Staying warm with ${babyName}?`;
+  } else if (weather && weather.temperature > 95) {
+    subtext = `Hot one today — staying cool inside with ${babyName}?`;
+  } else if (hour >= 0 && hour < 6) {
+    subtext = `I'm here for you and ${babyName}. What's going on?`;
+  } else {
+    subtext = `I know all about ${babyName} at ${ageDisplay}. What's on your mind?`;
+  }
+
+  return { greeting, subtext };
+}

@@ -5168,6 +5168,55 @@
   gap: 8px;
 }
 
+/* Quick action buttons — shown on new sessions */
+.rosie-chat-quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.rosie-chat-quick-actions.entered {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease 100ms, transform 0.3s ease 100ms;
+}
+
+.rosie-chat-quick-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.06);
+  font-size: 13px;
+  font-weight: 600;
+  color: #8B5CF6;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.rosie-chat-quick-action:active {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.rosie-chat-quick-action-icon {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .rosie-chat-quick-actions {
+    padding: 0 24px;
+  }
+}
+
 /* Suggestion card */
 .rosie-chat-suggestion {
   display: flex;
@@ -5245,6 +5294,17 @@
 .rosie-chat-suggestion:active {
   transform: scale(0.98);
   transition: transform 0.08s ease;
+}
+
+/* ── Night mode — chat quick actions ── */
+.rosie-container.night .rosie-chat-quick-action {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: #C4B5FD;
+}
+
+.rosie-container.night .rosie-chat-quick-action:active {
+  background: rgba(139, 92, 246, 0.2);
 }
 
 /* ── Input area — pinned to bottom, seamless like Claude ── */

@@ -363,6 +363,34 @@ const getAdjustedAgeContext = (baby: BabyProfile): string => {
   return `\n**IMPORTANT — ${baby.name} was born ${weeksEarly} weeks early.** Adjusted age is ${adjustedWeeks} weeks. Use adjusted age for developmental expectations, milestones, and feeding/sleep guidance. This is critical — don't hold a preemie to full-term timelines.`;
 };
 
+// Build seasonal awareness context
+const buildSeasonalContext = (): string => {
+  const month = new Date().getMonth();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const monthName = monthNames[month];
+
+  let season: string;
+  let concerns: string;
+
+  if (month >= 2 && month <= 4) {
+    season = 'Spring';
+    concerns = '- Seasonal allergies can start in infancy — persistent runny nose or sneezing may not be a cold\n- Great time for outdoor tummy time and sensory exploration\n- Sunlight helps establish circadian rhythms';
+  } else if (month >= 5 && month <= 7) {
+    season = 'Summer';
+    concerns = '- Babies under 6 months should avoid direct sunlight — use shade, hats, lightweight clothing instead of sunscreen\n- Watch for overheating: flushed cheeks, rapid breathing, fussiness\n- Breastfed babies may want to nurse more often for hydration\n- Supervised water play is great sensory development for 6+ month babies';
+  } else if (month >= 8 && month <= 10) {
+    season = 'Fall';
+    concerns = '- Flu season starts in October — babies 6+ months can get a flu shot\n- As days shorten, baby\'s sleep schedule may shift — ease bedtime earlier gradually\n- Great time for cozy indoor routines and reading';
+  } else {
+    season = 'Winter';
+    concerns = '- Breastfed babies may need 400 IU vitamin D supplement due to limited sunlight\n- Dress baby in one more layer than you\'re wearing\n- Cabin fever is real — suggest indoor sensory play, bath play, dance parties\n- If parent sounds frustrated about being stuck inside, validate first, then offer creative ideas';
+  }
+
+  return `SEASONAL CONTEXT:
+Current season: ${season} (${monthName})
+${concerns}`;
+};
+
 // Build the system prompt with all context
 const buildSystemPrompt = (baby: BabyProfile, developmentalInfo: DevelopmentalInfo, timeline: TimelineEvent[], growthMeasurements?: GrowthMeasurement[], weather?: WeatherData, milestoneRecords?: MilestoneRecord[], parentName?: string): string => {
   const { ageDisplay, weekNumber, sleepInfo, feedingInfo, whatToExpect, milestones, commonConcerns, upcomingChanges } = developmentalInfo;
@@ -395,6 +423,8 @@ ${buildWeatherContext(weather)}
 ${buildCatchUpContext(baby.catchUpData)}
 
 ${buildMilestoneContext(milestoneRecords)}
+
+${buildSeasonalContext()}
 
 HOW TO TALK:
 - Sound like a real person, not a chatbot. Short sentences. Contractions. Casual but not sloppy.

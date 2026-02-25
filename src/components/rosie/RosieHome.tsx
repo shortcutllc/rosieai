@@ -5,7 +5,7 @@ import { getTodayEvents, getTodayStats, getExpectedValues, getSmartPromptData, g
 import { getTodaysActivities, getWeatherLabel } from './dailyActivities';
 import { getMilestonesForCatchUp, getMilestonesForAge } from './milestoneData';
 import { RosieMilestoneBrowser } from './RosieMilestoneBrowser';
-import { getInsightsForWeek, ExpertInsight } from './expertInsights';
+import { getInsightsForWeekWithSeasonal, ExpertInsight } from './expertInsights';
 import { WeeklySummary, IsThisNormalQuestion, CorrelationInsight } from './analyticsEngine';
 
 // Catch-up quiz topic definitions
@@ -165,9 +165,9 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
     [weather]
   );
 
-  // Expert insights for current developmental stage
+  // Expert insights for current developmental stage + seasonal
   const allInsights: ExpertInsight[] = useMemo(() => {
-    return getInsightsForWeek(babyAgeWeeks);
+    return getInsightsForWeekWithSeasonal(babyAgeWeeks);
   }, [babyAgeWeeks]);
 
   const nextInsight = useCallback(() => {

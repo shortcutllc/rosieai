@@ -47,3 +47,40 @@ export const importData = (jsonString: string): boolean => {
     return false;
   }
 };
+
+// ─── Session Tracking ─────────────────────────────────────────
+
+const SESSION_KEY = 'rosie_last_chat_open';
+const SESSION_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes
+
+/**
+ * Get the timestamp of when the chat was last opened.
+ */
+export const getLastChatOpenTime = (): number | null => {
+  try {
+    const val = localStorage.getItem(SESSION_KEY);
+    return val ? parseInt(val, 10) : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Record that the chat was just opened.
+ */
+export const setLastChatOpenTime = (): void => {
+  try {
+    localStorage.setItem(SESSION_KEY, Date.now().toString());
+  } catch {
+    // Silently fail
+  }
+};
+
+/**
+ * Check if this is a "new session" — no previous timestamp or >30 min since last chat open.
+ */
+export const isNewSession = (): boolean => {
+  const last = getLastChatOpenTime();
+  if (!last) return true;
+  return (Date.now() - last) > SESSION_THRESHOLD_MS;
+};
