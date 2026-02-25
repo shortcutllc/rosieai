@@ -241,6 +241,12 @@ export const RosieAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       if (newSession?.user) {
+        // Set loading true BEFORE setting user to prevent RosieAuth useEffect
+        // from seeing user without profile/babies and flashing the onboarding screen
+        if (event === 'SIGNED_IN' && dataLoadedForUser.current !== newSession.user.id) {
+          setLoading(true);
+        }
+
         setSession(newSession);
         setUser(newSession.user);
 
