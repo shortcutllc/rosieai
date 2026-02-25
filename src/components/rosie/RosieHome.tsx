@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
-import { TimelineEvent, BabyProfile, DevelopmentalInfo, CatchUpData } from './types';
+import { TimelineEvent, BabyProfile, DevelopmentalInfo, CatchUpData, WeatherData } from './types';
 import { TimePeriod } from './RosieHeader';
 import { getTodayEvents, getTodayStats, getExpectedValues, getSmartPromptData, getProactiveAlerts } from './contextEngine';
-import { getTodaysActivities } from './dailyActivities';
+import { getTodaysActivities, getWeatherLabel } from './dailyActivities';
 import { getMilestonesForCatchUp, getMilestonesForAge } from './milestoneData';
 import { RosieMilestoneBrowser } from './RosieMilestoneBrowser';
 import { getInsightsForWeek, ExpertInsight } from './expertInsights';
@@ -28,6 +28,7 @@ interface RosieHomeProps {
   weeklySummary?: WeeklySummary | null;
   correlationInsights?: CorrelationInsight[];
   isThisNormalQuestions?: IsThisNormalQuestion[];
+  weather?: WeatherData | null;
   onOpenQuickLog: (type: 'feed' | 'sleep' | 'diaper') => void;
   onNavigateTab: (tab: 'timeline' | 'discover') => void;
   onUpdateCatchUp?: (data: Partial<CatchUpData>) => Promise<{ success: boolean; error?: string }>;
@@ -44,6 +45,7 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
   weeklySummary,
   correlationInsights,
   isThisNormalQuestions,
+  weather,
   onOpenQuickLog,
   onNavigateTab,
   onUpdateCatchUp,
@@ -91,8 +93,8 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
   );
 
   const proactiveAlerts = useMemo(
-    () => alertDismissed ? [] : getProactiveAlerts(timeline, developmentalInfo, baby.name),
-    [timeline, developmentalInfo, baby.name, alertDismissed]
+    () => alertDismissed ? [] : getProactiveAlerts(timeline, developmentalInfo, baby.name, weather),
+    [timeline, developmentalInfo, baby.name, alertDismissed, weather]
   );
 
   // Auto-flip carousel state
@@ -154,8 +156,13 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
   }, [baby.birthDate]);
 
   const dailyActivities = useMemo(
-    () => getTodaysActivities(babyAgeWeeks, [], 3),
-    [babyAgeWeeks]
+    () => getTodaysActivities(babyAgeWeeks, [], 3, weather),
+    [babyAgeWeeks, weather]
+  );
+
+  const weatherLabel = useMemo(
+    () => getWeatherLabel(weather ?? null),
+    [weather]
   );
 
   // Expert insights for current developmental stage
@@ -617,6 +624,12 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
             <h2 className="rosie-home-section-title">Today's Plan</h2>
           </div>
           <div className="rosie-daily-plan">
+            {weatherLabel && (
+              <div className="rosie-plan-weather-label">
+                <span className="rosie-plan-weather-emoji">{weatherLabel.emoji}</span>
+                {weatherLabel.text}
+              </div>
+            )}
             <div className="rosie-plan-header">
               <span className="rosie-plan-header-icon">🎯</span>
               <span className="rosie-plan-header-text">

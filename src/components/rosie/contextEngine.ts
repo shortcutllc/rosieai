@@ -6,10 +6,11 @@
  * No React dependencies — just data in, data out.
  */
 
-import { TimelineEvent, DevelopmentalInfo } from './types';
+import { TimelineEvent, DevelopmentalInfo, WeatherData } from './types';
 import { TimePeriod } from './RosieHeader';
 import { getLeapStatus } from './leapData';
 import { getParentWellnessForWeek, getQuickWinsForWeek, getInsightsForWeek } from './expertInsights';
+import { isBadWeather, getTodaysActivities } from './dailyActivities';
 
 // ─── Interfaces ──────────────────────────────────────────────
 
@@ -752,7 +753,8 @@ export function getProactiveAlert(
 export function getProactiveAlerts(
   timeline: TimelineEvent[],
   developmentalInfo: DevelopmentalInfo,
-  babyName: string
+  babyName: string,
+  weather?: WeatherData | null
 ): ProactiveAlertData[] {
   const alerts: ProactiveAlertData[] = [];
   const todayEvents = timeline.filter(e => isToday(e.timestamp));
@@ -795,6 +797,46 @@ export function getProactiveAlerts(
       text: `${babyName} may be fussier than usual right now. This mental leap typically lasts ${leap.endWeek - leap.startWeek} weeks and ends with new skills.`,
       icon: '🧠',
       variant: 'purple',
+    });
+  }
+
+  // Cabin fever detection — bad weather alert with indoor activity suggestions
+  if (weather && isBadWeather(weather)) {
+    const condition = weather.condition;
+    const temp = weather.temperature;
+    let cabinIcon = '🌧️';
+    let cabinTitle = 'Rainy day vibes';
+    let cabinText = `It's rainy outside — perfect excuse to stay cozy. Here are some indoor ideas for ${babyName}.`;
+
+    if (condition === 'Snow' || condition === 'Snow Showers') {
+      cabinIcon = '❄️';
+      cabinTitle = 'Snow day!';
+      cabinText = `It's snowy outside — great day to stay warm and play inside with ${babyName}.`;
+    } else if (condition === 'Thunderstorm') {
+      cabinIcon = '⛈️';
+      cabinTitle = 'Stormy out there';
+      cabinText = `Thunderstorms today — a cozy indoor day with ${babyName}. Check today's plan for ideas.`;
+    } else if (temp < 32) {
+      cabinIcon = '🥶';
+      cabinTitle = 'Brrr — stay warm';
+      cabinText = `It's ${Math.round(temp)}°F outside — way too cold. Bundle up inside and try some sensory play with ${babyName}.`;
+    } else if (temp > 95) {
+      cabinIcon = '🥵';
+      cabinTitle = 'Too hot outside';
+      cabinText = `It's ${Math.round(temp)}°F — stay cool inside with ${babyName}. Water play in the bath is a great option.`;
+    }
+
+    // Get an indoor activity suggestion
+    const indoorActivities = getTodaysActivities(developmentalInfo.weekNumber, [], 1, weather);
+    if (indoorActivities.length > 0) {
+      cabinText += ` Try: ${indoorActivities[0].title} (${indoorActivities[0].duration}).`;
+    }
+
+    alerts.push({
+      title: cabinTitle,
+      text: cabinText,
+      icon: cabinIcon,
+      variant: 'blue',
     });
   }
 

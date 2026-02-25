@@ -325,12 +325,12 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 *Make Rosie location-aware and activity-aware*
 
 - [x] **Weather-aware daily briefing** — weather-aware activity suggestion in Discover tab (indoor/outdoor, condition-specific, with placeholder when no location)
-- [ ] **Cabin fever detection** (stuck inside for 2+ days → proactive intervention)
-- [ ] **Hyperlocal activity discovery** (age-appropriate classes, events within 1-5 miles — requires external API)
-- [ ] **Daily planning with location context** (morning plan: weather + activity + developmental focus)
-- [ ] **Seasonal awareness** (winter indoor alternatives, summer outdoor safety, rainy day backups)
-- [ ] **Walking vs driving radius** (quick walk < 1mi, quick drive < 5mi)
-- [ ] **Chat greeting on login** — when user opens app, Rosie greets them in chat: "Good morning, Lauren. What can I help you with today?" with quick action buttons (quick log, analyze data, ask a question, meme of the day from curated mom meme collection)
+- [x] **Weather-aware daily planning** — activities tagged indoor/outdoor/either, getTodaysActivities() filters by weather (bad weather → indoor only, good weather → boost outdoor), weather label on daily plan card
+- [x] **Cabin fever detection** — proactive alert in Home carousel when weather is bad (rain/snow/cold/heat) with tailored messages + indoor activity suggestion from dailyActivities
+- [ ] **Hyperlocal activity discovery** (age-appropriate classes, events within 1-5 miles — requires external API, deferred)
+- [ ] **Seasonal awareness** (seasonal expert insights + seasonal system prompt context)
+- [ ] **Walking vs driving radius** (quick walk < 1mi, quick drive < 5mi — deferred, requires external API)
+- [ ] **Chat greeting on login** — when user opens app, Rosie greets them in chat with quick action buttons (quick log, analyze data, ask a question)
 
 ### Phase 4: Predictive Intelligence (Months 9-12)
 *Rosie gets genuinely predictive*

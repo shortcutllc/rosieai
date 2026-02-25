@@ -4,8 +4,10 @@
  * Curated activities organized by age range and development category.
  * These are static editorial content — no database table needed.
  * The selection logic picks 3–5 activities per day based on baby's age,
- * completed milestones, and time of day.
+ * completed milestones, weather conditions, and time of day.
  */
+
+import type { WeatherData } from './types';
 
 export interface Activity {
   id: string;
@@ -14,6 +16,7 @@ export interface Activity {
   duration: string; // "5 min", "10–15 min"
   ageRangeWeeks: [number, number]; // [earliest, latest]
   category: 'motor' | 'cognitive' | 'social' | 'sensory' | 'communication';
+  setting: 'indoor' | 'outdoor' | 'either'; // weather-aware activity selection
   relatedMilestones: string[]; // milestone IDs this activity supports
   icon: string;
   tip?: string; // optional parent tip
@@ -31,6 +34,7 @@ const ACTIVITIES: Activity[] = [
     duration: '2–5 min',
     ageRangeWeeks: [0, 8],
     category: 'motor',
+    setting: 'either',
     relatedMilestones: ['head_control_brief'],
     icon: '💪',
     tip: 'Start with 1–2 minutes after diaper changes. Build up gradually. It\'s okay if they fuss a little.',
@@ -42,6 +46,7 @@ const ACTIVITIES: Activity[] = [
     duration: '3–5 min',
     ageRangeWeeks: [0, 12],
     category: 'social',
+    setting: 'indoor',
     relatedMilestones: ['looks_at_faces', 'social_smile', 'copies_expressions'],
     icon: '😊',
     tip: 'Newborns see best at 8–12 inches. That\'s about the distance from your elbow to your hand.',
@@ -53,6 +58,7 @@ const ACTIVITIES: Activity[] = [
     duration: '3–5 min',
     ageRangeWeeks: [0, 12],
     category: 'cognitive',
+    setting: 'indoor',
     relatedMilestones: ['tracks_objects'],
     icon: '🎯',
   },
@@ -63,6 +69,7 @@ const ACTIVITIES: Activity[] = [
     duration: 'Ongoing',
     ageRangeWeeks: [0, 52],
     category: 'cognitive',
+    setting: 'either',
     relatedMilestones: ['turns_to_sound', 'coos'],
     icon: '🗣️',
     tip: 'It feels silly at first, but hearing language is the single most important thing for brain development.',
@@ -74,6 +81,7 @@ const ACTIVITIES: Activity[] = [
     duration: '15–30 min',
     ageRangeWeeks: [0, 17],
     category: 'social',
+    setting: 'indoor',
     relatedMilestones: ['recognizes_caregiver', 'self_soothe'],
     icon: '🤱',
   },
@@ -84,6 +92,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5 min',
     ageRangeWeeks: [0, 17],
     category: 'sensory',
+    setting: 'indoor',
     relatedMilestones: ['smooth_movements'],
     icon: '✋',
   },
@@ -97,6 +106,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [8, 26],
     category: 'motor',
+    setting: 'indoor',
     relatedMilestones: ['head_control_steady', 'pushes_up_arms', 'likes_mirror'],
     icon: '🪞',
   },
@@ -107,6 +117,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [8, 22],
     category: 'motor',
+    setting: 'either',
     relatedMilestones: ['swipes_at_toys', 'reaches_and_grabs'],
     icon: '🎪',
   },
@@ -117,6 +128,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [4, 52],
     category: 'social',
+    setting: 'either',
     relatedMilestones: ['laughs', 'enjoys_play'],
     icon: '🎵',
     tip: 'Your baby doesn\'t care if you\'re off-key. They just want to hear YOUR voice.',
@@ -128,6 +140,7 @@ const ACTIVITIES: Activity[] = [
     duration: '2–3 min',
     ageRangeWeeks: [4, 26],
     category: 'motor',
+    setting: 'indoor',
     relatedMilestones: ['smooth_movements'],
     icon: '🚲',
     tip: 'Great for gassy babies. Try this during diaper changes.',
@@ -139,6 +152,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5 min',
     ageRangeWeeks: [8, 30],
     category: 'communication',
+    setting: 'either',
     relatedMilestones: ['coos', 'babbles', 'different_cries'],
     icon: '💬',
     tip: 'This teach-and-take pattern is the foundation of all communication. You\'re teaching them how conversation works.',
@@ -153,6 +167,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [17, 30],
     category: 'motor',
+    setting: 'either',
     relatedMilestones: ['sits_with_support', 'reaches_and_grabs'],
     icon: '🪑',
     tip: 'Boppy pillows work great as a sitting support ring.',
@@ -164,6 +179,7 @@ const ACTIVITIES: Activity[] = [
     duration: '10 min',
     ageRangeWeeks: [13, 30],
     category: 'sensory',
+    setting: 'indoor',
     relatedMilestones: ['explores_with_mouth', 'curious_about_things'],
     icon: '🧶',
     tip: 'Everything goes in the mouth at this age. Make sure toys are clean and too large to swallow.',
@@ -175,6 +191,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5 min',
     ageRangeWeeks: [17, 39],
     category: 'cognitive',
+    setting: 'either',
     relatedMilestones: ['object_permanence', 'laughs', 'plays_peekaboo'],
     icon: '🙈',
     tip: 'This simple game is actually teaching object permanence — one of the biggest cognitive leaps.',
@@ -186,6 +203,7 @@ const ACTIVITIES: Activity[] = [
     duration: '3–5 min',
     ageRangeWeeks: [17, 35],
     category: 'communication',
+    setting: 'either',
     relatedMilestones: ['responds_to_name', 'turns_to_sound'],
     icon: '📣',
   },
@@ -196,6 +214,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [17, 30],
     category: 'motor',
+    setting: 'either',
     relatedMilestones: ['transfers_objects', 'cause_and_effect', 'reaches_and_grabs'],
     icon: '🔔',
   },
@@ -209,6 +228,7 @@ const ACTIVITIES: Activity[] = [
     duration: '10–15 min',
     ageRangeWeeks: [26, 43],
     category: 'motor',
+    setting: 'either',
     relatedMilestones: ['crawls'],
     icon: '🐛',
     tip: 'Every baby figures out movement differently — scooting, army crawling, and rolling all count.',
@@ -220,6 +240,7 @@ const ACTIVITIES: Activity[] = [
     duration: '10 min',
     ageRangeWeeks: [26, 48],
     category: 'cognitive',
+    setting: 'either',
     relatedMilestones: ['puts_things_in_container', 'drops_objects_on_purpose', 'cause_and_effect'],
     icon: '📥',
   },
@@ -230,6 +251,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5 min',
     ageRangeWeeks: [26, 43],
     category: 'social',
+    setting: 'either',
     relatedMilestones: ['plays_peekaboo', 'plays_social_games'],
     icon: '👏',
   },
@@ -240,6 +262,7 @@ const ACTIVITIES: Activity[] = [
     duration: '15 min',
     ageRangeWeeks: [26, 43],
     category: 'motor',
+    setting: 'indoor',
     relatedMilestones: ['pincer_grasp_developing'],
     icon: '🍌',
     tip: 'The pincer grasp develops through practice. Messy meals are learning opportunities.',
@@ -251,6 +274,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [22, 52],
     category: 'cognitive',
+    setting: 'either',
     relatedMilestones: ['points_at_things', 'consonant_sounds'],
     icon: '📚',
     tip: 'Don\'t worry about reading every word. Pointing and naming pictures is just as valuable.',
@@ -262,6 +286,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [26, 43],
     category: 'motor',
+    setting: 'either',
     relatedMilestones: ['pulls_to_stand'],
     icon: '🧗',
   },
@@ -275,6 +300,7 @@ const ACTIVITIES: Activity[] = [
     duration: '10–15 min',
     ageRangeWeeks: [35, 52],
     category: 'motor',
+    setting: 'indoor',
     relatedMilestones: ['cruises_furniture', 'stands_briefly', 'first_steps'],
     icon: '🚶',
   },
@@ -285,6 +311,7 @@ const ACTIVITIES: Activity[] = [
     duration: '2–3 min',
     ageRangeWeeks: [30, 52],
     category: 'communication',
+    setting: 'either',
     relatedMilestones: ['waves_bye', 'follows_simple_commands'],
     icon: '👋',
   },
@@ -295,6 +322,7 @@ const ACTIVITIES: Activity[] = [
     duration: '10 min',
     ageRangeWeeks: [35, 52],
     category: 'cognitive',
+    setting: 'either',
     relatedMilestones: ['cause_and_effect', 'uses_objects_correctly'],
     icon: '🏗️',
     tip: 'Knocking down is the first step. Stacking comes later. Both are learning.',
@@ -306,6 +334,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [39, 52],
     category: 'cognitive',
+    setting: 'indoor',
     relatedMilestones: ['uses_objects_correctly'],
     icon: '📱',
   },
@@ -316,6 +345,7 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [30, 52],
     category: 'cognitive',
+    setting: 'either',
     relatedMilestones: ['finds_hidden_objects', 'object_permanence'],
     icon: '🕵️',
   },
@@ -326,11 +356,54 @@ const ACTIVITIES: Activity[] = [
     duration: '5–10 min',
     ageRangeWeeks: [17, 52],
     category: 'social',
+    setting: 'either',
     relatedMilestones: ['enjoys_play'],
     icon: '💃',
     tip: 'Movement + music + your face = the ultimate baby engagement combo.',
   },
 ];
+
+// ─── Weather Helpers ────────────────────────────────────────
+
+const BAD_WEATHER_CONDITIONS = ['Rain', 'Drizzle', 'Snow', 'Showers', 'Snow Showers', 'Thunderstorm'];
+
+/**
+ * Determines if weather conditions are bad for outdoor activities.
+ * Bad = precipitation, extreme cold (<32°F), or extreme heat (>95°F).
+ */
+export function isBadWeather(weather: WeatherData): boolean {
+  if (BAD_WEATHER_CONDITIONS.includes(weather.condition)) return true;
+  if (weather.temperature < 32 || weather.temperature > 95) return true;
+  return false;
+}
+
+/**
+ * Returns a weather context label for the daily plan card.
+ * null = no weather or neutral conditions (don't show label).
+ */
+export function getWeatherLabel(weather: WeatherData | null): { text: string; emoji: string } | null {
+  if (!weather) return null;
+
+  if (BAD_WEATHER_CONDITIONS.includes(weather.condition)) {
+    if (weather.condition === 'Snow' || weather.condition === 'Snow Showers') {
+      return { text: 'Cozy inside day', emoji: '❄️' };
+    }
+    if (weather.condition === 'Thunderstorm') {
+      return { text: 'Indoor day', emoji: '⛈️' };
+    }
+    return { text: 'Indoor day', emoji: '🌧️' };
+  }
+  if (weather.temperature < 32) {
+    return { text: 'Cozy inside day', emoji: '❄️' };
+  }
+  if (weather.temperature > 95) {
+    return { text: 'Too hot — stay cool inside', emoji: '🥵' };
+  }
+  if (weather.condition === 'Clear' || weather.condition === 'Partly Cloudy') {
+    return { text: 'Great day for outside', emoji: '☀️' };
+  }
+  return null; // Cloudy, Foggy — neutral, no label
+}
 
 // ─── Public API ─────────────────────────────────────────────
 
@@ -355,27 +428,41 @@ export function getActivitiesForAge(ageInWeeks: number): Activity[] {
  * Get today's suggested activities (3–5 activities).
  * Uses deterministic rotation so the same activities show all day,
  * but change each day.
+ *
+ * When weather data is provided:
+ * - Bad weather → filter to 'indoor' or 'either' only
+ * - Good weather → prefer 'outdoor' and 'either', mix in 'indoor'
+ * - No weather → current behavior (no filtering)
  */
 export function getTodaysActivities(
   ageInWeeks: number,
   completedMilestoneIds: string[] = [],
-  count: number = 4
+  count: number = 4,
+  weather?: WeatherData | null
 ): Activity[] {
-  const eligible = getActivitiesForAge(ageInWeeks);
+  let eligible = getActivitiesForAge(ageInWeeks);
+
+  // Weather-aware filtering
+  if (weather && isBadWeather(weather)) {
+    // Bad weather: only indoor or either activities
+    eligible = eligible.filter(a => a.setting === 'indoor' || a.setting === 'either');
+  }
 
   if (eligible.length === 0) return [];
   if (eligible.length <= count) return eligible;
 
   // Prioritize activities related to milestones the baby HASN'T completed yet
+  // On good weather days, boost outdoor activities
+  const goodWeather = weather && !isBadWeather(weather);
   const scored = eligible.map(activity => {
     const hasUncompletedRelated = activity.relatedMilestones.some(
       mId => !completedMilestoneIds.includes(mId)
     );
-    return {
-      activity,
-      // Higher score = more relevant
-      score: hasUncompletedRelated ? 2 : 1,
-    };
+    let score = hasUncompletedRelated ? 2 : 1;
+    // Boost outdoor/either activities on nice days
+    if (goodWeather && activity.setting === 'outdoor') score += 1;
+    if (goodWeather && activity.setting === 'either') score += 0.5;
+    return { activity, score };
   });
 
   // Sort by relevance, then use deterministic daily rotation

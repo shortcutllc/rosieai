@@ -570,6 +570,7 @@ const RosieAIContent: React.FC = () => {
               weeklySummary={weeklySummary}
               correlationInsights={correlationInsights}
               isThisNormalQuestions={isThisNormalQuestions}
+              weather={weather}
               onOpenQuickLog={(type) => setShowQuickLogModal(type)}
               onNavigateTab={(tab) => { setActiveTab(tab); setShowChat(false); }}
               onUpdateCatchUp={currentBaby ? (data) => updateCatchUpData(currentBaby.id, data) : undefined}
