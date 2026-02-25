@@ -6,6 +6,7 @@ import { getTodaysActivities } from './dailyActivities';
 import { getMilestonesForCatchUp, getMilestonesForAge } from './milestoneData';
 import { RosieMilestoneBrowser } from './RosieMilestoneBrowser';
 import { getInsightsForWeek, ExpertInsight } from './expertInsights';
+import { WeeklySummary, IsThisNormalQuestion, CorrelationInsight } from './analyticsEngine';
 
 // Catch-up quiz topic definitions
 const CATCHUP_TOPICS = [
@@ -24,9 +25,13 @@ interface RosieHomeProps {
   timePeriod: TimePeriod;
   lastFeedSide?: string;
   catchUpData?: CatchUpData;
+  weeklySummary?: WeeklySummary | null;
+  correlationInsights?: CorrelationInsight[];
+  isThisNormalQuestions?: IsThisNormalQuestion[];
   onOpenQuickLog: (type: 'feed' | 'sleep' | 'diaper') => void;
   onNavigateTab: (tab: 'timeline' | 'discover') => void;
   onUpdateCatchUp?: (data: Partial<CatchUpData>) => Promise<{ success: boolean; error?: string }>;
+  onAskRosie?: (message: string) => void;
 }
 
 export const RosieHome: React.FC<RosieHomeProps> = ({
@@ -36,9 +41,13 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
   timePeriod,
   lastFeedSide,
   catchUpData,
+  weeklySummary,
+  correlationInsights,
+  isThisNormalQuestions,
   onOpenQuickLog,
   onNavigateTab,
   onUpdateCatchUp,
+  onAskRosie,
 }) => {
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
@@ -429,6 +438,76 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
         </section>
       )}
 
+      {/* Patterns — unified weekly averages + top correlation insights */}
+      {((weeklySummary && weeklySummary.hasEnoughData) || (correlationInsights && correlationInsights.length > 0)) && (
+        <section className="rosie-home-section">
+          <div className="rosie-home-section-header">
+            <h2 className="rosie-home-section-title">Patterns</h2>
+            <button
+              className="rosie-home-section-link"
+              onClick={() => onNavigateTab('discover')}
+            >
+              See all →
+            </button>
+          </div>
+          <div className="rosie-patterns-card">
+            {/* Daily averages with trends */}
+            {weeklySummary && weeklySummary.hasEnoughData && (
+              <div className="rosie-patterns-stats">
+                <div className="rosie-patterns-stat">
+                  <div className="rosie-patterns-stat-value" style={{ color: '#FF9500' }}>
+                    {weeklySummary.thisWeek.feeds % 1 === 0 ? weeklySummary.thisWeek.feeds.toFixed(0) : weeklySummary.thisWeek.feeds.toFixed(1)}
+                    <span className="rosie-patterns-stat-unit">/day</span>
+                  </div>
+                  <div className="rosie-patterns-stat-label">Feeds</div>
+                  {weeklySummary.trends && weeklySummary.trends.feeds !== 0 && (
+                    <div className={`rosie-patterns-stat-trend ${weeklySummary.trends.feeds > 0 ? 'up' : 'down'}`}>
+                      {weeklySummary.trends.feeds > 0 ? '↑' : '↓'} {Math.abs(weeklySummary.trends.feeds)}%
+                    </div>
+                  )}
+                </div>
+                <div className="rosie-patterns-stat">
+                  <div className="rosie-patterns-stat-value" style={{ color: '#B57BEC' }}>
+                    {weeklySummary.thisWeek.sleepHours % 1 === 0 ? weeklySummary.thisWeek.sleepHours.toFixed(0) : weeklySummary.thisWeek.sleepHours.toFixed(1)}h
+                    <span className="rosie-patterns-stat-unit">/day</span>
+                  </div>
+                  <div className="rosie-patterns-stat-label">Sleep</div>
+                  {weeklySummary.trends && weeklySummary.trends.sleep !== 0 && (
+                    <div className={`rosie-patterns-stat-trend ${weeklySummary.trends.sleep > 0 ? 'up' : 'down'}`}>
+                      {weeklySummary.trends.sleep > 0 ? '↑' : '↓'} {Math.abs(weeklySummary.trends.sleep)}%
+                    </div>
+                  )}
+                </div>
+                <div className="rosie-patterns-stat">
+                  <div className="rosie-patterns-stat-value" style={{ color: '#34C759' }}>
+                    {weeklySummary.thisWeek.diapers % 1 === 0 ? weeklySummary.thisWeek.diapers.toFixed(0) : weeklySummary.thisWeek.diapers.toFixed(1)}
+                    <span className="rosie-patterns-stat-unit">/day</span>
+                  </div>
+                  <div className="rosie-patterns-stat-label">Diapers</div>
+                  {weeklySummary.trends && weeklySummary.trends.diapers !== 0 && (
+                    <div className={`rosie-patterns-stat-trend ${weeklySummary.trends.diapers > 0 ? 'up' : 'down'}`}>
+                      {weeklySummary.trends.diapers > 0 ? '↑' : '↓'} {Math.abs(weeklySummary.trends.diapers)}%
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Top pattern insights (max 2 previews) */}
+            {correlationInsights && correlationInsights.length > 0 && (
+              <div className="rosie-patterns-insights">
+                {correlationInsights.slice(0, 2).map(insight => (
+                  <div key={insight.id} className="rosie-patterns-insight-row">
+                    <span className="rosie-patterns-insight-icon">{insight.icon}</span>
+                    <span className="rosie-patterns-insight-title">{insight.title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Mini Quick Log */}
       <section className="rosie-home-section">
         <div className="rosie-home-section-header">
@@ -646,6 +725,33 @@ export const RosieHome: React.FC<RosieHomeProps> = ({
                 onClick={() => setCurrentInsightIndex(i)}
                 aria-label={`Go to insight ${i + 1}`}
               />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* "Is This Normal?" — personalized FAQ cards */}
+      {isThisNormalQuestions && isThisNormalQuestions.length > 0 && (
+        <section className="rosie-home-section">
+          <div className="rosie-home-section-header">
+            <h2 className="rosie-home-section-title">Is This Normal?</h2>
+          </div>
+          <div className="rosie-itn-cards">
+            {isThisNormalQuestions.map(q => (
+              <div
+                key={q.id}
+                className="rosie-itn-card"
+                onClick={() => onAskRosie?.(q.chatMessage)}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="rosie-itn-question-row">
+                  <span className="rosie-itn-icon">{q.icon}</span>
+                  <span className="rosie-itn-question">{q.question}</span>
+                </div>
+                <div className="rosie-itn-answer">{q.answerPreview}</div>
+                <div className="rosie-itn-ask-link">Ask Rosie →</div>
+              </div>
             ))}
           </div>
         </section>

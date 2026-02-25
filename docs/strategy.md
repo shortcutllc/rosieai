@@ -311,12 +311,12 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 *Turn data into proactive, personalized insights*
 
 - [x] **Anticipatory Guidance Engine** — Wonder Weeks leap predictions (current/upcoming/sunny periods with progress %), "Coming Up" section in Discover, leap browser with all 10 leaps detail views, expert insights per age stage (`leapData.ts`, `expertInsights.ts`)
-- [ ] **Cross-variable correlation engine** (nightly analysis: feed patterns vs sleep, growth spurts, developmental leaps)
-- [ ] **Personalized baselines** (Oliver's typical intervals vs population averages — smart defaults exist via `getSmartDefaults()` but no baseline visualization/alerts)
+- [x] **Cross-variable correlation engine** — feed↔sleep correlation, growth spurt detection, sleep consolidation trend, leap impact analysis, nap pattern consistency (`analyticsEngine.ts → getCorrelationInsights()`, unified "Patterns" feature — compact preview on Home + full view on Discover)
+- [x] **Personalized baselines** — baby's actual averages vs AAP/WHO population ranges shown as range bars with personal marker (feeds/day, sleep/day, diapers/day, avg nap length) (`analyticsEngine.ts → getPersonalizedBaselines()`, Discover tab)
 - [x] **Daily activity plan** — 3 age-appropriate activities per day with checkable items, deterministic daily rotation (`dailyActivities.ts`)
-- [ ] **"Is This Normal?" reassurance** (context-aware answers using baby's specific age, weight, history)
+- [x] **"Is This Normal?" reassurance** — personalized FAQ cards on Home tab using baby's actual data vs population ranges, tappable to pre-fill Ask Rosie chat (`analyticsEngine.ts → getIsThisNormalQuestions()`, Home tab section + chat wiring)
 - [x] **Pattern alerts** — proactive alert engine detecting cluster feeding, short naps, developmental leaps (`contextEngine.ts → getProactiveAlert()`)
-- [ ] **Weekly summary** ("This week: Oliver fed 42 times, slept 98 hours, and started reaching for objects")
+- [x] **Weekly summary** — daily averages (feeds/day, sleep hrs/day, diapers/day) with % trend arrows vs last week, unified "Patterns" card on Home with "See all →" to Discover, highlight bullets (growth spurt, leap status, nap consolidation) (`analyticsEngine.ts → getWeeklySummary()`)
 - [x] **Parent wellness detection** — "For You" wellness card in Discover tab with permission slip + "one thing today" (`expertInsights.ts`)
 - [x] **Expert Insights system** — 48 research-backed insights across 8 age stages, carousel on Home + Discover, full browser modal with collapsible groups (`expertInsights.ts`, `RosieInsightsBrowser.tsx`)
 - [x] **Milestone browser with persistence** — full milestone browser modal with Supabase storage, check-off functionality, age-grouped display, progress tracking (`RosieMilestoneBrowser.tsx`, `supabaseMilestones.ts`)
@@ -330,6 +330,7 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 - [ ] **Daily planning with location context** (morning plan: weather + activity + developmental focus)
 - [ ] **Seasonal awareness** (winter indoor alternatives, summer outdoor safety, rainy day backups)
 - [ ] **Walking vs driving radius** (quick walk < 1mi, quick drive < 5mi)
+- [ ] **Chat greeting on login** — when user opens app, Rosie greets them in chat: "Good morning, Lauren. What can I help you with today?" with quick action buttons (quick log, analyze data, ask a question, meme of the day from curated mom meme collection)
 
 ### Phase 4: Predictive Intelligence (Months 9-12)
 *Rosie gets genuinely predictive*
@@ -366,25 +367,25 @@ The market sweet spot is $40-80/year for software-only. Parents resist >$100/yr 
 
 ### Next Up
 
-Current priorities — the remaining unchecked Phase 1 + Phase 2 items:
+Current priorities — the remaining unchecked Phase 1 + early Phase 3 items:
 
 **Phase 1 (remaining):**
 1. **Caregiver sharing** — Invite partner/grandparent with real-time sync and handoff briefings. Data structure exists (`CaregiverNote` in types.ts) but no sharing UI or multi-user access.
 2. **Pediatrician export** — Formatted PDF with growth charts, feeding averages, sleep patterns, milestones.
 
-**Phase 2 (remaining):**
-3. **Cross-variable correlation engine** — Nightly analysis connecting feed patterns vs sleep, growth spurts, developmental leaps.
-4. **Personalized baselines** — Visual baseline display + deviation alerts. Foundation exists via `getSmartDefaults()` but needs UI.
-5. **"Is This Normal?" reassurance** — Dedicated feature for context-aware answers using baby's specific data.
-6. **Weekly summary** — Automated "This week" digest with stats, milestones, and trends.
+**Phase 3 (next):**
+3. **Cabin fever detection** — Stuck inside 2+ days → proactive intervention with indoor activity suggestions.
+4. **Hyperlocal activity discovery** — Age-appropriate classes/events within 1-5 miles (requires external API integration).
+5. **Daily planning with location context** — Morning plan: weather + activity + developmental focus.
+6. **Chat greeting on login** — Rosie greets user in chat with quick action buttons (quick log, analyze data, ask a question).
 
 #### Recently Completed
-- ~~Wireframe alignment~~ — Home feed, Discover tab, onboarding flow matched to wireframe specs across multiple sessions (section order, spacing, typography, gradients, card sizes, night mode)
+- ~~Phase 2 complete~~ — All Phase 2 Intelligence features shipped: correlation engine, personalized baselines, "Is This Normal?" reassurance, weekly summary, pattern alerts, daily activity plan, parent wellness, expert insights, milestone browser
+- ~~Patterns refactor~~ — Weekly totals → daily averages, unified "Patterns" card on Home (averages + correlation previews + "See all →" to Discover), retitled "Patterns & Connections" → "Patterns"
+- ~~Wireframe alignment~~ — All 10 wireframe sections (0-10) implemented: empty state, mid-year join, home tab, discover tab, chat, night mode, onboarding, weekly summary, baselines, correlations, "Is This Normal?"
 - ~~Anticipatory Guidance Engine~~ — Wonder Weeks leap browser (all 10 leaps with detail views), leap predictions, "Coming Up" section, expert insights per age stage
 - ~~Expert Insights system~~ — 48 research-backed insights across 8 stages, carousel on Home + Discover, browser modal with collapsible groups
 - ~~Milestone browser~~ — Full browser modal with Supabase persistence, check-off functionality, age-grouped display
-- ~~Brand rename~~ — All "Rosie" references updated to "RosieAI" throughout the app
-- ~~Design thesis alignment~~ — CSS audit done, `--rosie-radius-card: 20px` token added
 - ~~Smart defaults~~ — `getSmartDefaults()` in `contextEngine.ts`, applied in `RosieQuickLog.tsx` after 7+ days of data
 - ~~Conversational logging~~ — Claude `tool_use` in `chat.ts`, inline confirmation card with 30s undo in `RosieChat.tsx`
 - ~~Voice input~~ — `useSpeechRecognition.ts` hook, mic button in chat input (iMessage-style toggle)
@@ -507,4 +508,4 @@ If yes, build it. If no, reconsider.
 
 ---
 
-*Last updated: February 24, 2026*
+*Last updated: February 25, 2026*

@@ -94,6 +94,7 @@ interface RosieChatProps {
   growthMeasurements?: GrowthMeasurement[];
   weather?: WeatherData | null;
   isOpen: boolean;
+  initialMessage?: string;
   onClose: () => void;
 }
 
@@ -109,6 +110,7 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   growthMeasurements,
   weather,
   isOpen,
+  initialMessage,
   onClose,
 }) => {
   const [input, setInput] = useState('');
@@ -175,6 +177,18 @@ export const RosieChat: React.FC<RosieChatProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isVisible, messages.length]);
+
+  // Handle initial message from "Is This Normal?" cards — pre-fill input
+  const initialMessageHandled = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (isVisible && initialMessage && initialMessage !== initialMessageHandled.current) {
+      initialMessageHandled.current = initialMessage;
+      setInput(initialMessage);
+    }
+    if (!isOpen) {
+      initialMessageHandled.current = undefined;
+    }
+  }, [isVisible, initialMessage, isOpen]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

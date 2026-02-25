@@ -13,6 +13,7 @@ import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, Growth
 import { getStoredData, saveData, clearData } from './storage';
 import { getDevelopmentalInfo } from './developmentalData';
 import { getSmartDefaults } from './contextEngine';
+import { getWeeklySummary, getPersonalizedBaselines, getCorrelationInsights, getIsThisNormalQuestions } from './analyticsEngine';
 import { fetchEvents, addEvent, deleteEvent as deleteEventFromDB } from './supabaseEvents';
 import { fetchSettings, saveSettings } from './supabaseSettings';
 import { fetchGrowthMeasurements, addGrowthMeasurement, deleteGrowthMeasurement } from './supabaseGrowth';
@@ -54,9 +55,10 @@ const RosieAIContent: React.FC = () => {
   const [bannerTimerDisplay, setBannerTimerDisplay] = useState(0);
   const [showQuickLogModal, setShowQuickLogModal] = useState<'feed' | 'sleep' | 'diaper' | null>(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('afternoon'); // TODO: restore → getTimePeriod(new Date().getHours())
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>(getTimePeriod(new Date().getHours()));
   const [showAuth, setShowAuth] = useState(false);
   const [weather, setWeather] = useState<import('./types').WeatherData | null>(null);
+  const [chatInitialMessage, setChatInitialMessage] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadData = async () => {
@@ -118,7 +120,6 @@ const RosieAIContent: React.FC = () => {
           // Keep using local data on error
         }
       } else if (!authLoading && !user) {
-        // Not authenticated, show auth screen
         setShowAuth(true);
         setIsLoading(false);
       } else if (!authLoading) {
@@ -164,6 +165,33 @@ const RosieAIContent: React.FC = () => {
   const smartDefaults = useMemo(
     () => data?.timeline ? getSmartDefaults(data.timeline, lastFeedSide) : undefined,
     [data?.timeline, lastFeedSide]
+  );
+
+  // Developmental info (must be above early returns for hook ordering)
+  const developmentalInfo = useMemo(
+    () => data?.baby ? getDevelopmentalInfo(data.baby.birthDate) : null,
+    [data?.baby?.birthDate]
+  );
+
+  // Multi-day analytics (must be above early returns for hook ordering)
+  const weeklySummary = useMemo(
+    () => (data?.timeline && data?.baby && developmentalInfo) ? getWeeklySummary(data.timeline, data.baby.birthDate, data.baby.name, developmentalInfo) : null,
+    [data?.timeline, data?.baby?.birthDate, data?.baby?.name, developmentalInfo]
+  );
+
+  const baselines = useMemo(
+    () => (data?.timeline && data?.baby) ? getPersonalizedBaselines(data.timeline, data.baby.birthDate, data.baby.name) : [],
+    [data?.timeline, data?.baby?.birthDate, data?.baby?.name]
+  );
+
+  const correlationInsights = useMemo(
+    () => (data?.timeline && developmentalInfo && data?.baby) ? getCorrelationInsights(data.timeline, developmentalInfo, data.baby.name) : [],
+    [data?.timeline, developmentalInfo, data?.baby?.name]
+  );
+
+  const isThisNormalQuestions = useMemo(
+    () => (data?.timeline && data?.baby && developmentalInfo) ? getIsThisNormalQuestions(data.timeline, data.baby.birthDate, data.baby.name, developmentalInfo) : [],
+    [data?.timeline, data?.baby?.birthDate, data?.baby?.name, developmentalInfo]
   );
 
   // Timer management handlers
@@ -442,7 +470,8 @@ const RosieAIContent: React.FC = () => {
     );
   }
 
-  const developmentalInfo = getDevelopmentalInfo(data.baby.birthDate);
+  // After the early returns above, data.baby and developmentalInfo are guaranteed non-null
+  const devInfo = developmentalInfo!;
 
   // Handle clicking on timer banner to open the appropriate modal
   const handleBannerClick = () => {
@@ -455,7 +484,7 @@ const RosieAIContent: React.FC = () => {
     <div className={`rosie-container ${timePeriod}`}>
       <RosieHeader
         baby={data.baby}
-        developmentalInfo={developmentalInfo}
+        developmentalInfo={devInfo}
         userSettings={data.userSettings}
         onTimePeriodChange={setTimePeriod}
         onWeatherChange={setWeather}
@@ -498,7 +527,7 @@ const RosieAIContent: React.FC = () => {
       <div className="rosie-greeting-hero">
         <h1 className="rosie-greeting-hero-title">{getGreeting(timePeriod, profile?.name)}</h1>
         <p className="rosie-greeting-hero-age">
-          {data.baby.name} · Week {developmentalInfo.weekNumber} · {developmentalInfo.ageDisplay}
+          {data.baby.name} · Week {devInfo.weekNumber} · {devInfo.ageDisplay}
         </p>
       </div>
 
@@ -534,13 +563,21 @@ const RosieAIContent: React.FC = () => {
             <RosieHome
               timeline={data.timeline}
               baby={data.baby}
-              developmentalInfo={developmentalInfo}
+              developmentalInfo={devInfo}
               timePeriod={timePeriod}
               lastFeedSide={lastFeedSide}
               catchUpData={currentBaby?.catchUpData}
+              weeklySummary={weeklySummary}
+              correlationInsights={correlationInsights}
+              isThisNormalQuestions={isThisNormalQuestions}
               onOpenQuickLog={(type) => setShowQuickLogModal(type)}
               onNavigateTab={(tab) => { setActiveTab(tab); setShowChat(false); }}
               onUpdateCatchUp={currentBaby ? (data) => updateCatchUpData(currentBaby.id, data) : undefined}
+              onAskRosie={(message) => {
+                setChatInitialMessage(message);
+                setPreviousTab(activeTab as 'home' | 'timeline' | 'discover');
+                setShowChat(true);
+              }}
             />
           )}
           {activeTab === 'timeline' && (
@@ -553,8 +590,12 @@ const RosieAIContent: React.FC = () => {
           {activeTab === 'discover' && (
             <RosieDiscover
               baby={data.baby}
-              developmentalInfo={developmentalInfo}
+              developmentalInfo={devInfo}
               weather={weather}
+              timeline={data.timeline}
+              weeklySummary={weeklySummary}
+              baselines={baselines}
+              correlationInsights={correlationInsights}
             />
           )}
         </div>
@@ -592,13 +633,15 @@ const RosieAIContent: React.FC = () => {
         onAddEvent={handleAddEvent}
         onDeleteEvent={handleDeleteEvent}
         timeline={data.timeline}
-        developmentalInfo={developmentalInfo}
+        developmentalInfo={devInfo}
         growthMeasurements={data.growthMeasurements}
         weather={weather}
         isOpen={showChat}
+        initialMessage={chatInitialMessage}
         onClose={() => {
           setShowChat(false);
           setActiveTab(previousTab);
+          setChatInitialMessage(undefined);
         }}
       />
 

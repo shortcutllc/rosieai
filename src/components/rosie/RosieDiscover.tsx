@@ -14,14 +14,20 @@ import {
   QuickWin,
   ParentWellnessContent
 } from './expertInsights';
+import { TimelineEvent } from './types';
+import { BaselineData, CorrelationInsight, WeeklySummary } from './analyticsEngine';
 
 interface RosieDiscoverProps {
   baby: BabyProfile;
   developmentalInfo: DevelopmentalInfo;
   weather?: WeatherData | null;
+  timeline?: TimelineEvent[];
+  weeklySummary?: WeeklySummary | null;
+  baselines?: BaselineData[];
+  correlationInsights?: CorrelationInsight[];
 }
 
-export const RosieDiscover: React.FC<RosieDiscoverProps> = ({ baby, developmentalInfo, weather }) => {
+export const RosieDiscover: React.FC<RosieDiscoverProps> = ({ baby, developmentalInfo, weather, timeline, weeklySummary, baselines, correlationInsights }) => {
   const {
     weekNumber,
     ageInWeeks,
@@ -465,6 +471,125 @@ export const RosieDiscover: React.FC<RosieDiscoverProps> = ({ baby, developmenta
           </div>
         </div>
       </div>
+
+      {/* Personalized Baselines — baby vs population range bars */}
+      {baselines && baselines.length > 0 && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">{baby.name}'s Baselines</div>
+          </div>
+          <div className="rosie-baselines">
+            {baselines.map(b => {
+              // Calculate marker position as percentage of the range track
+              const rangeSpan = b.populationMax - b.populationMin;
+              const trackMin = b.populationMin - rangeSpan * 0.3;
+              const trackMax = b.populationMax + rangeSpan * 0.3;
+              const trackSpan = trackMax - trackMin;
+              const markerPct = Math.min(100, Math.max(0,
+                ((b.personalValue - trackMin) / trackSpan) * 100
+              ));
+              const rangeStartPct = ((b.populationMin - trackMin) / trackSpan) * 100;
+              const rangeWidthPct = (rangeSpan / trackSpan) * 100;
+
+              return (
+                <div key={b.metric} className="rosie-baseline-card">
+                  <div className="rosie-baseline-header">
+                    <span className="rosie-baseline-icon">{b.icon}</span>
+                    <span className="rosie-baseline-label">{b.label}</span>
+                    <span className={`rosie-baseline-status ${b.status}`}>
+                      {b.personalLabel}
+                    </span>
+                  </div>
+                  <div className="rosie-baseline-bar">
+                    <div className="rosie-baseline-bar-track">
+                      <div
+                        className="rosie-baseline-bar-range"
+                        style={{ left: `${rangeStartPct}%`, width: `${rangeWidthPct}%` }}
+                      />
+                      <div
+                        className="rosie-baseline-bar-marker"
+                        style={{ left: `${markerPct}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="rosie-baseline-range-label">
+                    Typical: {b.populationLabel}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Patterns — averages + correlation insight cards */}
+      {((weeklySummary && weeklySummary.hasEnoughData) || (correlationInsights && correlationInsights.length > 0)) && (
+        <div className="tw-section">
+          <div className="tw-section-hdr">
+            <div className="tw-section-title">Patterns</div>
+          </div>
+
+          {/* Daily averages row */}
+          {weeklySummary && weeklySummary.hasEnoughData && (
+            <div className="rosie-patterns-stats rosie-patterns-stats-discover">
+              <div className="rosie-patterns-stat">
+                <div className="rosie-patterns-stat-value" style={{ color: '#FF9500' }}>
+                  {weeklySummary.thisWeek.feeds % 1 === 0 ? weeklySummary.thisWeek.feeds.toFixed(0) : weeklySummary.thisWeek.feeds.toFixed(1)}
+                  <span className="rosie-patterns-stat-unit">/day</span>
+                </div>
+                <div className="rosie-patterns-stat-label">Feeds</div>
+                {weeklySummary.trends && weeklySummary.trends.feeds !== 0 && (
+                  <div className={`rosie-patterns-stat-trend ${weeklySummary.trends.feeds > 0 ? 'up' : 'down'}`}>
+                    {weeklySummary.trends.feeds > 0 ? '↑' : '↓'} {Math.abs(weeklySummary.trends.feeds)}%
+                  </div>
+                )}
+              </div>
+              <div className="rosie-patterns-stat">
+                <div className="rosie-patterns-stat-value" style={{ color: '#B57BEC' }}>
+                  {weeklySummary.thisWeek.sleepHours % 1 === 0 ? weeklySummary.thisWeek.sleepHours.toFixed(0) : weeklySummary.thisWeek.sleepHours.toFixed(1)}h
+                  <span className="rosie-patterns-stat-unit">/day</span>
+                </div>
+                <div className="rosie-patterns-stat-label">Sleep</div>
+                {weeklySummary.trends && weeklySummary.trends.sleep !== 0 && (
+                  <div className={`rosie-patterns-stat-trend ${weeklySummary.trends.sleep > 0 ? 'up' : 'down'}`}>
+                    {weeklySummary.trends.sleep > 0 ? '↑' : '↓'} {Math.abs(weeklySummary.trends.sleep)}%
+                  </div>
+                )}
+              </div>
+              <div className="rosie-patterns-stat">
+                <div className="rosie-patterns-stat-value" style={{ color: '#34C759' }}>
+                  {weeklySummary.thisWeek.diapers % 1 === 0 ? weeklySummary.thisWeek.diapers.toFixed(0) : weeklySummary.thisWeek.diapers.toFixed(1)}
+                  <span className="rosie-patterns-stat-unit">/day</span>
+                </div>
+                <div className="rosie-patterns-stat-label">Diapers</div>
+                {weeklySummary.trends && weeklySummary.trends.diapers !== 0 && (
+                  <div className={`rosie-patterns-stat-trend ${weeklySummary.trends.diapers > 0 ? 'up' : 'down'}`}>
+                    {weeklySummary.trends.diapers > 0 ? '↑' : '↓'} {Math.abs(weeklySummary.trends.diapers)}%
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Full correlation insight cards */}
+          {correlationInsights && correlationInsights.length > 0 && (
+            <div className="rosie-correlations">
+              {correlationInsights.map(insight => (
+                <div key={insight.id} className="rosie-correlation-card">
+                  <div className="rosie-correlation-header">
+                    <span className="rosie-correlation-icon">{insight.icon}</span>
+                    <span className="rosie-correlation-title">{insight.title}</span>
+                    <span className={`rosie-correlation-confidence ${insight.confidence}`}>
+                      {insight.confidence}
+                    </span>
+                  </div>
+                  <div className="rosie-correlation-text">{insight.text}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Milestones — wireframe: section header + list with green dots */}
       {milestones.length > 0 && (

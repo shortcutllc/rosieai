@@ -1263,6 +1263,288 @@
   .tag.ux { background: #E6F7ED; color: #34C759; }
   .tag.ai { background: #FFF0E0; color: #FF9500; }
   .tag.emotional { background: #FFE6E6; color: #FF3B30; }
+
+  /* ====== WIREFRAME: WEEKLY SUMMARY ====== */
+  .weekly-summary {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 16px;
+  }
+  .weekly-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .weekly-summary-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .weekly-summary-link {
+    font-size: 13px;
+    color: #B57BEC;
+    font-weight: 600;
+  }
+  .weekly-stats {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .weekly-stat {
+    flex: 1;
+    text-align: center;
+    padding: 8px 4px;
+    background: #FAFAFA;
+    border-radius: 12px;
+  }
+  .weekly-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .weekly-stat-label {
+    font-size: 11px;
+    color: #86868B;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .weekly-stat-trend {
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 4px;
+  }
+  .weekly-stat-trend.up { color: #34C759; }
+  .weekly-stat-trend.down { color: #007AFF; }
+  .weekly-stat-trend.same { color: #AEAEB2; }
+  .weekly-highlights {
+    border-top: 1px solid rgba(0,0,0,0.04);
+    padding-top: 12px;
+  }
+  .weekly-highlight {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #1D1D1F;
+    line-height: 1.4;
+  }
+  .weekly-highlight-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  /* ====== WIREFRAME: PERSONALIZED BASELINES ====== */
+  .baseline-card {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 16px;
+  }
+  .baseline-metric {
+    margin-bottom: 16px;
+  }
+  .baseline-metric:last-child {
+    margin-bottom: 0;
+  }
+  .baseline-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .baseline-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+  }
+  .baseline-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .baseline-status.normal { background: #E6F7ED; color: #34C759; }
+  .baseline-status.above { background: #FFF0E0; color: #FF9500; }
+  .baseline-status.below { background: #FFE6E6; color: #FF3B30; }
+  .baseline-bar {
+    position: relative;
+    height: 8px;
+    background: #F2F2F7;
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+  .baseline-bar-range {
+    position: absolute;
+    top: 0;
+    height: 8px;
+    border-radius: 4px;
+    opacity: 0.3;
+  }
+  .baseline-bar-marker {
+    position: absolute;
+    top: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #FFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transform: translateX(-50%);
+  }
+  .baseline-values {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+  .baseline-personal {
+    font-weight: 600;
+  }
+  .baseline-population {
+    color: #AEAEB2;
+  }
+
+  /* ====== WIREFRAME: CORRELATION CARDS ====== */
+  .correlation-card {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .correlation-card:last-child {
+    margin-bottom: 0;
+  }
+  .correlation-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .correlation-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .correlation-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 3px;
+  }
+  .correlation-text {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.5;
+  }
+  .correlation-confidence {
+    display: inline-block;
+    font-size: 11px;
+    color: #AEAEB2;
+    font-weight: 500;
+    margin-top: 6px;
+  }
+
+  /* ====== WIREFRAME: IS THIS NORMAL ====== */
+  .itn-card {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+  .itn-card:last-child {
+    margin-bottom: 0;
+  }
+  .itn-question-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .itn-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #E3F2FD;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #007AFF;
+    flex-shrink: 0;
+  }
+  .itn-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .itn-question {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin-bottom: 4px;
+  }
+  .itn-answer {
+    font-size: 13px;
+    color: #86868B;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .itn-ask-link {
+    font-size: 13px;
+    color: #B57BEC;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  /* Chat message wireframe */
+  .wf-chat-messages {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .wf-chat-user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #B57BEC, #8B5CF6);
+    color: #FFF;
+    padding: 12px 16px;
+    border-radius: 20px 20px 4px 20px;
+    font-size: 14px;
+    max-width: 85%;
+    line-height: 1.5;
+  }
+  .wf-chat-assistant {
+    align-self: flex-start;
+    background: #FFF;
+    color: #1D1D1F;
+    padding: 12px 16px;
+    border-radius: 20px 20px 20px 4px;
+    font-size: 14px;
+    max-width: 88%;
+    line-height: 1.5;
+  }
+  .wf-chat-input {
+    padding: 12px 20px;
+    background: #FAFAFA;
+    border-top: 1px solid rgba(0,0,0,0.04);
+  }
+  .wf-chat-input-box {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #AEAEB2;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
 </style>
 </head>
 <body>
@@ -3156,6 +3438,586 @@
     <p>"No pressure either way" on the prematurity question. "Nickname totally counts." Skip is always visible. Rosie never guilts a parent into sharing more. This builds the trust foundation that the entire AI relationship depends on.</p>
   </div>
 </div>
+
+<!-- =============================== -->
+<!-- SECTION 7: WEEKLY SUMMARY       -->
+<!-- =============================== -->
+
+<div class="section-divider">
+  <h2>7. Weekly Summary &mdash; Home Tab</h2>
+  <p>Automated weekly digest with stats, trends vs last week, and milestone highlights</p>
+</div>
+
+<div class="wireframe-row">
+  <!-- Full week view -->
+  <div class="column">
+    <div class="label new">Full Week (Wednesday+)</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+        <div class="header">
+          <div class="weather-pill">&#x2600;&#xFE0F; 72&deg; Raleigh</div>
+          <div class="avatar">L</div>
+        </div>
+        <div class="greeting">
+          <h1>Good afternoon, Lauren.</h1>
+          <p>Lily &middot; Week 14 &middot; 3 months old</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Weekly Summary Card -->
+        <div class="section">
+          <div class="weekly-summary">
+            <div class="weekly-summary-header">
+              <div class="weekly-summary-title">&#x1F4CA; This Week</div>
+              <div class="weekly-summary-link">Details &rarr;</div>
+            </div>
+            <div class="weekly-stats">
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #FF9500;">42</div>
+                <div class="weekly-stat-label">Feeds</div>
+                <div class="weekly-stat-trend up">&uarr; 12% vs last wk</div>
+              </div>
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #B57BEC;">82h</div>
+                <div class="weekly-stat-label">Sleep</div>
+                <div class="weekly-stat-trend down">&darr; 3% vs last wk</div>
+              </div>
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #34C759;">38</div>
+                <div class="weekly-stat-label">Diapers</div>
+                <div class="weekly-stat-trend same">&mdash; same as last wk</div>
+              </div>
+            </div>
+            <div class="weekly-highlights">
+              <div class="weekly-highlight">
+                <div class="weekly-highlight-dot" style="background: #FF9500;"></div>
+                <span>Feeds up this week &mdash; possible growth spurt</span>
+              </div>
+              <div class="weekly-highlight">
+                <div class="weekly-highlight-dot" style="background: #34C759;"></div>
+                <span>Started reaching for objects! &#x2728;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Smart prompt follows -->
+        <div class="section">
+          <div class="smart-prompt">
+            <div class="smart-icon" style="background: rgba(255,149,0,0.12);">&#x1F37C;</div>
+            <div class="smart-text">
+              <div class="smart-label">Start Feed &middot; Right side</div>
+              <div class="smart-sub">Last feed was 2h 30m ago</div>
+            </div>
+            <div class="smart-arrow">&rsaquo;</div>
+          </div>
+        </div>
+
+        <!-- Proactive alert -->
+        <div class="section">
+          <div class="proactive-alert">
+            <div class="alert-icon">&#x1F4DA;</div>
+            <div class="alert-content">
+              <div class="alert-title">Sleep Regression</div>
+              <div class="alert-text">The 4-month "regression" is actually a progression &mdash; baby's sleep is maturing. It's hard but temporary.</div>
+              <div class="alert-dismiss" style="color: #B57BEC;">Explore more &rarr;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Weekly digest at the top of the feed.</strong> Shows total feeds/sleep/diapers for the current week with % change vs last week. Trend arrows: green for up, blue for down, gray for same. Highlight bullets surface notable patterns and milestone achievements. Card is always visible &mdash; not dismissible.
+    </div>
+  </div>
+
+  <!-- First week view -->
+  <div class="column">
+    <div class="label new">First Week (No Prior Data)</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+        <div class="header">
+          <div class="weather-pill">&#x2600;&#xFE0F; 72&deg; Raleigh</div>
+          <div class="avatar">L</div>
+        </div>
+        <div class="greeting">
+          <h1>Good afternoon, Lauren.</h1>
+          <p>Lily &middot; Week 1 &middot; 4 days old</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Weekly Summary Card - first week, no trends -->
+        <div class="section">
+          <div class="weekly-summary">
+            <div class="weekly-summary-header">
+              <div class="weekly-summary-title">&#x1F4CA; This Week</div>
+            </div>
+            <div class="weekly-stats">
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #FF9500;">28</div>
+                <div class="weekly-stat-label">Feeds</div>
+                <div class="weekly-stat-trend same">so far this week</div>
+              </div>
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #B57BEC;">48h</div>
+                <div class="weekly-stat-label">Sleep</div>
+                <div class="weekly-stat-trend same">so far this week</div>
+              </div>
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #34C759;">24</div>
+                <div class="weekly-stat-label">Diapers</div>
+                <div class="weekly-stat-trend same">so far this week</div>
+              </div>
+            </div>
+            <div class="weekly-highlights">
+              <div class="weekly-highlight">
+                <div class="weekly-highlight-dot" style="background: #B57BEC;"></div>
+                <span>Your first full week! Trends appear next Monday.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>First week: no comparison data.</strong> Shows absolute stats with "so far this week" instead of trends. A friendly highlight explains that week-over-week trends will appear next Monday. No "vs last week" arrows.
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================== -->
+<!-- SECTION 8: PERSONALIZED BASELINES -->
+<!-- =============================== -->
+
+<div class="section-divider">
+  <h2>8. Personalized Baselines &mdash; Discover Tab</h2>
+  <p>Baby's actual patterns compared to age-appropriate population averages via range bars</p>
+</div>
+
+<div class="wireframe-row">
+  <!-- With data -->
+  <div class="column">
+    <div class="label new">With 7+ Days of Data</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+        <div class="header">
+          <div class="weather-pill">&#x2600;&#xFE0F; 72&deg; Raleigh</div>
+          <div class="avatar">L</div>
+        </div>
+        <div class="greeting">
+          <h1>Good afternoon, Lauren.</h1>
+          <p>Lily &middot; Week 14 &middot; 3 months old</p>
+        </div>
+        <div class="tabs">
+          <button class="tab">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab active">&#x1F9ED; Discover</button>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Lily's Patterns</div>
+            <div class="section-link">vs. typical &rarr;</div>
+          </div>
+
+          <div class="baseline-card">
+            <!-- Feeds/day -->
+            <div class="baseline-metric">
+              <div class="baseline-label-row">
+                <div class="baseline-label">&#x1F37C; Feeds per day</div>
+                <div class="baseline-status normal">Normal</div>
+              </div>
+              <div class="baseline-bar">
+                <div class="baseline-bar-range" style="left: 30%; width: 40%; background: #FF9500;"></div>
+                <div class="baseline-bar-marker" style="left: 45%; background: #FF9500;"></div>
+              </div>
+              <div class="baseline-values">
+                <div class="baseline-personal" style="color: #FF9500;">Lily: 7.2/day</div>
+                <div class="baseline-population">Typical: 6&ndash;8/day</div>
+              </div>
+            </div>
+
+            <!-- Sleep/day -->
+            <div class="baseline-metric">
+              <div class="baseline-label-row">
+                <div class="baseline-label">&#x1F634; Sleep per day</div>
+                <div class="baseline-status normal">Normal</div>
+              </div>
+              <div class="baseline-bar">
+                <div class="baseline-bar-range" style="left: 25%; width: 45%; background: #B57BEC;"></div>
+                <div class="baseline-bar-marker" style="left: 40%; background: #B57BEC;"></div>
+              </div>
+              <div class="baseline-values">
+                <div class="baseline-personal" style="color: #B57BEC;">Lily: 13.5h</div>
+                <div class="baseline-population">Typical: 12&ndash;16h</div>
+              </div>
+            </div>
+
+            <!-- Diapers/day -->
+            <div class="baseline-metric">
+              <div class="baseline-label-row">
+                <div class="baseline-label">&#x1F9F7; Diapers per day</div>
+                <div class="baseline-status normal">Normal</div>
+              </div>
+              <div class="baseline-bar">
+                <div class="baseline-bar-range" style="left: 25%; width: 35%; background: #34C759;"></div>
+                <div class="baseline-bar-marker" style="left: 35%; background: #34C759;"></div>
+              </div>
+              <div class="baseline-values">
+                <div class="baseline-personal" style="color: #34C759;">Lily: 6.5/day</div>
+                <div class="baseline-population">Typical: 6&ndash;8/day</div>
+              </div>
+            </div>
+
+            <!-- Avg nap length -->
+            <div class="baseline-metric">
+              <div class="baseline-label-row">
+                <div class="baseline-label">&#x1F4A4; Avg nap length</div>
+                <div class="baseline-status below">Below avg</div>
+              </div>
+              <div class="baseline-bar">
+                <div class="baseline-bar-range" style="left: 30%; width: 40%; background: #B57BEC;"></div>
+                <div class="baseline-bar-marker" style="left: 22%; background: #B57BEC;"></div>
+              </div>
+              <div class="baseline-values">
+                <div class="baseline-personal" style="color: #B57BEC;">Lily: 28min</div>
+                <div class="baseline-population">Typical: 30&ndash;60min</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Range bars show personal vs population.</strong> Gray track = full range. Colored band = typical population range for this age. Dot marker = Lily's personal average over 14 days. Status badge: "Normal" (green), "Above avg" (orange), "Below avg" (red). Each metric uses its type color (feed=orange, sleep=purple, diaper=green).
+    </div>
+  </div>
+
+  <!-- Insufficient data -->
+  <div class="column">
+    <div class="label new">Insufficient Data (&lt;7 days)</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+        <div class="header">
+          <div class="weather-pill">&#x2600;&#xFE0F; 72&deg; Raleigh</div>
+          <div class="avatar">L</div>
+        </div>
+        <div class="greeting">
+          <h1>Good afternoon, Lauren.</h1>
+          <p>Lily &middot; Week 1 &middot; 4 days old</p>
+        </div>
+        <div class="tabs">
+          <button class="tab">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab active">&#x1F9ED; Discover</button>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Lily's Patterns</div>
+          </div>
+          <div class="baseline-card" style="text-align: center; padding: 32px 24px;">
+            <div style="font-size: 28px; margin-bottom: 12px;">&#x1F4CA;</div>
+            <div style="font-size: 14px; font-weight: 600; color: #1D1D1F; margin-bottom: 6px;">Building Lily's baselines</div>
+            <div style="font-size: 13px; color: #86868B; line-height: 1.5;">Rosie needs about a week of data to show Lily's patterns. Keep logging &mdash; you're doing great!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Placeholder for new users.</strong> Shows a friendly message encouraging continued logging. The baselines section appears once 7+ days of data exist with 3+ events per day. No empty bars or confusing zero states.
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================== -->
+<!-- SECTION 9: CORRELATIONS          -->
+<!-- =============================== -->
+
+<div class="section-divider">
+  <h2>9. Patterns &amp; Connections &mdash; Discover Tab</h2>
+  <p>Cross-variable correlation insights surfaced as cards with confidence indicators</p>
+</div>
+
+<div class="wireframe-row">
+  <!-- Correlation cards on Discover -->
+  <div class="column">
+    <div class="label new">Discover Tab &mdash; Correlation Cards</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+        <div class="header">
+          <div class="weather-pill">&#x2600;&#xFE0F; 72&deg; Raleigh</div>
+          <div class="avatar">L</div>
+        </div>
+        <div class="greeting">
+          <h1>Good afternoon, Lauren.</h1>
+          <p>Lily &middot; Week 14 &middot; 3 months old</p>
+        </div>
+        <div class="tabs">
+          <button class="tab">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab active">&#x1F9ED; Discover</button>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Patterns &amp; Connections</div>
+          </div>
+
+          <!-- Feed-sleep correlation -->
+          <div class="correlation-card">
+            <div class="correlation-icon" style="background: rgba(181,123,236,0.12);">&#x1F4A4;</div>
+            <div class="correlation-content">
+              <div class="correlation-title">Feed &rarr; Sleep Link</div>
+              <div class="correlation-text">Lily slept 25% longer on days with 7+ feeds. More daytime calories may be helping overnight stretches.</div>
+              <div class="correlation-confidence">Based on 12 days of data</div>
+            </div>
+          </div>
+
+          <!-- Growth spurt detection -->
+          <div class="correlation-card">
+            <div class="correlation-icon" style="background: rgba(255,149,0,0.12);">&#x1F4C8;</div>
+            <div class="correlation-content">
+              <div class="correlation-title">Possible Growth Spurt</div>
+              <div class="correlation-text">Feeding frequency is up 40% over the last 3 days compared to Lily's baseline. This typically lasts 2&ndash;3 days.</div>
+              <div class="correlation-confidence">Based on 14 days of data</div>
+            </div>
+          </div>
+
+          <!-- Sleep consolidation -->
+          <div class="correlation-card">
+            <div class="correlation-icon" style="background: rgba(0,122,255,0.12);">&#x1F4CA;</div>
+            <div class="correlation-content">
+              <div class="correlation-title">Naps Consolidating</div>
+              <div class="correlation-text">Lily's naps are getting longer while nap count is decreasing &mdash; fewer naps but better quality. This is great progress.</div>
+              <div class="correlation-confidence">Based on 10 days of data</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Correlation insight cards.</strong> Each card has a colored icon, title, natural-language description, and a confidence indicator showing how many days of data support the insight. Cards only appear when there's enough data (7+ days) and a meaningful correlation. Icon backgrounds use 12% opacity of the relevant type color.
+    </div>
+  </div>
+
+  <!-- Correlation as proactive alert on Home -->
+  <div class="column">
+    <div class="label new">Home Tab &mdash; Surfaced as Alert</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+        <div class="header">
+          <div class="weather-pill">&#x2600;&#xFE0F; 72&deg; Raleigh</div>
+          <div class="avatar">L</div>
+        </div>
+        <div class="greeting">
+          <h1>Good afternoon, Lauren.</h1>
+          <p>Lily &middot; Week 14 &middot; 3 months old</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Weekly summary at top -->
+        <div class="section">
+          <div class="weekly-summary">
+            <div class="weekly-summary-header">
+              <div class="weekly-summary-title">&#x1F4CA; This Week</div>
+            </div>
+            <div class="weekly-stats">
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #FF9500;">42</div>
+                <div class="weekly-stat-label">Feeds</div>
+                <div class="weekly-stat-trend up">&uarr; 12%</div>
+              </div>
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #B57BEC;">82h</div>
+                <div class="weekly-stat-label">Sleep</div>
+                <div class="weekly-stat-trend down">&darr; 3%</div>
+              </div>
+              <div class="weekly-stat">
+                <div class="weekly-stat-value" style="color: #34C759;">38</div>
+                <div class="weekly-stat-label">Diapers</div>
+                <div class="weekly-stat-trend same">&mdash;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Correlation surfaced as proactive alert -->
+        <div class="section">
+          <div class="proactive-alert" style="background: linear-gradient(135deg, #FFF8E1, #FFF3CD); border-color: rgba(255,149,0,0.2);">
+            <div class="alert-icon">&#x1F4C8;</div>
+            <div class="alert-content">
+              <div class="alert-title">Possible Growth Spurt</div>
+              <div class="alert-text">Lily's feeding frequency is up 40% over the last 3 days. This usually lasts 2&ndash;3 days and is completely normal.</div>
+              <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
+                <div style="font-size: 11px; color: #AEAEB2;">Based on 14 days</div>
+              </div>
+              <div class="alert-dismiss" style="color: #B57BEC; margin-top: 4px;">Explore more &rarr;</div>
+            </div>
+          </div>
+          <!-- Carousel dots -->
+          <div style="display: flex; justify-content: center; gap: 6px; margin-top: 10px;">
+            <div style="width: 6px; height: 6px; border-radius: 999px; background: #D1D1D6;"></div>
+            <div style="width: 16px; height: 6px; border-radius: 3px; background: #FF9500;"></div>
+            <div style="width: 6px; height: 6px; border-radius: 999px; background: #D1D1D6;"></div>
+            <div style="width: 6px; height: 6px; border-radius: 999px; background: #D1D1D6;"></div>
+          </div>
+        </div>
+
+        <!-- Smart prompt -->
+        <div class="section">
+          <div class="smart-prompt">
+            <div class="smart-icon" style="background: rgba(255,149,0,0.12);">&#x1F37C;</div>
+            <div class="smart-text">
+              <div class="smart-label">Start Feed &middot; Right side</div>
+              <div class="smart-sub">Last feed was 2h 30m ago</div>
+            </div>
+            <div class="smart-arrow">&rsaquo;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Top correlation surfaces in the proactive alert carousel.</strong> The highest-confidence correlation insight joins the existing carousel alongside expert insights, wellness, and quick wins. Shows the "Based on X days" confidence badge. Tapping "Explore more" navigates to the Discover tab's full correlation section.
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================== -->
+<!-- SECTION 10: IS THIS NORMAL       -->
+<!-- =============================== -->
+
+<div class="section-divider">
+  <h2>10. &ldquo;Is This Normal?&rdquo; Reassurance &mdash; Home Tab</h2>
+  <p>Personalized FAQ cards that use baby's actual data to answer common parent anxieties</p>
+</div>
+
+<div class="wireframe-row">
+  <!-- FAQ section on Home -->
+  <div class="column">
+    <div class="label new">Home Tab &mdash; FAQ Cards</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content">
+        <div class="header">
+          <div class="weather-pill">&#x2600;&#xFE0F; 72&deg; Raleigh</div>
+          <div class="avatar">L</div>
+        </div>
+        <div class="greeting">
+          <h1>Good afternoon, Lauren.</h1>
+          <p>Lily &middot; Week 14 &middot; 3 months old</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">&#x1F3E0; Home</button>
+          <button class="tab">&#x1F4C5; Timeline</button>
+          <button class="tab">&#x1F9ED; Discover</button>
+        </div>
+
+        <!-- Context: section appears after expert insights, before catch-up -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">Is This Normal?</div>
+            <div class="section-link">Ask Rosie &rarr;</div>
+          </div>
+
+          <div class="itn-card">
+            <div class="itn-question-row">
+              <div class="itn-icon">?</div>
+              <div class="itn-content">
+                <div class="itn-question">Is 7 feeds a day normal at 3 months?</div>
+                <div class="itn-answer">Yes! Lily averages 7.2 feeds per day, which is right in the typical range of 6&ndash;8 for 12-week-olds.</div>
+                <div class="itn-ask-link">Ask Rosie &rarr;</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="itn-card">
+            <div class="itn-question-row">
+              <div class="itn-icon">?</div>
+              <div class="itn-content">
+                <div class="itn-question">Are 28-minute naps okay?</div>
+                <div class="itn-answer">Short naps are very common at this age. Most babies don't consolidate to longer naps until 5&ndash;6 months.</div>
+                <div class="itn-ask-link">Ask Rosie &rarr;</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="itn-card">
+            <div class="itn-question-row">
+              <div class="itn-icon">?</div>
+              <div class="itn-content">
+                <div class="itn-question">Why is Lily so fussy right now?</div>
+                <div class="itn-answer">Lily is in Leap 4 (Events). Fussiness during this mental leap typically lasts 3&ndash;4 weeks and ends with new skills.</div>
+                <div class="itn-ask-link">Ask Rosie &rarr;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Personalized FAQ cards using baby's actual data.</strong> Each card shows a question parents commonly wonder about, with a personalized answer computed from Lily's real stats and age. Blue "?" icon on the left. Tap "Ask Rosie" to open the chat overlay with the question pre-filled for a deeper conversation. Questions rotate based on age, leap status, and current data patterns.
+    </div>
+  </div>
+
+  <!-- Ask Rosie deep dive -->
+  <div class="column">
+    <div class="label new">Ask Rosie &mdash; Pre-Filled Question</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-content" style="background: #FAFAFA; display: flex; flex-direction: column; min-height: 800px;">
+        <!-- Chat header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #FAFAFA;">
+          <div style="font-size: 18px; color: #86868B; cursor: pointer;">&lsaquo;</div>
+          <div style="font-size: 16px; font-weight: 600; color: #1D1D1F;">Ask Rosie</div>
+          <div style="font-size: 18px; color: #86868B;">&#x270F;&#xFE0F;</div>
+        </div>
+
+        <!-- Chat messages -->
+        <div class="wf-chat-messages" style="flex: 1;">
+          <div class="wf-chat-user">Is 7 feeds a day normal at 3 months?</div>
+          <div class="wf-chat-assistant">
+            Totally normal. Lily is averaging about 7 feeds a day right now, which lands right in the middle of the typical 6&ndash;8 range for a 3-month-old.
+            <br><br>
+            Some days she might want 8 or even 9 &mdash; especially if she's going through a growth spurt (and the data suggests she might be, with feeds up 12% this week). That's her body asking for more fuel as she grows.
+            <br><br>
+            You're doing great. She's eating well and gaining on track.
+          </div>
+        </div>
+
+        <!-- Chat input -->
+        <div class="wf-chat-input">
+          <div class="wf-chat-input-box">Ask Rosie anything&hellip;</div>
+        </div>
+      </div>
+    </div>
+    <div class="annotation">
+      <strong>Tapping a question opens Ask Rosie with the question pre-filled.</strong> The question is sent automatically as a user message, and Rosie responds with a full, personalized answer using the baby's complete context &mdash; recent stats, trends, age, leap status. The response is warm, conversational, and data-informed. The parent can then ask follow-up questions naturally.
+    </div>
+  </div>
+</div>
+
 
 </body>
 </html>
