@@ -380,6 +380,7 @@ Current priorities — the remaining unchecked Phase 1 + early Phase 3 items:
 6. **Chat greeting on login** — Rosie greets user in chat with quick action buttons (quick log, analyze data, ask a question).
 
 #### Recently Completed
+- ~~Quick log overhaul~~ — Wizard flow restructured: "Start a feed" (timer) vs "Log a past feed" (manual) with clear start-time semantics, breast timer combines side + start ("Start left"/"Start right"), bottle timer with review screen, sleep follows same start/past pattern, "Custom" option on all duration/time/amount steps with text input parsing, ring timer visual fixes (SVG overflow, own background layer, feed-orange color palette)
 - ~~Phase 2 complete~~ — All Phase 2 Intelligence features shipped: correlation engine, personalized baselines, "Is This Normal?" reassurance, weekly summary, pattern alerts, daily activity plan, parent wellness, expert insights, milestone browser
 - ~~Patterns refactor~~ — Weekly totals → daily averages, unified "Patterns" card on Home (averages + correlation previews + "See all →" to Discover), retitled "Patterns & Connections" → "Patterns"
 - ~~Wireframe alignment~~ — All 10 wireframe sections (0-10) implemented: empty state, mid-year join, home tab, discover tab, chat, night mode, onboarding, weekly summary, baselines, correlations, "Is This Normal?"
@@ -508,4 +509,4 @@ If yes, build it. If no, reconsider.
 
 ---
 
-*Last updated: February 25, 2026*
+*Last updated: February 26, 2026*
