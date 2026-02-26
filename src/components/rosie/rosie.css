@@ -304,6 +304,9 @@
   justify-content: space-between;
   box-shadow: var(--rosie-shadow), 0 4px 16px rgba(255, 149, 0, 0.3);
   animation: rosie-pulse-glow 2s ease-in-out infinite;
+  position: sticky;
+  top: 48px;
+  z-index: 9;
 }
 
 .rosie-timer-banner.sleep {
@@ -3377,6 +3380,10 @@
   align-items: flex-end;
   justify-content: center;
   z-index: 200;
+}
+
+.rosie-modal-overlay.from-chat {
+  z-index: 1100;
   animation: rosie-fade-in 0.2s ease;
 }
 

@@ -7,7 +7,7 @@ import { RosieChat } from './RosieChat';
 import { RosieDiscover } from './RosieDiscover';
 import { RosieHome } from './RosieHome';
 import { RosieHeader, TimePeriod, getTimePeriod, getGreeting } from './RosieHeader';
-import { RosieQuickLog } from './RosieQuickLog';
+import { RosieQuickLog, TimerActionEvent } from './RosieQuickLog';
 import { RosieProfile } from './RosieProfile';
 import { RosieData, BabyProfile, TimelineEvent, ChatMessage, ActiveTimer, GrowthMeasurement, UserSettings } from './types';
 import { getStoredData, saveData, clearData } from './storage';
@@ -54,6 +54,7 @@ const RosieAIContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [bannerTimerDisplay, setBannerTimerDisplay] = useState(0);
   const [showQuickLogModal, setShowQuickLogModal] = useState<'feed' | 'sleep' | 'diaper' | null>(null);
+  const [modalOpenedFromChat, setModalOpenedFromChat] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(getTimePeriod(new Date().getHours()));
   const [showAuth, setShowAuth] = useState(false);
@@ -303,6 +304,63 @@ const RosieAIContent: React.FC = () => {
       saveData(updated);
       return updated;
     });
+  };
+
+  // Timer action handler — injects chat messages when modal actions complete from chat context
+  const handleTimerAction = (action: TimerActionEvent) => {
+    if (!modalOpenedFromChat || !data) return;
+
+    let content = '';
+    let buttons: Array<{ label: string; value: string }> | undefined;
+
+    switch (action.type) {
+      case 'feed_saved':
+        if (action.details.feedType === 'breast' && action.details.side) {
+          const otherSide = action.details.side === 'left' ? 'right' : 'left';
+          const mins = Math.ceil((action.details.duration || 0) / 60);
+          content = `Got it — ${action.details.side} side logged (${mins}m). Want to start the ${otherSide} side?`;
+          buttons = [
+            { label: `Start ${otherSide}`, value: `start_${otherSide}_timer` },
+            { label: 'All done', value: 'dismiss' },
+          ];
+        } else if (action.details.feedType === 'bottle') {
+          const mins = Math.ceil((action.details.duration || 0) / 60);
+          content = `Got it — ${action.details.amount || ''}oz bottle logged (${mins}m).`;
+        } else {
+          content = `Feed logged!`;
+        }
+        break;
+      case 'feed_discarded':
+        content = `Discarded. Want to start a new feed?`;
+        buttons = [
+          { label: 'Start a feed', value: 'restart_feed' },
+          { label: 'No thanks', value: 'dismiss' },
+        ];
+        break;
+      case 'sleep_saved': {
+        const mins = Math.ceil((action.details.duration || 0) / 60);
+        content = `Sleep logged — ${mins}m. Nice.`;
+        break;
+      }
+      case 'sleep_discarded':
+        content = `Discarded. Want to start tracking sleep again?`;
+        buttons = [
+          { label: 'Start sleep', value: 'restart_sleep' },
+          { label: 'No thanks', value: 'dismiss' },
+        ];
+        break;
+    }
+
+    if (content) {
+      const newMsg: ChatMessage = {
+        id: generateUUID(),
+        role: 'assistant',
+        content,
+        timestamp: new Date().toISOString(),
+        ...(buttons ? { metadata: { wizardButtons: buttons, wizardStepField: 'timerAction' } } : {}),
+      };
+      handleUpdateChatHistory([...data.chatHistory, newMsg]);
+    }
   };
 
   // Profile handlers
@@ -634,7 +692,10 @@ const RosieAIContent: React.FC = () => {
         lastFeedSide={lastFeedSide}
         activeTimer={data.activeTimer}
         onStartTimer={handleStartTimer}
-        onOpenQuickLogModal={(type) => setShowQuickLogModal(type)}
+        onOpenQuickLogModal={(type) => {
+          setModalOpenedFromChat(true);
+          setShowQuickLogModal(type);
+        }}
         onClose={() => {
           setShowChat(false);
           setActiveTab(previousTab);
@@ -652,8 +713,13 @@ const RosieAIContent: React.FC = () => {
         lastFeedSide={lastFeedSide}
         smartDefaults={smartDefaults}
         openModal={showQuickLogModal}
-        onModalClose={() => setShowQuickLogModal(null)}
+        onModalClose={() => {
+          setModalOpenedFromChat(false);
+          setShowQuickLogModal(null);
+        }}
         hideBar={true}
+        fromChat={modalOpenedFromChat}
+        onTimerAction={handleTimerAction}
       />
 
       {/* Profile Modal */}

@@ -723,6 +723,56 @@ Could you tell me more about what you're experiencing?`;
   };
 
   const handleWizardButton = (option: WizardButtonOption, stepField: string) => {
+    // Handle timer action follow-up buttons (from onTimerAction messages)
+    if (stepField === 'timerAction') {
+      const userMsg: ChatMessage = {
+        id: generateUUID(),
+        timestamp: new Date().toISOString(),
+        role: 'user',
+        content: option.label,
+        metadata: { isWizardUserResponse: true },
+      };
+
+      if (option.value === 'start_left_timer' || option.value === 'start_right_timer') {
+        const side = option.value === 'start_left_timer' ? 'left' : 'right' as 'left' | 'right';
+        const now = new Date().toISOString();
+        const timer: ActiveTimer = {
+          type: 'feed',
+          startTime: now,
+          feedType: 'breast',
+          currentSide: side,
+          leftStartTime: side === 'left' ? now : undefined,
+          leftDuration: 0,
+          rightStartTime: side === 'right' ? now : undefined,
+          rightDuration: 0,
+        };
+        const confirmMsg: ChatMessage = {
+          id: generateUUID(),
+          timestamp: now,
+          role: 'assistant',
+          content: `Timer started! Tracking ${side}-side feed.`,
+        };
+        if (onStartTimer) onStartTimer(timer);
+        if (onOpenQuickLogModal) onOpenQuickLogModal('feed');
+        onUpdateHistory([...messages, userMsg, confirmMsg]);
+      } else if (option.value === 'restart_feed') {
+        if (onOpenQuickLogModal) onOpenQuickLogModal('feed');
+        onUpdateHistory([...messages, userMsg]);
+      } else if (option.value === 'restart_sleep') {
+        if (onOpenQuickLogModal) onOpenQuickLogModal('sleep');
+        onUpdateHistory([...messages, userMsg]);
+      } else if (option.value === 'dismiss') {
+        const dismissMsg: ChatMessage = {
+          id: generateUUID(),
+          timestamp: new Date().toISOString(),
+          role: 'assistant',
+          content: `Sounds good!`,
+        };
+        onUpdateHistory([...messages, userMsg, dismissMsg]);
+      }
+      return;
+    }
+
     if (!wizardState) return;
 
     // 1. Add user's selection as a message
@@ -764,7 +814,6 @@ Could you tell me more about what you're experiencing?`;
       setWizardState(null);
       setRemainingWizardSteps([]);
       onUpdateHistory([...messages, userMsg, confirmMsg]);
-      onClose();
       return;
     }
 
@@ -787,7 +836,6 @@ Could you tell me more about what you're experiencing?`;
       setWizardState(null);
       setRemainingWizardSteps([]);
       onUpdateHistory([...messages, userMsg, confirmMsg]);
-      onClose();
       return;
     }
 
@@ -807,10 +855,10 @@ Could you tell me more about what you're experiencing?`;
         content: `${label} timer started! I'll keep track.`,
       };
       if (onStartTimer) onStartTimer(timer);
+      if (onOpenQuickLogModal) onOpenQuickLogModal('sleep');
       setWizardState(null);
       setRemainingWizardSteps([]);
       onUpdateHistory([...messages, userMsg, confirmMsg]);
-      onClose();
       return;
     }
 
@@ -1054,16 +1102,25 @@ Could you tell me more about what you're experiencing?`;
                       {formatTime(message.timestamp)}
                     </div>
                   </div>
-                  {/* Wizard action buttons — below assistant message */}
+                  {/* Wizard / timer action buttons — below assistant message */}
                   {message.metadata?.wizardButtons && (
                     <div className="rosie-chat-wizard-buttons">
                       {message.metadata.wizardButtons.map(opt => {
-                        const isAnswered = wizardState
-                          ? wizardState.answers[message.metadata!.wizardStepField!] !== undefined
-                          : true; // no wizard = all answered (completed)
-                        const isSelected = wizardState
-                          ? wizardState.answers[message.metadata!.wizardStepField!] === opt.value
-                          : false;
+                        const isTimerAction = message.metadata!.wizardStepField === 'timerAction';
+                        let isAnswered: boolean;
+                        let isSelected = false;
+                        if (isTimerAction) {
+                          // Timer action buttons: answered if there's a user message after this one
+                          const msgIndex = messages.indexOf(message);
+                          isAnswered = messages.slice(msgIndex + 1).some(m => m.role === 'user');
+                        } else {
+                          isAnswered = wizardState
+                            ? wizardState.answers[message.metadata!.wizardStepField!] !== undefined
+                            : true; // no wizard = all answered (completed)
+                          isSelected = wizardState
+                            ? wizardState.answers[message.metadata!.wizardStepField!] === opt.value
+                            : false;
+                        }
                         return (
                           <button
                             key={opt.value}

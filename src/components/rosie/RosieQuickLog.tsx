@@ -3,6 +3,16 @@ import { TimelineEvent, ActiveTimer } from './types';
 import { DurationRing } from './DurationRing';
 import { SmartDefaults } from './contextEngine';
 
+export interface TimerActionEvent {
+  type: 'feed_saved' | 'feed_discarded' | 'sleep_saved' | 'sleep_discarded';
+  details: {
+    feedType?: 'breast' | 'bottle';
+    side?: 'left' | 'right';
+    duration?: number; // seconds
+    amount?: number;
+  };
+}
+
 interface RosieQuickLogProps {
   onAddEvent: (event: Omit<TimelineEvent, 'id' | 'timestamp'>) => void;
   activeTimer: ActiveTimer | null;
@@ -14,6 +24,8 @@ interface RosieQuickLogProps {
   openModal?: 'feed' | 'sleep' | 'diaper' | null;
   onModalClose?: () => void;
   hideBar?: boolean;
+  fromChat?: boolean;
+  onTimerAction?: (action: TimerActionEvent) => void;
 }
 
 type ModalType = 'feed' | 'sleep' | 'diaper' | null;
@@ -78,6 +90,8 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
   openModal,
   onModalClose,
   hideBar,
+  fromChat,
+  onTimerAction,
 }) => {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [entryMode, setEntryMode] = useState<EntryMode>('timer');
@@ -571,15 +585,29 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
       note: feedNote || undefined,
     });
 
+    onTimerAction?.({
+      type: 'feed_saved',
+      details: {
+        feedType: 'breast',
+        side: feedSide === 'both' ? undefined : feedSide,
+        duration: totalSeconds,
+      },
+    });
+
     closeModal();
   };
 
   // Discard the feed
   const discardFeed = () => {
+    onTimerAction?.({
+      type: 'feed_discarded',
+      details: { feedType: feedType as 'breast' | 'bottle' },
+    });
     setFeedReviewData(null);
     setBottleReviewData(null);
     setFeedTimerPhase('ready');
     setFeedNote('');
+    closeModal();
   };
 
   // ===== BOTTLE TIMER FUNCTIONS =====
@@ -613,6 +641,15 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
       startTime: bottleReviewData.startTime,
       endTime: bottleReviewData.endTime,
       note: feedNote || undefined,
+    });
+
+    onTimerAction?.({
+      type: 'feed_saved',
+      details: {
+        feedType: 'bottle',
+        amount: amount || undefined,
+        duration: bottleReviewData.durationSeconds,
+      },
     });
 
     closeModal();
@@ -706,14 +743,24 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
       note: sleepNote || undefined,
     });
 
+    onTimerAction?.({
+      type: 'sleep_saved',
+      details: { duration: sleepReviewData.durationSeconds },
+    });
+
     closeModal();
   };
 
   // Discard the sleep
   const discardSleep = () => {
+    onTimerAction?.({
+      type: 'sleep_discarded',
+      details: {},
+    });
     setSleepReviewData(null);
     setSleepTimerPhase('ready');
     setSleepNote('');
+    closeModal();
   };
 
   // ===== MANUAL ENTRY HANDLERS =====
@@ -889,7 +936,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
       {/* Feed Modal */}
       {activeModal === 'feed' && (
-        <div className="rosie-modal-overlay" onClick={closeModal}>
+        <div className={`rosie-modal-overlay${fromChat ? ' from-chat' : ''}`} onClick={closeModal}>
           <div className="rosie-modal" onClick={e => e.stopPropagation()}>
             <div className="rosie-modal-header">
               <h2 className="rosie-modal-title">
@@ -1431,7 +1478,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
       {/* Sleep Modal */}
       {activeModal === 'sleep' && (
-        <div className="rosie-modal-overlay" onClick={closeModal}>
+        <div className={`rosie-modal-overlay${fromChat ? ' from-chat' : ''}`} onClick={closeModal}>
           <div className="rosie-modal" onClick={e => e.stopPropagation()}>
             <div className="rosie-modal-header">
               <h2 className="rosie-modal-title">Log Sleep</h2>
@@ -1759,7 +1806,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
       {/* Diaper Modal */}
       {activeModal === 'diaper' && (
-        <div className="rosie-modal-overlay" onClick={closeModal}>
+        <div className={`rosie-modal-overlay${fromChat ? ' from-chat' : ''}`} onClick={closeModal}>
           <div className="rosie-modal" onClick={e => e.stopPropagation()}>
             <div className="rosie-modal-header">
               <h2 className="rosie-modal-title">Log Diaper</h2>

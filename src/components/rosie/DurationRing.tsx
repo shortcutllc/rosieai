@@ -78,12 +78,14 @@ export const DurationRing: React.FC<DurationRingProps> = ({
   // Mouse events
   const onMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     handleStart(e.clientX, e.clientY);
   };
 
   // Touch events
   const onTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     const touch = e.touches[0];
     handleStart(touch.clientX, touch.clientY);
   };
@@ -101,6 +103,7 @@ export const DurationRing: React.FC<DurationRingProps> = ({
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
       const touch = e.touches[0];
       handleMove(touch.clientX, touch.clientY);
     };
@@ -144,6 +147,7 @@ export const DurationRing: React.FC<DurationRingProps> = ({
         width={size}
         height={size}
         overflow="visible"
+        style={{ touchAction: 'none' }}
         className={`rosie-duration-ring ${isDragging ? 'dragging' : ''}`}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
