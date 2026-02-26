@@ -3,6 +3,10 @@
  *
  * Pure functions: no React, no state. Defines step sequences for each
  * event type with conditional branching based on previous answers.
+ *
+ * Special values:
+ * - "start_timer" in feedMode/sleepMode field → signals RosieChat to launch
+ *   the existing timer modal (RosieQuickLog) instead of continuing the wizard
  */
 
 import type { WizardStep, QuickLogEventType, TimelineEvent } from './types';
@@ -70,6 +74,7 @@ export function getNextSteps(
   if (eventType === 'feed') {
     if (currentField === 'feedType') {
       if (answers.feedType === 'bottle') {
+        // Bottle: amount → when (no duration needed)
         return [
           {
             question: 'How many ounces?',
@@ -87,6 +92,7 @@ export function getNextSteps(
           WHEN_STEP,
         ];
       } else if (answers.feedType === 'breast') {
+        // Breast: side → timer-or-log fork
         return [
           {
             question: 'Which side?',
@@ -97,6 +103,29 @@ export function getNextSteps(
             ],
             field: 'feedSide',
           },
+        ];
+      } else {
+        // Solid food: just when
+        return [WHEN_STEP];
+      }
+    }
+    if (currentField === 'feedSide') {
+      // After choosing side, offer timer or past feed
+      return [
+        {
+          question: 'Want to start a timer or log a past feed?',
+          options: [
+            { label: 'Start a timer', value: 'start_timer' },
+            { label: 'Log a past feed', value: 'log_past' },
+          ],
+          field: 'feedMode',
+        },
+      ];
+    }
+    if (currentField === 'feedMode') {
+      if (answers.feedMode === 'log_past') {
+        // Past feed: optional duration → when
+        return [
           {
             question: 'About how long?',
             options: [
@@ -105,37 +134,51 @@ export function getNextSteps(
               { label: '15 min', value: '15' },
               { label: '20 min', value: '20' },
               { label: '30 min', value: '30' },
+              { label: 'Not sure', value: 'skip' },
             ],
             field: 'feedDuration',
           },
           WHEN_STEP,
         ];
-      } else {
-        // Solid food
-        return [WHEN_STEP];
       }
+      // start_timer is handled by RosieChat before reaching here
     }
-    // After intermediate feed steps, serve the remaining queued steps
-    // The wizard controller handles step sequencing via remainingSteps
   }
 
   if (eventType === 'sleep') {
     if (currentField === 'sleepType') {
+      // After nap/bedtime, offer timer or past sleep
+      const label = answers.sleepType === 'night' ? 'bedtime' : 'nap';
       return [
         {
-          question: 'How long did they sleep?',
+          question: `Starting now or logging a past ${label}?`,
           options: [
-            { label: '20 min', value: '20' },
-            { label: '30 min', value: '30' },
-            { label: '45 min', value: '45' },
-            { label: '1 hour', value: '60' },
-            { label: '1.5 hours', value: '90' },
-            { label: '2 hours', value: '120' },
+            { label: 'Start a timer', value: 'start_timer' },
+            { label: `Log a past ${label}`, value: 'log_past' },
           ],
-          field: 'sleepDuration',
+          field: 'sleepMode',
         },
-        WHEN_STEP,
       ];
+    }
+    if (currentField === 'sleepMode') {
+      if (answers.sleepMode === 'log_past') {
+        return [
+          {
+            question: 'How long did they sleep?',
+            options: [
+              { label: '20 min', value: '20' },
+              { label: '30 min', value: '30' },
+              { label: '45 min', value: '45' },
+              { label: '1 hour', value: '60' },
+              { label: '1.5 hours', value: '90' },
+              { label: '2 hours', value: '120' },
+            ],
+            field: 'sleepDuration',
+          },
+          WHEN_STEP,
+        ];
+      }
+      // start_timer is handled by RosieChat before reaching here
     }
   }
 
@@ -169,7 +212,9 @@ export function wizardAnswersToEvent(
     base.feedType = (answers.feedType as 'breast' | 'bottle' | 'solid') || 'bottle';
     if (answers.feedSide) base.feedSide = answers.feedSide as 'left' | 'right' | 'both';
     if (answers.feedAmount) base.feedAmount = parseInt(answers.feedAmount);
-    if (answers.feedDuration) base.feedDuration = parseInt(answers.feedDuration);
+    if (answers.feedDuration && answers.feedDuration !== 'skip') {
+      base.feedDuration = parseInt(answers.feedDuration);
+    }
     if (answers.feedSide && answers.feedSide !== 'both') {
       base.feedLastSide = answers.feedSide as 'left' | 'right';
     }
@@ -199,7 +244,11 @@ export function getWizardConfirmation(
     if (answers.feedType === 'bottle') {
       return `Got it — ${answers.feedAmount || ''}oz bottle at ${time}`;
     } else if (answers.feedType === 'breast') {
-      return `Got it — ${answers.feedDuration || ''}min breastfeed (${answers.feedSide || 'both'} side) at ${time}`;
+      const side = answers.feedSide || 'both';
+      if (answers.feedDuration && answers.feedDuration !== 'skip') {
+        return `Got it — ${answers.feedDuration}min breastfeed (${side} side) at ${time}`;
+      }
+      return `Got it — breastfeed (${side} side) at ${time}`;
     } else {
       return `Got it — solid food at ${time}`;
     }
@@ -232,7 +281,11 @@ export function getWizardEventSummary(
     if (answers.feedType === 'bottle') {
       return `Bottle feed, ${answers.feedAmount || '?'}oz at ${time}`;
     } else if (answers.feedType === 'breast') {
-      return `Breastfeed, ${answers.feedDuration || '?'}min (${answers.feedSide || 'both'}) at ${time}`;
+      const side = answers.feedSide || 'both';
+      if (answers.feedDuration && answers.feedDuration !== 'skip') {
+        return `Breastfeed, ${answers.feedDuration}min (${side}) at ${time}`;
+      }
+      return `Breastfeed (${side}) at ${time}`;
     } else {
       return `Solid food at ${time}`;
     }

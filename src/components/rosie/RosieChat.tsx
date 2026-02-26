@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData, WizardState, QuickLogEventType, WizardButtonOption } from './types';
+import { BabyProfile, ChatMessage, TimelineEvent, DevelopmentalInfo, GrowthMeasurement, WeatherData, ActiveTimer, WizardState, QuickLogEventType, WizardButtonOption } from './types';
 import { formatTime } from './developmentalData';
 import { getChatPrompts, ChatPrompt, generateSessionGreeting } from './reassuranceMessages';
 import { useSpeechRecognition } from './useSpeechRecognition';
@@ -15,6 +15,15 @@ const generateUUID = (): string => {
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
+};
+
+// Format seconds into mm:ss or h:mm:ss
+const formatTimerDuration = (seconds: number): string => {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
 // Extracted event from the chat API (matches log_event tool output)
@@ -97,6 +106,10 @@ interface RosieChatProps {
   isOpen: boolean;
   initialMessage?: string;
   parentName?: string;
+  lastFeedSide?: 'left' | 'right';
+  activeTimer?: ActiveTimer | null;
+  onStartTimer?: (timer: ActiveTimer) => void;
+  onOpenQuickLogModal?: (type: 'feed' | 'sleep' | 'diaper') => void;
   onClose: () => void;
 }
 
@@ -114,6 +127,10 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   isOpen,
   initialMessage,
   parentName,
+  lastFeedSide,
+  activeTimer,
+  onStartTimer,
+  onOpenQuickLogModal,
   onClose,
 }) => {
   const [input, setInput] = useState('');
@@ -141,6 +158,20 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   // Quick log wizard state
   const [wizardState, setWizardState] = useState<WizardState | null>(null);
   const [remainingWizardSteps, setRemainingWizardSteps] = useState<import('./types').WizardStep[]>([]);
+
+  // Timer banner display — tick every second when active
+  const [timerDisplay, setTimerDisplay] = useState(0);
+  useEffect(() => {
+    if (!activeTimer) { setTimerDisplay(0); return; }
+    const update = () => {
+      const secs = Math.floor((Date.now() - new Date(activeTimer.startTime).getTime()) / 1000);
+      setTimerDisplay(secs);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [activeTimer]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -569,7 +600,65 @@ Could you tell me more about what you're experiencing?`;
     // 2. Update answers
     const updatedAnswers = { ...wizardState.answers, [stepField]: option.value };
 
-    // 3. Check remaining queued steps first, then get next steps
+    // 3. Check for timer launch — intercept before normal flow
+    if (option.value === 'start_timer') {
+      const now = new Date().toISOString();
+
+      if (wizardState.eventType === 'feed' && updatedAnswers.feedType === 'breast') {
+        // Launch breast timer with selected side
+        const side = (updatedAnswers.feedSide as 'left' | 'right') || 'left';
+        const timer: ActiveTimer = {
+          type: 'feed',
+          startTime: now,
+          feedType: 'breast',
+          currentSide: side,
+          leftStartTime: side === 'left' ? now : undefined,
+          leftDuration: 0,
+          rightStartTime: side === 'right' ? now : undefined,
+          rightDuration: 0,
+        };
+
+        const confirmMsg: ChatMessage = {
+          id: generateUUID(),
+          timestamp: now,
+          role: 'assistant',
+          content: `Timer started! I'll keep track of your ${side}-side feed.`,
+        };
+
+        if (onStartTimer) onStartTimer(timer);
+        if (onOpenQuickLogModal) onOpenQuickLogModal('feed');
+
+        setWizardState(null);
+        setRemainingWizardSteps([]);
+        onUpdateHistory([...messages, userMsg, confirmMsg]);
+        onClose();
+      } else if (wizardState.eventType === 'sleep') {
+        // Launch sleep timer
+        const timer: ActiveTimer = {
+          type: 'sleep',
+          startTime: now,
+          sleepType: (updatedAnswers.sleepType as 'nap' | 'night') || 'nap',
+        };
+
+        const label = updatedAnswers.sleepType === 'night' ? 'Bedtime' : 'Nap';
+        const confirmMsg: ChatMessage = {
+          id: generateUUID(),
+          timestamp: now,
+          role: 'assistant',
+          content: `${label} timer started! I'll keep track.`,
+        };
+
+        if (onStartTimer) onStartTimer(timer);
+
+        setWizardState(null);
+        setRemainingWizardSteps([]);
+        onUpdateHistory([...messages, userMsg, confirmMsg]);
+        onClose();
+      }
+      return;
+    }
+
+    // 4. Normal flow — check remaining queued steps first, then get next steps
     let nextSteps = remainingWizardSteps.length > 0
       ? remainingWizardSteps
       : getNextSteps(wizardState.eventType, updatedAnswers, stepField);
@@ -668,6 +757,38 @@ Could you tell me more about what you're experiencing?`;
           </svg>
         </button>
       </div>
+
+      {/* Timer banner — mirrors the home tab banner when a timer is active */}
+      {activeTimer && (
+        <div
+          className={`rosie-timer-banner ${activeTimer.type === 'sleep' ? 'sleep' : ''}`}
+          onClick={() => {
+            if (onOpenQuickLogModal) onOpenQuickLogModal(activeTimer.type === 'feed' ? 'feed' : 'sleep');
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <div className="rosie-timer-banner-content">
+            <div className="rosie-timer-banner-icon">
+              {activeTimer.type === 'feed' ? '🍼' : '💤'}
+            </div>
+            <div className="rosie-timer-banner-info">
+              <div className="rosie-timer-banner-label">
+                {activeTimer.type === 'feed' ? 'Feeding' : 'Sleeping'}
+              </div>
+              <div className="rosie-timer-banner-time">
+                {formatTimerDuration(timerDisplay)}
+              </div>
+              {activeTimer.type === 'feed' && activeTimer.currentSide && (
+                <div className="rosie-timer-banner-detail">
+                  {activeTimer.currentSide.charAt(0).toUpperCase() + activeTimer.currentSide.slice(1)} side
+                </div>
+              )}
+            </div>
+          </div>
+          <button className="rosie-timer-banner-btn">View</button>
+        </div>
+      )}
 
       {/* ── Body — empty state or messages ── */}
       <div className="rosie-chat-body">
