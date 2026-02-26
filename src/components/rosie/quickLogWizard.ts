@@ -4,12 +4,43 @@
  * Pure functions: no React, no state. Defines step sequences for each
  * event type with conditional branching based on previous answers.
  *
- * Special values:
- * - "start_timer" in feedMode/sleepMode field → signals RosieChat to launch
- *   the existing timer modal (RosieQuickLog) instead of continuing the wizard
+ * Feed flow: "Start a feed" (timer) vs "Log a past feed" (manual)
+ * Sleep flow: "Start sleep" (timer) vs "Log past sleep" (manual)
+ * Diaper flow: type → when (unchanged)
+ *
+ * Special timer triggers (handled by RosieChat before reaching getNextSteps):
+ * - feedTimerSide = "start_left" / "start_right" → breast timer
+ * - feedMode = "start_feed" + feedType = "bottle" → bottle timer
+ * - sleepMode = "start_sleep" after sleepType → sleep timer
  */
 
 import type { WizardStep, QuickLogEventType, TimelineEvent } from './types';
+
+// ── Shared step definitions ──
+
+const WHEN_STEP: WizardStep = {
+  question: 'When was this?',
+  options: [
+    { label: 'Just now', value: 'now' },
+    { label: '15 min ago', value: '15' },
+    { label: '30 min ago', value: '30' },
+    { label: '1 hour ago', value: '60' },
+    { label: 'Custom', value: 'custom' },
+  ],
+  field: 'eventTime',
+};
+
+const WHEN_START_STEP: WizardStep = {
+  question: 'When did it start?',
+  options: [
+    { label: '5 min ago', value: '5' },
+    { label: '15 min ago', value: '15' },
+    { label: '30 min ago', value: '30' },
+    { label: '1 hour ago', value: '60' },
+    { label: 'Custom', value: 'custom' },
+  ],
+  field: 'eventTime',
+};
 
 // ── Initial steps for each event type ──
 
@@ -18,30 +49,29 @@ export function getWizardSteps(eventType: QuickLogEventType): WizardStep[] {
     case 'feed':
       return [
         {
-          question: "Let's log a feed! Breast or bottle?",
+          question: "Let's log a feed!",
           options: [
-            { label: 'Breast', value: 'breast' },
-            { label: 'Bottle', value: 'bottle' },
-            { label: 'Solid food', value: 'solid' },
+            { label: 'Start a feed', value: 'start_feed' },
+            { label: 'Log a past feed', value: 'log_past' },
           ],
-          field: 'feedType',
+          field: 'feedMode',
         },
       ];
     case 'sleep':
       return [
         {
-          question: "Let's log some sleep! Nap or bedtime?",
+          question: "Let's log some sleep!",
           options: [
-            { label: 'Nap', value: 'nap' },
-            { label: 'Bedtime', value: 'night' },
+            { label: 'Start sleep', value: 'start_sleep' },
+            { label: 'Log past sleep', value: 'log_past' },
           ],
-          field: 'sleepType',
+          field: 'sleepMode',
         },
       ];
     case 'diaper':
       return [
         {
-          question: "Diaper check! What type?",
+          question: 'Diaper check! What type?',
           options: [
             { label: 'Wet', value: 'wet' },
             { label: 'Dirty', value: 'dirty' },
@@ -55,44 +85,68 @@ export function getWizardSteps(eventType: QuickLogEventType): WizardStep[] {
 
 // ── Conditional next steps based on answers so far ──
 
-const WHEN_STEP: WizardStep = {
-  question: 'When was this?',
-  options: [
-    { label: 'Just now', value: 'now' },
-    { label: '15 min ago', value: '15' },
-    { label: '30 min ago', value: '30' },
-    { label: '1 hour ago', value: '60' },
-  ],
-  field: 'eventTime',
-};
-
 export function getNextSteps(
   eventType: QuickLogEventType,
   answers: Record<string, string>,
   currentField: string
 ): WizardStep[] {
+
+  // ─── FEED ───
   if (eventType === 'feed') {
-    if (currentField === 'feedType') {
-      if (answers.feedType === 'bottle') {
-        // Bottle: amount → when (no duration needed)
+
+    // After feedMode choice
+    if (currentField === 'feedMode') {
+      if (answers.feedMode === 'start_feed') {
+        // Starting a live feed — breast or bottle only
         return [
           {
-            question: 'How many ounces?',
+            question: 'Breast or bottle?',
             options: [
-              { label: '2oz', value: '2' },
-              { label: '3oz', value: '3' },
-              { label: '4oz', value: '4' },
-              { label: '5oz', value: '5' },
-              { label: '6oz', value: '6' },
-              { label: '7oz', value: '7' },
-              { label: '8oz', value: '8' },
+              { label: 'Breast', value: 'breast' },
+              { label: 'Bottle', value: 'bottle' },
             ],
-            field: 'feedAmount',
+            field: 'feedType',
           },
-          WHEN_STEP,
         ];
-      } else if (answers.feedType === 'breast') {
-        // Breast: side → timer-or-log fork
+      } else {
+        // Logging a past feed — includes solid food option
+        return [
+          {
+            question: 'Breast or bottle?',
+            options: [
+              { label: 'Breast', value: 'breast' },
+              { label: 'Bottle', value: 'bottle' },
+              { label: 'Solid food', value: 'solid' },
+            ],
+            field: 'feedType',
+          },
+        ];
+      }
+    }
+
+    // After feedType choice
+    if (currentField === 'feedType') {
+      // === START A FEED path ===
+      if (answers.feedMode === 'start_feed') {
+        if (answers.feedType === 'breast') {
+          // Breast: buttons ARE the side choice — "Start left" / "Start right"
+          return [
+            {
+              question: 'Tap to start!',
+              options: [
+                { label: 'Start left', value: 'start_left' },
+                { label: 'Start right', value: 'start_right' },
+              ],
+              field: 'feedTimerSide',
+            },
+          ];
+        }
+        // Bottle: timer launches immediately — handled by RosieChat
+        return [];
+      }
+
+      // === LOG A PAST FEED path ===
+      if (answers.feedType === 'breast') {
         return [
           {
             question: 'Which side?',
@@ -104,84 +158,113 @@ export function getNextSteps(
             field: 'feedSide',
           },
         ];
+      } else if (answers.feedType === 'bottle') {
+        return [
+          {
+            question: 'How many ounces?',
+            options: [
+              { label: '2oz', value: '2' },
+              { label: '3oz', value: '3' },
+              { label: '4oz', value: '4' },
+              { label: '5oz', value: '5' },
+              { label: '6oz', value: '6' },
+              { label: '7oz', value: '7' },
+              { label: '8oz', value: '8' },
+              { label: 'Custom', value: 'custom' },
+            ],
+            field: 'feedAmount',
+          },
+        ];
       } else {
         // Solid food: just when
         return [WHEN_STEP];
       }
     }
+
+    // After feedSide (past breast) → when did it start → optional duration
     if (currentField === 'feedSide') {
-      // After choosing side, offer timer or past feed
       return [
+        WHEN_START_STEP,
         {
-          question: 'Want to start a timer or log a past feed?',
+          question: 'About how long?',
           options: [
-            { label: 'Start a timer', value: 'start_timer' },
-            { label: 'Log a past feed', value: 'log_past' },
+            { label: '5 min', value: '5' },
+            { label: '10 min', value: '10' },
+            { label: '15 min', value: '15' },
+            { label: '20 min', value: '20' },
+            { label: '30 min', value: '30' },
+            { label: 'Not sure', value: 'skip' },
+            { label: 'Custom', value: 'custom' },
           ],
-          field: 'feedMode',
+          field: 'feedDuration',
         },
       ];
     }
-    if (currentField === 'feedMode') {
-      if (answers.feedMode === 'log_past') {
-        // Past feed: optional duration → when
-        return [
-          {
-            question: 'About how long?',
-            options: [
-              { label: '5 min', value: '5' },
-              { label: '10 min', value: '10' },
-              { label: '15 min', value: '15' },
-              { label: '20 min', value: '20' },
-              { label: '30 min', value: '30' },
-              { label: 'Not sure', value: 'skip' },
-            ],
-            field: 'feedDuration',
-          },
-          WHEN_STEP,
-        ];
-      }
-      // start_timer is handled by RosieChat before reaching here
+
+    // After feedAmount (past bottle) → when did it start
+    if (currentField === 'feedAmount') {
+      return [WHEN_START_STEP];
     }
   }
 
+  // ─── SLEEP ───
   if (eventType === 'sleep') {
-    if (currentField === 'sleepType') {
-      // After nap/bedtime, offer timer or past sleep
-      const label = answers.sleepType === 'night' ? 'bedtime' : 'nap';
-      return [
-        {
-          question: `Starting now or logging a past ${label}?`,
-          options: [
-            { label: 'Start a timer', value: 'start_timer' },
-            { label: `Log a past ${label}`, value: 'log_past' },
-          ],
-          field: 'sleepMode',
-        },
-      ];
-    }
+
+    // After sleepMode choice
     if (currentField === 'sleepMode') {
-      if (answers.sleepMode === 'log_past') {
+      if (answers.sleepMode === 'start_sleep') {
         return [
           {
-            question: 'How long did they sleep?',
+            question: 'Nap or bedtime?',
             options: [
-              { label: '20 min', value: '20' },
-              { label: '30 min', value: '30' },
-              { label: '45 min', value: '45' },
-              { label: '1 hour', value: '60' },
-              { label: '1.5 hours', value: '90' },
-              { label: '2 hours', value: '120' },
+              { label: 'Nap', value: 'nap' },
+              { label: 'Bedtime', value: 'night' },
             ],
-            field: 'sleepDuration',
+            field: 'sleepType',
           },
-          WHEN_STEP,
+        ];
+      } else {
+        // Log past sleep
+        return [
+          {
+            question: 'Nap or bedtime?',
+            options: [
+              { label: 'Nap', value: 'nap' },
+              { label: 'Bedtime', value: 'night' },
+            ],
+            field: 'sleepType',
+          },
         ];
       }
-      // start_timer is handled by RosieChat before reaching here
+    }
+
+    // After sleepType
+    if (currentField === 'sleepType') {
+      // Start sleep: timer launches — handled by RosieChat
+      if (answers.sleepMode === 'start_sleep') {
+        return [];
+      }
+      // Log past sleep: duration → when did it start
+      return [
+        {
+          question: 'How long did they sleep?',
+          options: [
+            { label: '20 min', value: '20' },
+            { label: '30 min', value: '30' },
+            { label: '45 min', value: '45' },
+            { label: '1 hour', value: '60' },
+            { label: '1.5 hours', value: '90' },
+            { label: '2 hours', value: '120' },
+            { label: 'Custom', value: 'custom' },
+          ],
+          field: 'sleepDuration',
+        },
+        WHEN_START_STEP,
+      ];
     }
   }
 
+  // ─── DIAPER (unchanged) ───
   if (eventType === 'diaper') {
     if (currentField === 'diaperType') {
       return [WHEN_STEP];
@@ -197,7 +280,7 @@ export function wizardAnswersToEvent(
   eventType: QuickLogEventType,
   answers: Record<string, string>
 ): Partial<TimelineEvent> {
-  // Compute timestamp based on "when" answer
+  // Compute timestamp based on "when" answer (start time for feeds/sleep)
   const now = new Date();
   if (answers.eventTime && answers.eventTime !== 'now') {
     now.setMinutes(now.getMinutes() - parseInt(answers.eventTime));
@@ -211,7 +294,7 @@ export function wizardAnswersToEvent(
   if (eventType === 'feed') {
     base.feedType = (answers.feedType as 'breast' | 'bottle' | 'solid') || 'bottle';
     if (answers.feedSide) base.feedSide = answers.feedSide as 'left' | 'right' | 'both';
-    if (answers.feedAmount) base.feedAmount = parseInt(answers.feedAmount);
+    if (answers.feedAmount) base.feedAmount = parseFloat(answers.feedAmount);
     if (answers.feedDuration && answers.feedDuration !== 'skip') {
       base.feedDuration = parseInt(answers.feedDuration);
     }

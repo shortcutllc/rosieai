@@ -143,6 +143,7 @@ export const DurationRing: React.FC<DurationRingProps> = ({
         ref={svgRef}
         width={size}
         height={size}
+        overflow="visible"
         className={`rosie-duration-ring ${isDragging ? 'dragging' : ''}`}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}

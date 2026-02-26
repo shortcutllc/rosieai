@@ -52,6 +52,13 @@ interface FeedReviewData {
   lastSide: 'left' | 'right';
 }
 
+// Review data structure for bottle timer
+interface BottleReviewData {
+  durationSeconds: number;
+  startTime: string;
+  endTime: string;
+}
+
 // Review data structure for paused sleep
 interface SleepReviewData {
   durationSeconds: number;
@@ -78,6 +85,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
   // Feed timer phase tracking
   const [feedTimerPhase, setFeedTimerPhase] = useState<FeedTimerPhase>('ready');
   const [feedReviewData, setFeedReviewData] = useState<FeedReviewData | null>(null);
+  const [bottleReviewData, setBottleReviewData] = useState<BottleReviewData | null>(null);
 
   // Sleep timer phase tracking
   const [sleepTimerPhase, setSleepTimerPhase] = useState<SleepTimerPhase>('ready');
@@ -171,6 +179,11 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
 
         // Total is sum of both
         setTimerDisplay(leftTotal + rightTotal);
+      } else if (activeTimer.type === 'feed' && activeTimer.feedType === 'bottle') {
+        // Bottle timer - simple total from start
+        const startMs = new Date(activeTimer.startTime).getTime();
+        const totalSeconds = Math.floor((now - startMs) / 1000);
+        setTimerDisplay(totalSeconds);
       } else if (activeTimer.type === 'sleep') {
         // Sleep timer - simple total from start
         const startMs = new Date(activeTimer.startTime).getTime();
@@ -189,6 +202,10 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
     if (activeTimer && activeTimer.type === 'feed') {
       if (feedTimerPhase === 'ready') {
         setFeedTimerPhase('timing');
+      }
+      // Sync feedType from activeTimer (e.g., when started from chat wizard)
+      if (activeTimer.feedType && activeTimer.feedType !== feedType) {
+        setFeedType(activeTimer.feedType);
       }
       // Restore running states based on which side has a start time
       // This handles the case when modal is reopened with an active timer
@@ -230,6 +247,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
     setFeedManualRightMins('');
     setEntryMode('timer');
     setFeedReviewData(null);
+    setBottleReviewData(null);
 
     // Only reset timer states if there's no active feed timer
     // This preserves the running state when modal is closed mid-timer
@@ -559,8 +577,45 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
   // Discard the feed
   const discardFeed = () => {
     setFeedReviewData(null);
+    setBottleReviewData(null);
     setFeedTimerPhase('ready');
     setFeedNote('');
+  };
+
+  // ===== BOTTLE TIMER FUNCTIONS =====
+  const completeBottleTimer = () => {
+    if (!activeTimer || activeTimer.type !== 'feed' || activeTimer.feedType !== 'bottle') return;
+
+    const now = new Date();
+    const startMs = new Date(activeTimer.startTime).getTime();
+    const durationSeconds = Math.floor((now.getTime() - startMs) / 1000);
+
+    setBottleReviewData({
+      durationSeconds,
+      startTime: activeTimer.startTime,
+      endTime: now.toISOString(),
+    });
+
+    onStopTimer();
+    setFeedTimerPhase('review');
+  };
+
+  const saveBottleFromReview = () => {
+    if (!bottleReviewData) return;
+
+    const amount = parseFloat(feedAmount);
+
+    onAddEvent({
+      type: 'feed',
+      feedType: 'bottle',
+      feedAmount: amount || undefined,
+      feedDuration: Math.ceil(bottleReviewData.durationSeconds / 60),
+      startTime: bottleReviewData.startTime,
+      endTime: bottleReviewData.endTime,
+      note: feedNote || undefined,
+    });
+
+    closeModal();
   };
 
   // ===== SLEEP TIMER FUNCTIONS =====
@@ -943,8 +998,8 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                             <svg viewBox="0 0 100 100">
                               <defs>
                                 <linearGradient id="leftGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                  <stop offset="0%" stopColor="#FF6B8A" />
-                                  <stop offset="100%" stopColor="#FF2D55" />
+                                  <stop offset="0%" stopColor="#FFB84D" />
+                                  <stop offset="100%" stopColor="#FF9500" />
                                 </linearGradient>
                               </defs>
                               {/* Background ring */}
@@ -982,8 +1037,8 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                             <svg viewBox="0 0 100 100">
                               <defs>
                                 <linearGradient id="rightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                  <stop offset="0%" stopColor="#5AC8FA" />
-                                  <stop offset="100%" stopColor="#007AFF" />
+                                  <stop offset="0%" stopColor="#FFD699" />
+                                  <stop offset="100%" stopColor="#FFB84D" />
                                 </linearGradient>
                               </defs>
                               {/* Background ring */}
@@ -1143,7 +1198,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                           maxValue={30}
                           size={130}
                           strokeWidth={16}
-                          color="#FF2D55"
+                          color="#FF9500"
                           label="Left"
                           showHours={false}
                         />
@@ -1155,7 +1210,7 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
                           maxValue={30}
                           size={130}
                           strokeWidth={16}
-                          color="#007AFF"
+                          color="#FFB84D"
                           label="Right"
                           showHours={false}
                         />
@@ -1194,61 +1249,161 @@ export const RosieQuickLog: React.FC<RosieQuickLogProps> = ({
             )}
 
             {/* Bottle Feeding */}
-            {feedType === 'bottle' && feedTimerPhase === 'ready' && (
+            {feedType === 'bottle' && (
               <>
-                <div className="rosie-time-inputs">
-                  <div className="rosie-time-input-group">
-                    <label className="rosie-time-input-label">Start Time</label>
-                    <input
-                      type="time"
-                      className="rosie-input"
-                      value={feedStartTime}
-                      onChange={e => setFeedStartTime(e.target.value)}
-                    />
-                  </div>
-                  <div className="rosie-time-input-group">
-                    <label className="rosie-time-input-label">End Time</label>
-                    <input
-                      type="time"
-                      className="rosie-input"
-                      value={feedEndTime}
-                      onChange={e => setFeedEndTime(e.target.value)}
-                    />
-                  </div>
-                </div>
+                {/* READY - Manual entry (no active timer) */}
+                {feedTimerPhase === 'ready' && (
+                  <>
+                    <div className="rosie-time-inputs">
+                      <div className="rosie-time-input-group">
+                        <label className="rosie-time-input-label">Start Time</label>
+                        <input
+                          type="time"
+                          className="rosie-input"
+                          value={feedStartTime}
+                          onChange={e => setFeedStartTime(e.target.value)}
+                        />
+                      </div>
+                      <div className="rosie-time-input-group">
+                        <label className="rosie-time-input-label">End Time</label>
+                        <input
+                          type="time"
+                          className="rosie-input"
+                          value={feedEndTime}
+                          onChange={e => setFeedEndTime(e.target.value)}
+                        />
+                      </div>
+                    </div>
 
-                <div className="rosie-modal-section">
-                  <label className="rosie-modal-label">Amount (oz)</label>
-                  <input
-                    type="number"
-                    className="rosie-input"
-                    placeholder="e.g., 4"
-                    value={feedAmount}
-                    onChange={e => setFeedAmount(e.target.value)}
-                    min="0"
-                    max="12"
-                    step="0.5"
-                  />
-                </div>
+                    <div className="rosie-modal-section">
+                      <label className="rosie-modal-label">Amount (oz)</label>
+                      <input
+                        type="number"
+                        className="rosie-input"
+                        placeholder="e.g., 4"
+                        value={feedAmount}
+                        onChange={e => setFeedAmount(e.target.value)}
+                        min="0"
+                        max="12"
+                        step="0.5"
+                      />
+                    </div>
 
-                <div className="rosie-modal-section">
-                  <label className="rosie-modal-label">Note (optional)</label>
-                  <textarea
-                    className="rosie-input rosie-textarea"
-                    placeholder="Any observations..."
-                    value={feedNote}
-                    onChange={e => setFeedNote(e.target.value)}
-                  />
-                </div>
+                    <div className="rosie-modal-section">
+                      <label className="rosie-modal-label">Note (optional)</label>
+                      <textarea
+                        className="rosie-input rosie-textarea"
+                        placeholder="Any observations..."
+                        value={feedNote}
+                        onChange={e => setFeedNote(e.target.value)}
+                      />
+                    </div>
 
-                <button
-                  className="rosie-btn-primary"
-                  style={{ background: 'linear-gradient(135deg, #FF9500, #FFB340)' }}
-                  onClick={handleSaveFeedManual}
-                  disabled={!feedAmount}
-                >
-                  Save Feed
-                </button>
+                    <button
+                      className="rosie-btn-primary"
+                      style={{ background: 'linear-gradient(135deg, #FF9500, #FFB340)' }}
+                      onClick={handleSaveFeedManual}
+                      disabled={!feedAmount}
+                    >
+                      Save Feed
+                    </button>
+                  </>
+                )}
+
+                {/* TIMING - Bottle timer running */}
+                {feedTimerPhase === 'timing' && activeTimer && activeTimer.feedType === 'bottle' && (
+                  <>
+                    <div className="rosie-timer-ring active">
+                      <svg viewBox="0 0 100 100">
+                        <defs>
+                          <linearGradient id="bottleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#FFB340" />
+                            <stop offset="100%" stopColor="#FF9500" />
+                          </linearGradient>
+                        </defs>
+                        <circle className="rosie-timer-ring-bg" cx="50" cy="50" r="42" />
+                        <circle
+                          className="rosie-timer-ring-progress bottle"
+                          cx="50"
+                          cy="50"
+                          r="42"
+                          strokeDasharray={2 * Math.PI * 42}
+                          strokeDashoffset={2 * Math.PI * 42 * (1 - Math.min(timerDisplay / 1800, 1))}
+                          style={{ stroke: 'url(#bottleGradient)' }}
+                        />
+                      </svg>
+                      <div className="rosie-timer-ring-inner">
+                        <div className="rosie-timer-time-large">{formatDuration(timerDisplay)}</div>
+                        <div className="rosie-timer-label" style={{ color: '#FF9500' }}>BOTTLE</div>
+                      </div>
+                    </div>
+
+                    <div className="rosie-timer-actions">
+                      <button
+                        className="rosie-timer-action-btn stop"
+                        onClick={completeBottleTimer}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* REVIEW - Bottle timer complete, enter amount and save */}
+                {feedTimerPhase === 'review' && bottleReviewData && (
+                  <>
+                    <div className="rosie-review-card">
+                      <div className="rosie-review-total">
+                        <div className="rosie-review-total-label">Feed Duration</div>
+                        <div className="rosie-review-total-value">{formatDurationDisplay(Math.ceil(bottleReviewData.durationSeconds / 60))}</div>
+                      </div>
+                      <div className="rosie-review-time">
+                        {new Date(bottleReviewData.startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        {' → '}
+                        {new Date(bottleReviewData.endTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      </div>
+                    </div>
+
+                    <div className="rosie-modal-section">
+                      <label className="rosie-modal-label">Amount (oz)</label>
+                      <input
+                        type="number"
+                        className="rosie-input"
+                        placeholder="e.g., 4"
+                        value={feedAmount}
+                        onChange={e => setFeedAmount(e.target.value)}
+                        min="0"
+                        max="12"
+                        step="0.5"
+                      />
+                    </div>
+
+                    <div className="rosie-modal-section">
+                      <label className="rosie-modal-label">Note (optional)</label>
+                      <textarea
+                        className="rosie-input rosie-textarea"
+                        placeholder="Any observations..."
+                        value={feedNote}
+                        onChange={e => setFeedNote(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="rosie-timer-actions">
+                      <button
+                        className="rosie-timer-action-btn secondary"
+                        onClick={discardFeed}
+                      >
+                        Discard
+                      </button>
+                      <button
+                        className="rosie-timer-action-btn start"
+                        onClick={saveBottleFromReview}
+                      >
+                        Save Feed
+                      </button>
+                    </div>
+                  </>
+                )}
               </>
             )}
 

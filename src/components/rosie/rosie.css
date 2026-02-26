@@ -3729,12 +3729,12 @@
 }
 
 .rosie-timer-ring-progress.left {
-  stroke: #FF2D55;
+  stroke: #FF9500;
   filter: none;
 }
 
 .rosie-timer-ring-progress.right {
-  stroke: #007AFF;
+  stroke: #FFB84D;
   filter: none;
 }
 
@@ -3799,11 +3799,11 @@
 }
 
 .rosie-timer-label-small.left {
-  color: #FF2D55;
+  color: #FF9500;
 }
 
 .rosie-timer-label-small.right {
-  color: #007AFF;
+  color: #FFB84D;
 }
 
 /* Ring control button */
@@ -3981,13 +3981,13 @@
 }
 
 .rosie-side-btn.left.active {
-  border-color: #FF2D55;
-  background: #FFF0F3;
+  border-color: #FF9500;
+  background: #FFF5E6;
 }
 
 .rosie-side-btn.right.active {
-  border-color: #007AFF;
-  background: #F0F5FF;
+  border-color: #FFB84D;
+  background: #FFF8ED;
 }
 
 .rosie-side-btn-label {
@@ -4000,11 +4000,11 @@
 }
 
 .rosie-side-btn.left .rosie-side-btn-label {
-  color: #FF2D55;
+  color: #FF9500;
 }
 
 .rosie-side-btn.right .rosie-side-btn-label {
-  color: #007AFF;
+  color: #FFB84D;
 }
 
 .rosie-side-btn-time {
@@ -7601,8 +7601,10 @@
   justify-content: center;
   gap: 12px;
   margin: 16px 0;
-  padding: 12px 4px;
+  padding: 20px;
   overflow: visible;
+  background: var(--rosie-bg);
+  border-radius: var(--rosie-radius);
 }
 
 .rosie-duration-ring-wrapper {
@@ -7611,11 +7613,11 @@
 }
 
 .rosie-duration-ring-wrapper.left .rosie-duration-ring-label {
-  color: #FF2D55;
+  color: #FF9500;
 }
 
 .rosie-duration-ring-wrapper.right .rosie-duration-ring-label {
-  color: #007AFF;
+  color: #FFB84D;
 }
 
 /* Single Duration Ring (for sleep) */
@@ -7623,8 +7625,10 @@
   display: flex;
   justify-content: center;
   margin: 8px 0 16px;
-  padding: 12px;
+  padding: 20px;
   overflow: visible;
+  background: var(--rosie-bg);
+  border-radius: var(--rosie-radius);
 }
 
 /* Manual Total Display */

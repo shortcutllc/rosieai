@@ -26,6 +26,61 @@ const formatTimerDuration = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
+// Parse free-text custom input from the wizard
+const parseCustomInput = (text: string, parser: 'duration' | 'time' | 'amount'): string => {
+  const cleaned = text.trim().toLowerCase();
+
+  if (parser === 'amount') {
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? cleaned : String(num);
+  }
+
+  if (parser === 'duration') {
+    // "1h30m" / "1h 30" / "1h" / "90" / "1 hour 30 min"
+    const hm = cleaned.match(/(\d+)\s*h(?:ours?|r)?(?:\s*(\d+))?/);
+    if (hm) {
+      const hrs = parseInt(hm[1]);
+      const mins = hm[2] ? parseInt(hm[2]) : 0;
+      return String(hrs * 60 + mins);
+    }
+    const num = parseInt(cleaned);
+    return isNaN(num) ? cleaned : String(num);
+  }
+
+  if (parser === 'time') {
+    // "45 min ago" / "45m ago" → "45"
+    const agoMatch = cleaned.match(/(\d+)\s*m(?:in(?:utes?)?)?(?:\s*ago)?/);
+    if (agoMatch) return agoMatch[1];
+
+    // "1 hour ago" / "2h ago"
+    const hourAgo = cleaned.match(/(\d+)\s*h(?:ours?|r)?(?:\s*ago)?/);
+    if (hourAgo) return String(parseInt(hourAgo[1]) * 60);
+
+    // "2:30pm" / "2:30 pm" — convert to minutes ago
+    const timeMatch = cleaned.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/);
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1]);
+      const mins = parseInt(timeMatch[2]);
+      const ampm = timeMatch[3];
+      if (ampm === 'pm' && hours < 12) hours += 12;
+      if (ampm === 'am' && hours === 12) hours = 0;
+
+      const now = new Date();
+      const target = new Date();
+      target.setHours(hours, mins, 0, 0);
+      if (target > now) target.setDate(target.getDate() - 1);
+      const diffMin = Math.round((now.getTime() - target.getTime()) / 60000);
+      return String(diffMin);
+    }
+
+    // Just a number = minutes
+    const num = parseInt(cleaned);
+    return isNaN(num) ? cleaned : String(num);
+  }
+
+  return cleaned;
+};
+
 // Extracted event from the chat API (matches log_event tool output)
 interface ExtractedEvent {
   type: 'feed' | 'sleep' | 'diaper';
@@ -158,6 +213,13 @@ export const RosieChat: React.FC<RosieChatProps> = ({
   // Quick log wizard state
   const [wizardState, setWizardState] = useState<WizardState | null>(null);
   const [remainingWizardSteps, setRemainingWizardSteps] = useState<import('./types').WizardStep[]>([]);
+
+  // Custom input mode — when user taps "Custom" on a wizard step
+  const [customInputMode, setCustomInputMode] = useState<{
+    field: string;
+    hint: string;
+    parser: 'duration' | 'time' | 'amount';
+  } | null>(null);
 
   // Timer banner display — tick every second when active
   const [timerDisplay, setTimerDisplay] = useState(0);
@@ -389,6 +451,81 @@ Could you tell me more about what you're experiencing?`;
     const userMessage = input.trim();
     setInput('');
 
+    // Custom input mode — parse text and continue wizard
+    if (customInputMode && wizardState) {
+      const parsedValue = parseCustomInput(userMessage, customInputMode.parser);
+      const updatedAnswers = { ...wizardState.answers, [customInputMode.field]: parsedValue };
+      const field = customInputMode.field;
+      setCustomInputMode(null);
+
+      const userMsg: ChatMessage = {
+        id: generateUUID(),
+        timestamp: new Date().toISOString(),
+        role: 'user',
+        content: userMessage,
+        metadata: { isWizardUserResponse: true },
+      };
+
+      // Get next steps from the wizard
+      const nextSteps = remainingWizardSteps.length > 0
+        ? remainingWizardSteps
+        : getNextSteps(wizardState.eventType, updatedAnswers, field);
+
+      if (nextSteps.length > 0) {
+        const nextStep = nextSteps[0];
+        const remaining = nextSteps.slice(1);
+
+        const assistantMsg: ChatMessage = {
+          id: generateUUID(),
+          timestamp: new Date().toISOString(),
+          role: 'assistant',
+          content: nextStep.question,
+          metadata: {
+            isWizardMessage: true,
+            wizardButtons: nextStep.options,
+            wizardStepField: nextStep.field,
+          },
+        };
+
+        setWizardState({
+          ...wizardState,
+          currentStepIndex: wizardState.currentStepIndex + 1,
+          answers: updatedAnswers,
+        });
+        setRemainingWizardSteps(remaining);
+        onUpdateHistory([...messages, userMsg, assistantMsg]);
+      } else {
+        // Wizard complete
+        const confirmation = getWizardConfirmation(wizardState.eventType, updatedAnswers);
+        const summary = getWizardEventSummary(wizardState.eventType, updatedAnswers);
+        const eventData = wizardAnswersToEvent(wizardState.eventType, updatedAnswers);
+
+        const confirmMsg: ChatMessage = {
+          id: generateUUID(),
+          timestamp: new Date().toISOString(),
+          role: 'assistant',
+          content: confirmation,
+        };
+
+        if (onAddEvent) {
+          const eventId = onAddEvent(eventData as Omit<TimelineEvent, 'id' | 'timestamp'>);
+          if (eventId) {
+            setLoggedEvents(prev => [...prev, {
+              messageId: confirmMsg.id,
+              eventId,
+              summary,
+              createdAt: Date.now(),
+            }]);
+          }
+        }
+
+        setWizardState(null);
+        setRemainingWizardSteps([]);
+        onUpdateHistory([...messages, userMsg, confirmMsg]);
+      }
+      return;
+    }
+
     const userMsg: ChatMessage = {
       id: generateUUID(),
       timestamp: new Date().toISOString(),
@@ -600,65 +737,104 @@ Could you tell me more about what you're experiencing?`;
     // 2. Update answers
     const updatedAnswers = { ...wizardState.answers, [stepField]: option.value };
 
-    // 3. Check for timer launch — intercept before normal flow
-    if (option.value === 'start_timer') {
+    // 3. Check for timer launches — intercept before normal flow
+
+    // Breast timer: feedTimerSide = start_left / start_right
+    if (stepField === 'feedTimerSide' && (option.value === 'start_left' || option.value === 'start_right')) {
+      const side = option.value === 'start_left' ? 'left' : 'right' as 'left' | 'right';
       const now = new Date().toISOString();
-
-      if (wizardState.eventType === 'feed' && updatedAnswers.feedType === 'breast') {
-        // Launch breast timer with selected side
-        const side = (updatedAnswers.feedSide as 'left' | 'right') || 'left';
-        const timer: ActiveTimer = {
-          type: 'feed',
-          startTime: now,
-          feedType: 'breast',
-          currentSide: side,
-          leftStartTime: side === 'left' ? now : undefined,
-          leftDuration: 0,
-          rightStartTime: side === 'right' ? now : undefined,
-          rightDuration: 0,
-        };
-
-        const confirmMsg: ChatMessage = {
-          id: generateUUID(),
-          timestamp: now,
-          role: 'assistant',
-          content: `Timer started! I'll keep track of your ${side}-side feed.`,
-        };
-
-        if (onStartTimer) onStartTimer(timer);
-        if (onOpenQuickLogModal) onOpenQuickLogModal('feed');
-
-        setWizardState(null);
-        setRemainingWizardSteps([]);
-        onUpdateHistory([...messages, userMsg, confirmMsg]);
-        onClose();
-      } else if (wizardState.eventType === 'sleep') {
-        // Launch sleep timer
-        const timer: ActiveTimer = {
-          type: 'sleep',
-          startTime: now,
-          sleepType: (updatedAnswers.sleepType as 'nap' | 'night') || 'nap',
-        };
-
-        const label = updatedAnswers.sleepType === 'night' ? 'Bedtime' : 'Nap';
-        const confirmMsg: ChatMessage = {
-          id: generateUUID(),
-          timestamp: now,
-          role: 'assistant',
-          content: `${label} timer started! I'll keep track.`,
-        };
-
-        if (onStartTimer) onStartTimer(timer);
-
-        setWizardState(null);
-        setRemainingWizardSteps([]);
-        onUpdateHistory([...messages, userMsg, confirmMsg]);
-        onClose();
-      }
+      const timer: ActiveTimer = {
+        type: 'feed',
+        startTime: now,
+        feedType: 'breast',
+        currentSide: side,
+        leftStartTime: side === 'left' ? now : undefined,
+        leftDuration: 0,
+        rightStartTime: side === 'right' ? now : undefined,
+        rightDuration: 0,
+      };
+      const confirmMsg: ChatMessage = {
+        id: generateUUID(),
+        timestamp: now,
+        role: 'assistant',
+        content: `Timer started! Tracking ${side}-side feed.`,
+      };
+      if (onStartTimer) onStartTimer(timer);
+      if (onOpenQuickLogModal) onOpenQuickLogModal('feed');
+      setWizardState(null);
+      setRemainingWizardSteps([]);
+      onUpdateHistory([...messages, userMsg, confirmMsg]);
+      onClose();
       return;
     }
 
-    // 4. Normal flow — check remaining queued steps first, then get next steps
+    // Bottle timer: feedMode=start_feed + feedType=bottle
+    if (updatedAnswers.feedMode === 'start_feed' && stepField === 'feedType' && option.value === 'bottle') {
+      const now = new Date().toISOString();
+      const timer: ActiveTimer = {
+        type: 'feed',
+        startTime: now,
+        feedType: 'bottle',
+      };
+      const confirmMsg: ChatMessage = {
+        id: generateUUID(),
+        timestamp: now,
+        role: 'assistant',
+        content: `Bottle timer started! I'll keep track.`,
+      };
+      if (onStartTimer) onStartTimer(timer);
+      if (onOpenQuickLogModal) onOpenQuickLogModal('feed');
+      setWizardState(null);
+      setRemainingWizardSteps([]);
+      onUpdateHistory([...messages, userMsg, confirmMsg]);
+      onClose();
+      return;
+    }
+
+    // Sleep timer: sleepMode=start_sleep + sleepType answered
+    if (updatedAnswers.sleepMode === 'start_sleep' && stepField === 'sleepType') {
+      const now = new Date().toISOString();
+      const timer: ActiveTimer = {
+        type: 'sleep',
+        startTime: now,
+        sleepType: (option.value as 'nap' | 'night') || 'nap',
+      };
+      const label = option.value === 'night' ? 'Bedtime' : 'Nap';
+      const confirmMsg: ChatMessage = {
+        id: generateUUID(),
+        timestamp: now,
+        role: 'assistant',
+        content: `${label} timer started! I'll keep track.`,
+      };
+      if (onStartTimer) onStartTimer(timer);
+      setWizardState(null);
+      setRemainingWizardSteps([]);
+      onUpdateHistory([...messages, userMsg, confirmMsg]);
+      onClose();
+      return;
+    }
+
+    // 4. Custom input — switch to text entry mode
+    if (option.value === 'custom') {
+      const hints: Record<string, { hint: string; parser: 'duration' | 'time' | 'amount' }> = {
+        eventTime: { hint: 'Type a time like "2:30pm" or "45 min ago"', parser: 'time' },
+        feedDuration: { hint: 'Type minutes (e.g., "12")', parser: 'duration' },
+        sleepDuration: { hint: 'Type minutes (e.g., "45")', parser: 'duration' },
+        feedAmount: { hint: 'Type ounces (e.g., "4.5")', parser: 'amount' },
+      };
+      const hintConfig = hints[stepField] || { hint: 'Type your answer', parser: 'amount' as const };
+      setCustomInputMode({ field: stepField, ...hintConfig });
+      setWizardState({
+        ...wizardState,
+        currentStepIndex: wizardState.currentStepIndex + 1,
+        answers: updatedAnswers,
+      });
+      onUpdateHistory([...messages, userMsg]);
+      inputRef.current?.focus();
+      return;
+    }
+
+    // 5. Normal flow — check remaining queued steps first, then get next steps
     let nextSteps = remainingWizardSteps.length > 0
       ? remainingWizardSteps
       : getNextSteps(wizardState.eventType, updatedAnswers, stepField);
@@ -724,6 +900,7 @@ Could you tell me more about what you're experiencing?`;
     setInput('');
     setWizardState(null);
     setRemainingWizardSteps([]);
+    setCustomInputMode(null);
     setHasEnteredView(false);
     setTypewriterDone(false);
     setTypewriterText('');
@@ -941,7 +1118,7 @@ Could you tell me more about what you're experiencing?`;
             ref={inputRef}
             type="text"
             className="rosie-chat-input"
-            placeholder={isListening && interimTranscript ? interimTranscript : `Ask about ${baby.name}...`}
+            placeholder={customInputMode ? customInputMode.hint : isListening && interimTranscript ? interimTranscript : `Ask about ${baby.name}...`}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

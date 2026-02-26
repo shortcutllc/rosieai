@@ -196,33 +196,30 @@ const RosieAIContent: React.FC = () => {
 
   // Timer management handlers
   const handleStartTimer = (timer: ActiveTimer) => {
-    if (!data) return;
-    const updatedData = {
-      ...data,
-      activeTimer: timer,
-    };
-    saveData(updatedData);
-    setData(updatedData);
+    setData(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, activeTimer: timer };
+      saveData(updated);
+      return updated;
+    });
   };
 
   const handleStopTimer = useCallback(() => {
-    if (!data) return;
-    const updatedData = {
-      ...data,
-      activeTimer: undefined,
-    };
-    saveData(updatedData);
-    setData(updatedData);
-  }, [data]);
+    setData(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, activeTimer: undefined };
+      saveData(updated);
+      return updated;
+    });
+  }, []);
 
   const handleUpdateTimer = (timer: ActiveTimer) => {
-    if (!data) return;
-    const updatedData = {
-      ...data,
-      activeTimer: timer,
-    };
-    saveData(updatedData);
-    setData(updatedData);
+    setData(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, activeTimer: timer };
+      saveData(updated);
+      return updated;
+    });
   };
 
   const handleOnboardingComplete = (profile: BabyProfile) => {
@@ -237,21 +234,19 @@ const RosieAIContent: React.FC = () => {
   };
 
   const handleAddEvent = (event: Omit<TimelineEvent, 'id' | 'timestamp'>): string => {
-    if (!data) return '';
-
     const newEvent: TimelineEvent = {
       ...event,
       id: generateUUID(),
       timestamp: new Date().toISOString(),
     };
 
-    // Optimistic update - show immediately
-    const updatedData = {
-      ...data,
-      timeline: [newEvent, ...data.timeline],
-    };
-    setData(updatedData);
-    saveData(updatedData); // Cache locally
+    // Optimistic update - show immediately (functional to avoid stale closure)
+    setData(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, timeline: [newEvent, ...prev.timeline] };
+      saveData(updated);
+      return updated;
+    });
 
     // Save to Supabase if authenticated (fire and forget)
     if (user && currentBaby) {
@@ -266,15 +261,13 @@ const RosieAIContent: React.FC = () => {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
-    if (!data) return;
-
-    // Optimistic update - remove immediately
-    const updatedData = {
-      ...data,
-      timeline: data.timeline.filter(event => event.id !== eventId),
-    };
-    setData(updatedData);
-    saveData(updatedData);
+    // Optimistic update - remove immediately (functional to avoid stale closure)
+    setData(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, timeline: prev.timeline.filter(e => e.id !== eventId) };
+      saveData(updated);
+      return updated;
+    });
 
     // Delete from Supabase if authenticated
     if (user) {
@@ -304,15 +297,12 @@ const RosieAIContent: React.FC = () => {
   };
 
   const handleUpdateChatHistory = (messages: ChatMessage[]) => {
-    if (!data) return;
-
-    const updatedData = {
-      ...data,
-      chatHistory: messages,
-    };
-
-    saveData(updatedData);
-    setData(updatedData);
+    setData(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, chatHistory: messages };
+      saveData(updated);
+      return updated;
+    });
   };
 
   // Profile handlers
